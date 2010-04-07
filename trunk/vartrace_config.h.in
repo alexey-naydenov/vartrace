@@ -1,0 +1,2 @@
+#define vartrace_VERSION_MAJOR @vartrace_VERSION_MAJOR@
+#define vartrace_VERSION_MINOR @vartrace_VERSION_MINOR@
