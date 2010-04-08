@@ -37,23 +37,24 @@ namespace vartrace {
 template <typename T> class SimpleStack
 {
 public:
-    enum { DefaultStackSize = 32 };
+    enum {DefaultStackSize = 32};
     
     SimpleStack(unsigned size);
     virtual ~SimpleStack() {};
 
     bool empty() const;
+    unsigned size() const;
     void pop();
     void push(const T& value);
-    unsigned size() const;
     T& top();
 
     bool full() const;
+    unsigned maxSize() const;
     bool isError() const;
     void resetError();
 
 private:
-    unsigned size_;
+    unsigned maxSize_;
     unsigned vacant_;
     boost::scoped_array<T> data_;
     bool error_;
@@ -66,7 +67,7 @@ private:
 
 template <typename T>
 SimpleStack<T>::SimpleStack(unsigned size = SimpleStack::DefaultStackSize) :
-    size_(size), vacant_(0), data_(new T[size_]), error_(false) {}
+    maxSize_(size), vacant_(0), data_(new T[maxSize_]), error_(false) {}
 
 template <typename T>
 bool SimpleStack<T>::empty() const
@@ -75,9 +76,21 @@ bool SimpleStack<T>::empty() const
 }
 
 template <typename T>
+unsigned SimpleStack<T>::size() const
+{
+    return vacant_;
+}
+
+template <typename T>
+unsigned SimpleStack<T>::maxSize() const
+{
+    return maxSize_;
+}
+
+template <typename T>
 bool SimpleStack<T>::full() const
 {
-    return vacant_ == size_;
+    return vacant_ == maxSize_;
 }
 
 template <typename T>

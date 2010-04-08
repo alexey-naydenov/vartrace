@@ -15,7 +15,9 @@ using vartrace::SimpleStack;
 class IntStackTest : public ::testing::Test
 {
 public:
-    IntStackTest() : s3(5) {}
+    enum {TestStackSize = 5};
+
+    IntStackTest() : s3(TestStackSize) {}
 
     virtual void SetUp() {}
 
@@ -26,8 +28,12 @@ public:
     SimpleStack<int> s3;
 };
 
-TEST_F(IntStackTest, CreateDelete)
+TEST_F(IntStackTest, StateAfterCreation)
 {
+    EXPECT_EQ(s1.maxSize(), s1.DefaultStackSize);
+    EXPECT_EQ(s3.maxSize(), TestStackSize);
+    EXPECT_EQ(s1.size(), 0);
+    EXPECT_EQ(s3.size(), 0);
 }
 
 }  /* namespace */
