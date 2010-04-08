@@ -102,7 +102,7 @@ void SimpleStack<T>::pop()
 template <typename T>
 void SimpleStack<T>::push(const T& value)
 {
-    if (!this.full()) {
+    if (!this->full()) {
 	data_[vacant_] = value;
 	vacant_++;
     } else {
@@ -113,7 +113,7 @@ void SimpleStack<T>::push(const T& value)
 template <typename T>
 T& SimpleStack<T>::top()
 {
-    if (!this.empty()) {
+    if (!this->empty()) {
 	return data_[vacant_ - 1];
     } else {
 	error_ = true;
