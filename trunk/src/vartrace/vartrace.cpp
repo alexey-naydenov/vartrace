@@ -34,6 +34,6 @@ namespace vartrace {
 	length_((size*sizeof(StorageType))/sizeof(AlingmentType) + 1),
 	data_(new AlingmentType[length_]),
 	heads_(MaxMessageDepth)
-    {};
+    {}
 
 }

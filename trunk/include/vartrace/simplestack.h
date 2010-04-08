@@ -31,95 +31,95 @@
 
 namespace vartrace {
 
-    /*! Stores data by value.
-     *
-     * Tries to follow stl stack interface. */
-    template <typename T> class SimpleStack
-    {
-    public:
-	enum { DefaultStackSize = 32 };
+/*! Stores data by value.
+ *
+ * Tries to follow stl stack interface. */
+template <typename T> class SimpleStack
+{
+public:
+    enum { DefaultStackSize = 32 };
     
-	SimpleStack(unsigned size);
-	virtual ~SimpleStack();
+    SimpleStack(unsigned size);
+    virtual ~SimpleStack() {};
 
-	bool empty() const;
-	void pop();
-	void push(const T& value);
-	unsigned size() const;
-	T& top();
+    bool empty() const;
+    void pop();
+    void push(const T& value);
+    unsigned size() const;
+    T& top();
 
-	bool full() const;
-	bool isError() const;
-	void resetError();
+    bool full() const;
+    bool isError() const;
+    void resetError();
 
-    private:
-	unsigned size_;
-	unsigned vacant_;
-	boost::scoped_array<T> data_;
-	bool error_;
+private:
+    unsigned size_;
+    unsigned vacant_;
+    boost::scoped_array<T> data_;
+    bool error_;
 	
-	/*! Disabled default copy constructor. */
-	SimpleStack(const SimpleStack&);
-	/*! Disabled assingment operator. */
-	SimpleStack& operator=(const SimpleStack&);
-    };
+    /*! Disabled default copy constructor. */
+    SimpleStack(const SimpleStack&);
+    /*! Disabled assingment operator. */
+    SimpleStack& operator=(const SimpleStack&);
+};
 
-    template <typename T>
-    SimpleStack<T>::SimpleStack(unsigned size = SimpleStack::DefaultStackSize) :
-	size_(size), vacant_(0), data_(new T[size_]), error_(false) {};
+template <typename T>
+SimpleStack<T>::SimpleStack(unsigned size = SimpleStack::DefaultStackSize) :
+    size_(size), vacant_(0), data_(new T[size_]), error_(false) {}
 
-    template <typename T>
-    bool SimpleStack<T>::empty() const
-    {
-	return vacant_ == 0;
-    };
-
-    template <typename T>
-    bool SimpleStack<T>::full() const
-    {
-	return vacant_ == size_;
-    };
-
-    template <typename T>
-    void SimpleStack<T>::pop()
-    {
-	if (vacant_ > 0) vacant_--;
-    };
-
-    template <typename T>
-    void SimpleStack<T>::push(const T& value)
-    {
-	if (!this.full()) {
-	    data_[vacant_] = value;
-	    vacant_++;
-	} else {
-	    error_ = true;
-	}
-    };
-
-    template <typename T>
-    T& SimpleStack<T>::top()
-    {
-	if (!this.empty()) {
-	    return data_[vacant_ - 1];
-	} else {
-	    error_ = true;
-	    return data_[0];
-	}
-    };
-
-    template <typename T>
-    bool SimpleStack<T>::isError() const
-    {
-	return error_;
-    };
-
-    template <typename T>
-    void SimpleStack<T>::resetError()
-    {
-	error_ = false;
-    };
-    
+template <typename T>
+bool SimpleStack<T>::empty() const
+{
+    return vacant_ == 0;
 }
+
+template <typename T>
+bool SimpleStack<T>::full() const
+{
+    return vacant_ == size_;
+}
+
+template <typename T>
+void SimpleStack<T>::pop()
+{
+    if (vacant_ > 0) vacant_--;
+}
+
+template <typename T>
+void SimpleStack<T>::push(const T& value)
+{
+    if (!this.full()) {
+	data_[vacant_] = value;
+	vacant_++;
+    } else {
+	error_ = true;
+    }
+}
+
+template <typename T>
+T& SimpleStack<T>::top()
+{
+    if (!this.empty()) {
+	return data_[vacant_ - 1];
+    } else {
+	error_ = true;
+	return data_[0];
+    }
+}
+
+template <typename T>
+bool SimpleStack<T>::isError() const
+{
+    return error_;
+}
+
+template <typename T>
+void SimpleStack<T>::resetError()
+{
+    error_ = false;
+}
+    
+} /* namespace vartrace */
 
 #endif /* SIMPLESTACK_H */

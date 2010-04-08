@@ -34,29 +34,29 @@
 
 namespace vartrace {
 
-    /*! Class for variable trace objects. */
-    class VarTrace
-    {
-    public:
-	enum { MaxMessageDepth = 20 };
+/*! Class for variable trace objects. */
+class VarTrace
+{
+public:
+    enum { MaxMessageDepth = 20 };
 	
-	/*! Create a trace of given size. */
-	VarTrace(size_t size);
-	/*! Destructor. */
-	virtual ~VarTrace() {};
-    private:
-	/*! Length of the data array. */
-	unsigned length_;
-	/*! Pointer to the memory block that contains the trace. */
-	boost::scoped_array<AlingmentType> data_;
-	/*! Positions of heads for recursive messages. */
-	SimpleStack<unsigned> heads_;
+    /*! Create a trace of given size. */
+    VarTrace(size_t size);
+    /*! Destructor. */
+    virtual ~VarTrace() {}
+private:
+    /*! Length of the data array. */
+    unsigned length_;
+    /*! Pointer to the memory block that contains the trace. */
+    boost::scoped_array<AlingmentType> data_;
+    /*! Positions of heads for recursive messages. */
+    SimpleStack<unsigned> heads_;
 	
-	/*! Disabled default copy constructor. */
-	VarTrace(const VarTrace&);
-	/*! Disabled default assingment operator. */
-	VarTrace& operator=(const VarTrace&);
-    };
+    /*! Disabled default copy constructor. */
+    VarTrace(const VarTrace&);
+    /*! Disabled default assingment operator. */
+    VarTrace& operator=(const VarTrace&);
+};
 
 }
 

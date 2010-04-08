@@ -2,6 +2,8 @@ cmake_minimum_required (VERSION 2.6)
 
 project (vartrace)
 
+set(CMAKE_CXX_LINK_FLAGS "-Wl,--enable-auto-import")
+
 set (vartrace_VERSION_MAJOR 0)
 set (vartrace_VERSION_MINOR 1)
 
