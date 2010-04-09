@@ -32,16 +32,17 @@ public:
 
 TEST_F(VarTraceTest, LogMessage) 
 {
-    int i = 123;
+    int a = 0x123;
+    unsigned b = 0x456;
 
-    trace.logMessage(1, i, CopyTraits<int>::CopyCategory(),
+    trace.logMessage(1, a, CopyTraits<int>::CopyCategory(),
 		     CopyTraits<int>::DataTypeId,
 		     CopyTraits<int>::ObjectSize,
 		     CopyTraits<int>::ObjectLength);
-    trace.logMessage(2, i + 1, CopyTraits<int>::CopyCategory(),
-		     CopyTraits<int>::DataTypeId,
-		     CopyTraits<int>::ObjectSize,
-		     CopyTraits<int>::ObjectLength);
+    trace.logMessage(2, b, CopyTraits<unsigned>::CopyCategory(),
+		     CopyTraits<unsigned>::DataTypeId,
+		     CopyTraits<unsigned>::ObjectSize,
+		     CopyTraits<unsigned>::ObjectLength);
 
     for (int i = 0; i < 10; ++i) {
 	std::cout << std::hex << trace.data_[i] << std::endl;	
