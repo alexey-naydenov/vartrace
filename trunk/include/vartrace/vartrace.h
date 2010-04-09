@@ -35,6 +35,7 @@
 #include "copytraits.h"
 #include "tracetypes.h"
 #include "simplestack.h"
+#include "datatypeid.h"
 
 namespace vartrace {
 
@@ -68,6 +69,8 @@ public:
     /*! Destructor. */
     virtual ~VarTrace() {}
 
+    template <typename T> void log(MessageIdType message_id, const T& value);
+    
     template <typename T> void logMessage(
 	MessageIdType message_id, const T& value,
 	const SizeofCopyTag& copy_tag, unsigned data_id,
@@ -101,6 +104,16 @@ unsigned aligned_size()
 {
     return sizeof(T)/sizeof(AlignmentType)
 	+ (sizeof(T)%sizeof(AlignmentType) == 0 ? 0 : 1);
+}
+
+template <typename T>
+void VarTrace::log(MessageIdType message_id, const T& value) 
+{
+    logMessage(message_id, value,
+	       typename CopyTraits<T>::CopyCategory(),
+	       CopyTraits<T>::DataTypeId,
+	       CopyTraits<T>::ObjectSize,
+	       CopyTraits<T>::ObjectLength);
 }
 
 template <typename T>

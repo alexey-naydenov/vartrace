@@ -43,6 +43,7 @@ TEST_F(VarTraceTest, LogMessage)
 		     CopyTraits<unsigned>::DataTypeId,
 		     CopyTraits<unsigned>::ObjectSize,
 		     CopyTraits<unsigned>::ObjectLength);
+    trace.log(2, b);
 
     for (int i = 0; i < 10; ++i) {
 	std::cout << std::hex << trace.data_[i] << std::endl;	
