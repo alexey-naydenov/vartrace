@@ -28,6 +28,7 @@
 #define COPYTRAITS_H
 
 #include "tracetypes.h"
+#include "datatypeid.h"
 
 namespace vartrace {
 /*! Sizeof memory segment should be copied into the trace. */
@@ -47,7 +48,7 @@ template<typename T> struct CopyTraits
     /*! Size of an object to copy. */
     enum
     {
-	DataTypeId = 1,
+	DataTypeId = DataType2Int<T>::id,
 	ObjectSize = sizeof(T),
 	ObjectLength = (sizeof(T)/sizeof(AlignmentType)
 			 + (sizeof(T)%sizeof(AlignmentType) == 0 ? 0 : 1))
