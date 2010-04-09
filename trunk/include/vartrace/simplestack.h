@@ -38,25 +38,43 @@ template <typename T> class SimpleStack
 {
 public:
     enum {DefaultStackSize = 32};
-    
+
+    /*! Creates a stack with given maximum size.
+     *
+     * \param size maximum number of elements in the stack, default
+     * value is 32.*/
     SimpleStack(unsigned size);
     virtual ~SimpleStack() {};
 
+    /*! Checks if stack contains any elements. */
     bool empty() const;
+    /*! Returns number of elements in the stack. */
     unsigned size() const;
+    /*! Removes one element from the stack. */
     void pop();
+    /*! Adds an element to the stack. */
     void push(const T& value);
+    /*! Returns the value of the element at the head of the stack. */
     T& top();
 
+    /*! Checks if stack is full. */
     bool full() const;
+    /*! Returns maximum number of elements that can be stored in the stack. */
     unsigned maxSize() const;
+    /*! Check if some errors occured during stack manipulation since
+     *  last reset. */
     bool isError() const;
+    /*! Resets error flag. */
     void resetError();
 
 private:
+    /*! Maximum number of elements stored in the stack. */
     unsigned maxSize_;
+    /*! The index of the top of the stack. */
     unsigned vacant_;
+    /*! Stack content. */
     boost::scoped_array<T> data_;
+    /*! Error flag. */
     bool error_;
 	
     /*! Disabled default copy constructor. */

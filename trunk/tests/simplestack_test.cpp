@@ -36,6 +36,7 @@ TEST_F(IntStackTest, StateAfterCreation)
     EXPECT_EQ(s3.size(), 0);
 }
 
+/*! Test single push/pop. */
 TEST_F(IntStackTest, PushPop)
 {
     s1.top();
@@ -51,6 +52,7 @@ TEST_F(IntStackTest, PushPop)
     EXPECT_FALSE(s1.isError());
 }
 
+/*! Test filling up stack completely and emptying it. */
 TEST_F(IntStackTest, MultiPushPop) 
 {
     for (int i = 0; i < s1.maxSize(); ++i) {
@@ -66,6 +68,7 @@ TEST_F(IntStackTest, MultiPushPop)
     }
 }
 
+/*! Test stack overflow. */
 TEST_F(IntStackTest, PushOverflow) 
 {
     for (int i = 0; i < s3.maxSize(); ++i) {
