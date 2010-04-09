@@ -134,7 +134,7 @@ void VarTrace::logMessage(MessageIdType message_id, const T& value,
     *(reinterpret_cast<DataIdType*>(tail)) = data_id;
     tail += sizeof(DataIdType);
 
-    std::memcpy(tail, &value, sizeof(T));
+    std::memcpy(tail, &value, object_size);
     
     tail_ += message_length;
 }

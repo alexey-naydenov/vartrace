@@ -34,18 +34,13 @@ TEST_F(VarTraceTest, LogMessage)
 {
     int a = 0x123;
     unsigned b = 0x456;
+    double d = 3.14;
 
-    trace.logMessage(1, a, CopyTraits<int>::CopyCategory(),
-		     CopyTraits<int>::DataTypeId,
-		     CopyTraits<int>::ObjectSize,
-		     CopyTraits<int>::ObjectLength);
-    trace.logMessage(2, b, CopyTraits<unsigned>::CopyCategory(),
-		     CopyTraits<unsigned>::DataTypeId,
-		     CopyTraits<unsigned>::ObjectSize,
-		     CopyTraits<unsigned>::ObjectLength);
+    trace.log(1, a);
     trace.log(2, b);
+    trace.log(3, d);
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 20; ++i) {
 	std::cout << std::hex << trace.data_[i] << std::endl;	
     }
 }

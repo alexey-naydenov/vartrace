@@ -45,7 +45,7 @@ template<typename T> struct CopyTraits
 {
     /*! Describes how to copy an object into the log. */
     typedef SizeofCopyTag CopyCategory;
-    /*! Size of an object to copy. */
+    /*! Size and data type information. */
     enum
     {
 	DataTypeId = DataType2Int<T>::id,
