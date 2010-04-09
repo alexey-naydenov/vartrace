@@ -11,6 +11,7 @@
 namespace {
 
 using vartrace::VarTrace;
+using vartrace::CopyTraits;
 using vartrace::aligned_size;
 
 typedef struct { char c[3]; } c3Type;
@@ -33,8 +34,10 @@ TEST_F(VarTraceTest, LogMessage)
 {
     int i = 123;
 
-    trace.logMessage(1, i);
-    trace.logMessage(2, i + 1);
+    trace.logMessage(1, i, CopyTraits<int>::CopyCategory(),
+		     CopyTraits<int>::ObjectLength);
+    trace.logMessage(2, i + 1, CopyTraits<int>::CopyCategory(),
+		     CopyTraits<int>::ObjectLength);
 
     for (int i = 0; i < 10; ++i) {
 	std::cout << std::hex << trace.data_[i] << std::endl;	

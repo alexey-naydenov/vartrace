@@ -27,24 +27,27 @@
 #ifndef COPYTRAITS_H
 #define COPYTRAITS_H
 
+#include "tracetypes.h"
+
 namespace vartrace {
-    /*! Sizeof memory segment should be copied into the trace. */
-    struct SizeofCopyTag {};
+/*! Sizeof memory segment should be copied into the trace. */
+struct SizeofCopyTag {};
 
-    /*! Object will copy itself into the trace. */
-    struct SelfCopyTag {};
+/*! Object will copy itself into the trace. */
+struct SelfCopyTag : public SizeofCopyTag {};
 
-    /*! Object can be copied through an assignment. */
-    struct AssignmentCopyTag {};
+/*! Object can be copied through an assignment. */
+struct AssignmentCopyTag : public SizeofCopyTag {};
     
-    /*! Trait class that describes how to add an object into the trace. */
-    template<typename ObjT> struct CopyTraits
-    {
-	/*! Describes how to copy an object into the log. */
-	typedef SizeofCopyTag CopyCategory;
-	/*! Size of an object to copy. */
-	enum { ObjectSize = sizeof(ObjT) };
-    };
+/*! Trait class that describes how to add an object into the trace. */
+template<typename T> struct CopyTraits
+{
+    /*! Describes how to copy an object into the log. */
+    typedef SizeofCopyTag CopyCategory;
+    /*! Size of an object to copy. */
+    enum { ObjectLength = (sizeof(T)/sizeof(AlignmentType)
+			 + (sizeof(T)%sizeof(AlignmentType) == 0 ? 0 : 1)) };
+};
 
 }
 

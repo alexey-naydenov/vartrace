@@ -32,6 +32,7 @@
 
 #include <boost/scoped_array.hpp>
 
+#include "copytraits.h"
 #include "tracetypes.h"
 #include "simplestack.h"
 
@@ -67,8 +68,9 @@ public:
     /*! Destructor. */
     virtual ~VarTrace() {}
 
-    template <typename T> void logMessage(MessageIdType message_id,
-					  const T& value);
+    template <typename T> void logMessage(
+	MessageIdType message_id, const T& value,
+	const SizeofCopyTag& copy_tag, unsigned object_length);
     
 public: /* private */
     /*! Length of the data array. */
@@ -101,9 +103,10 @@ unsigned aligned_size()
 }
 
 template <typename T>
-void VarTrace::logMessage(MessageIdType message_id, const T& value) 
+void VarTrace::logMessage(MessageIdType message_id, const T& value,
+			  const SizeofCopyTag& copy_tag, unsigned object_length)
 {
-    static const unsigned message_length = HeaderLength + aligned_size<T>();
+    static const unsigned message_length = HeaderLength + object_length;
 
     ShortestType *tail = reinterpret_cast<ShortestType*>(&data_[tail_]);
 
