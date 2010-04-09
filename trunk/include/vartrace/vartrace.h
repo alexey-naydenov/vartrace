@@ -70,7 +70,8 @@ public:
 
     template <typename T> void logMessage(
 	MessageIdType message_id, const T& value,
-	const SizeofCopyTag& copy_tag, unsigned object_length);
+	const SizeofCopyTag& copy_tag, unsigned data_id,
+	unsigned object_size, unsigned object_length);
     
 public: /* private */
     /*! Length of the data array. */
@@ -104,7 +105,8 @@ unsigned aligned_size()
 
 template <typename T>
 void VarTrace::logMessage(MessageIdType message_id, const T& value,
-			  const SizeofCopyTag& copy_tag, unsigned object_length)
+			  const SizeofCopyTag& copy_tag, unsigned data_id,
+			  unsigned object_size, unsigned object_length)
 {
     static const unsigned message_length = HeaderLength + object_length;
 
@@ -112,11 +114,11 @@ void VarTrace::logMessage(MessageIdType message_id, const T& value,
 
     *(reinterpret_cast<TimestampType*>(tail)) = getTimestamp();
     tail += sizeof(TimestampType);
-    *(reinterpret_cast<LengthType*>(tail)) = sizeof(T);
+    *(reinterpret_cast<LengthType*>(tail)) = object_size;
     tail += sizeof(LengthType);
     *(reinterpret_cast<MessageIdType*>(tail)) = message_id;
     tail += sizeof(MessageIdType);
-    *(reinterpret_cast<DataIdType*>(tail)) = 1;
+    *(reinterpret_cast<DataIdType*>(tail)) = data_id;
     tail += sizeof(DataIdType);
 
     std::memcpy(tail, &value, sizeof(T));

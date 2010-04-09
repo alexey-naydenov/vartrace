@@ -45,8 +45,13 @@ template<typename T> struct CopyTraits
     /*! Describes how to copy an object into the log. */
     typedef SizeofCopyTag CopyCategory;
     /*! Size of an object to copy. */
-    enum { ObjectLength = (sizeof(T)/sizeof(AlignmentType)
-			 + (sizeof(T)%sizeof(AlignmentType) == 0 ? 0 : 1)) };
+    enum
+    {
+	DataTypeId = 1,
+	ObjectSize = sizeof(T),
+	ObjectLength = (sizeof(T)/sizeof(AlignmentType)
+			 + (sizeof(T)%sizeof(AlignmentType) == 0 ? 0 : 1))
+    };
 };
 
 }

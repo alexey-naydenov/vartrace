@@ -35,8 +35,12 @@ TEST_F(VarTraceTest, LogMessage)
     int i = 123;
 
     trace.logMessage(1, i, CopyTraits<int>::CopyCategory(),
+		     CopyTraits<int>::DataTypeId,
+		     CopyTraits<int>::ObjectSize,
 		     CopyTraits<int>::ObjectLength);
     trace.logMessage(2, i + 1, CopyTraits<int>::CopyCategory(),
+		     CopyTraits<int>::DataTypeId,
+		     CopyTraits<int>::ObjectSize,
 		     CopyTraits<int>::ObjectLength);
 
     for (int i = 0; i < 10; ++i) {
