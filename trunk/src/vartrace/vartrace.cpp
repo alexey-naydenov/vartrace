@@ -30,12 +30,21 @@
 
 namespace vartrace {
 
+TimestampType incremental_timestamp() 
+{
+    static TimestampType timestamp = 0;
+    return timestamp++;
+}
+
 VarTrace::VarTrace(size_t size) :
     length_(size/sizeof(AlignmentType) + 1),
     data_(new AlignmentType[length_]),
-    heads_(MaxMessageDepth),
-    tail_(0), wrap_(0)
-{}
+    heads_(MaxNestingDepth),
+    tail_(0), wrap_(length_),
+    getTimestamp(incremental_timestamp)
+{
+    heads_.push(0);
+}
 
 
 

@@ -28,18 +28,21 @@
 #define TRACETYPES_H
 
 namespace vartrace {
-    /*! Sets type for minimal unit of data. */
-    typedef unsigned char ShortestType;
-    /*! Sets alingment of message boundaries and data fields. */
-    typedef unsigned AlignmentType;
-    /*! Timestamp type. */
-    typedef unsigned TimestampType;
-    /*! Type to store message size. */
-    typedef unsigned short LengthType;
-    /*! Message type fields type. */
-    typedef unsigned char MessageIdType;
-    /*! Data type fields type. */
-    typedef unsigned char DataIdType;
+/*! Sets type for minimal unit of data. */
+typedef unsigned char ShortestType;
+/*! Sets alingment of message boundaries and data fields. */
+typedef unsigned AlignmentType;
+/*! Timestamp type. */
+typedef unsigned TimestampType;
+/*! Type to store message size. */
+typedef unsigned short LengthType;
+/*! Message type fields type. */
+typedef unsigned char MessageIdType;
+/*! Data type fields type. */
+typedef unsigned char DataIdType;
+
+/*! Function type for timestamps. */
+typedef TimestampType (*TimestampFunctionType) ();
 }
 
 #endif /* TRACETYPES_H */

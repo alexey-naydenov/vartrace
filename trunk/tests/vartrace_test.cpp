@@ -31,27 +31,25 @@ public:
 
 TEST_F(VarTraceTest, LogMessage) 
 {
-    
+    int i = 123;
+
+    trace.logMessage(1, i);
+    trace.logMessage(2, i + 1);
+
+    for (int i = 0; i < 10; ++i) {
+	std::cout << std::hex << trace.data_[i] << std::endl;	
+    }
 }
 
 TEST(AlignedSizeTest, SmallValues) 
 {
-    char c;
-    short s;
-    int i;
-    long long l;
-    double d;
-
-    c3Type c3;
-    c5Type c5;
-    
-    EXPECT_EQ(aligned_size<char>(c), 1);
-    EXPECT_EQ(aligned_size<short>(s), 1);
-    EXPECT_EQ(aligned_size<int>(i), 1);
-    EXPECT_EQ(aligned_size<long long>(l), 2);
-    EXPECT_EQ(aligned_size<double>(d), 2);
-    EXPECT_EQ(aligned_size<c3Type>(c3), 1);
-    EXPECT_EQ(aligned_size<c5Type>(c5), 2);
+    EXPECT_EQ(aligned_size<char>(), 1);
+    EXPECT_EQ(aligned_size<short>(), 1);
+    EXPECT_EQ(aligned_size<int>(), 1);
+    EXPECT_EQ(aligned_size<long long>(), 2);
+    EXPECT_EQ(aligned_size<double>(), 2);
+    EXPECT_EQ(aligned_size<c3Type>(), 1);
+    EXPECT_EQ(aligned_size<c5Type>(), 2);
 }
 
 } /* namespace */

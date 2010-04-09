@@ -28,6 +28,7 @@
 #define VARTRACE_H
 
 #include <stddef.h>
+#include <cstring>
 
 #include <boost/scoped_array.hpp>
 
@@ -40,26 +41,49 @@ namespace vartrace {
 class VarTrace
 {
 public:
-    enum { MaxMessageDepth = 20 };
-	
+    enum {MaxNestingDepth = 20 /*!< Maximum message nesting depth. */ };
+    enum
+    {
+	/*! Size of a header without a timestamp. */
+	NestedHeaderSize = (sizeof(LengthType) + sizeof(MessageIdType)
+			    + sizeof(DataIdType)),
+	/*! Size of a header with a timestamp. */
+	HeaderSize = (sizeof(TimestampType) + sizeof(LengthType)
+		      + sizeof(MessageIdType) + sizeof(DataIdType))
+    };
+    enum
+    {
+	/*! Length of a header without a timestamp. */
+	NestedHeaderLength = (NestedHeaderSize/sizeof(AlignmentType)
+			      + (NestedHeaderSize%sizeof(AlignmentType) == 0
+				 ? 0 : 1)),
+	/*! Length of a header with a timestamp. */
+	HeaderLength = (HeaderSize/sizeof(AlignmentType)
+			+ (HeaderSize%sizeof(AlignmentType) == 0 ? 0 : 1))
+    };
+
     /*! Create a trace of a given size. */
     VarTrace(size_t size);
     /*! Destructor. */
     virtual ~VarTrace() {}
 
-    template <typename T> void logMessage(const T& value);
+    template <typename T> void logMessage(MessageIdType message_id,
+					  const T& value);
     
-private:
+public: /* private */
     /*! Length of the data array. */
     unsigned length_;
     /*! Pointer to the memory block that contains the trace. */
     boost::scoped_array<AlignmentType> data_;
     /*! Positions of heads for recursive messages. */
     SimpleStack<unsigned> heads_;
-    /*! End of the last message. */
+    /*! Index of the element after the end of the last message. */
     unsigned tail_;
     /*! Position of the trace wrap. */
     unsigned wrap_;
+
+    /*! Pointer to function that returns timestamp. */
+    TimestampFunctionType getTimestamp;
 
     /*! Disabled default copy constructor. */
     VarTrace(const VarTrace&);
@@ -70,15 +94,31 @@ private:
 /*! Calculates the number of AlingmentType elements required to store
     an object. */
 template <typename T>
-unsigned aligned_size(const T& value) 
+unsigned aligned_size()
 {
-    return sizeof(value)/sizeof(AlignmentType)
-	+ (sizeof(value)%sizeof(AlignmentType) == 0 ? 0 : 1);
+    return sizeof(T)/sizeof(AlignmentType)
+	+ (sizeof(T)%sizeof(AlignmentType) == 0 ? 0 : 1);
 }
 
 template <typename T>
-void VarTrace::logMessage(const T& value) 
+void VarTrace::logMessage(MessageIdType message_id, const T& value) 
 {
+    static const unsigned message_length = HeaderLength + aligned_size<T>();
+
+    ShortestType *tail = reinterpret_cast<ShortestType*>(&data_[tail_]);
+
+    *(reinterpret_cast<TimestampType*>(tail)) = getTimestamp();
+    tail += sizeof(TimestampType);
+    *(reinterpret_cast<LengthType*>(tail)) = sizeof(T);
+    tail += sizeof(LengthType);
+    *(reinterpret_cast<MessageIdType*>(tail)) = message_id;
+    tail += sizeof(MessageIdType);
+    *(reinterpret_cast<DataIdType*>(tail)) = 1;
+    tail += sizeof(DataIdType);
+
+    std::memcpy(tail, &value, sizeof(T));
+    
+    tail_ += message_length;
 }
 
 }
