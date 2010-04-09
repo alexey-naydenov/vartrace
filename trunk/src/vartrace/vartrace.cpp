@@ -30,10 +30,13 @@
 
 namespace vartrace {
 
-    VarTrace::VarTrace(size_t size) :
-	length_((size*sizeof(StorageType))/sizeof(AlingmentType) + 1),
-	data_(new AlingmentType[length_]),
-	heads_(MaxMessageDepth)
-    {}
+VarTrace::VarTrace(size_t size) :
+    length_(size/sizeof(AlignmentType) + 1),
+    data_(new AlignmentType[length_]),
+    heads_(MaxMessageDepth),
+    tail_(0), wrap_(0)
+{}
+
+
 
 }

@@ -27,6 +27,8 @@
 #ifndef VARTRACE_H
 #define VARTRACE_H
 
+#include <stddef.h>
+
 #include <boost/scoped_array.hpp>
 
 #include "tracetypes.h"
@@ -40,23 +42,44 @@ class VarTrace
 public:
     enum { MaxMessageDepth = 20 };
 	
-    /*! Create a trace of given size. */
+    /*! Create a trace of a given size. */
     VarTrace(size_t size);
     /*! Destructor. */
     virtual ~VarTrace() {}
+
+    template <typename T> void logMessage(const T& value);
+    
 private:
     /*! Length of the data array. */
     unsigned length_;
     /*! Pointer to the memory block that contains the trace. */
-    boost::scoped_array<AlingmentType> data_;
+    boost::scoped_array<AlignmentType> data_;
     /*! Positions of heads for recursive messages. */
     SimpleStack<unsigned> heads_;
-	
+    /*! End of the last message. */
+    unsigned tail_;
+    /*! Position of the trace wrap. */
+    unsigned wrap_;
+
     /*! Disabled default copy constructor. */
     VarTrace(const VarTrace&);
     /*! Disabled default assingment operator. */
     VarTrace& operator=(const VarTrace&);
 };
+
+/*! Calculates the number of AlingmentType elements required to store
+    an object. */
+template <typename T>
+unsigned aligned_size(const T& value) 
+{
+    return sizeof(value)/sizeof(AlignmentType)
+	+ (sizeof(value)%sizeof(AlignmentType) == 0 ? 0 : 1);
+}
+
+template <typename T>
+void VarTrace::logMessage(const T& value) 
+{
+}
 
 }
 

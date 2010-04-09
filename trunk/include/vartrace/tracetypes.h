@@ -28,10 +28,10 @@
 #define TRACETYPES_H
 
 namespace vartrace {
-    /*! Sets type minimal unit of data. */
-    typedef unsigned char StorageType;
+    /*! Sets type for minimal unit of data. */
+    typedef unsigned char ShortestType;
     /*! Sets alingment of message boundaries and data fields. */
-    typedef unsigned AlingmentType;
+    typedef unsigned AlignmentType;
     /*! Timestamp type. */
     typedef unsigned TimestampType;
     /*! Type to store message size. */

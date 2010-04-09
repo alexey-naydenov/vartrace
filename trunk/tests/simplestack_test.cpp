@@ -28,6 +28,7 @@ public:
     SimpleStack<int> s3;
 };
 
+/*! Check state after creation. */
 TEST_F(IntStackTest, StateAfterCreation)
 {
     EXPECT_EQ(s1.maxSize(), s1.DefaultStackSize);

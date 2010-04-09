@@ -27,6 +27,8 @@
 #ifndef SIMPLESTACK_H
 #define SIMPLESTACK_H
 
+#include <stddef.h>
+
 #include <boost/scoped_array.hpp>
 
 namespace vartrace {
@@ -43,7 +45,7 @@ public:
      *
      * \param size maximum number of elements in the stack, default
      * value is 32.*/
-    SimpleStack(unsigned size);
+    SimpleStack(unsigned size = SimpleStack::DefaultStackSize);
     virtual ~SimpleStack() {};
 
     /*! Checks if stack contains any elements. */
@@ -84,7 +86,7 @@ private:
 };
 
 template <typename T>
-SimpleStack<T>::SimpleStack(unsigned size = SimpleStack::DefaultStackSize) :
+SimpleStack<T>::SimpleStack(unsigned size) :
     maxSize_(size), vacant_(0), data_(new T[maxSize_]), error_(false) {}
 
 template <typename T>
