@@ -27,7 +27,9 @@
 #ifndef DATATYPEID_H
 #define DATATYPEID_H
 
-template <typename T> struct DataType2Int {enum {id = 0xff};};
+namespace vartrace {
+
+template <typename T, unsigned L = 1> struct DataType2Int {enum {id = 0xff};};
 
 template <> struct DataType2Int<char> {enum {id = 0x1};};
 template <> struct DataType2Int<unsigned char> {enum {id = 0x2};};
@@ -43,6 +45,34 @@ template <> struct DataType2Int<unsigned long long> {enum {id = 0xa};};
 template <> struct DataType2Int<float> {enum {id = 0xf};};
 template <> struct DataType2Int<double> {enum {id = 0xd};};
 
+
+template <unsigned L>
+struct DataType2Int<char[L]> {enum {id = 0x11};};
+template <unsigned L>
+struct DataType2Int<unsigned char[L]> {enum {id = 0x12};};
+template <unsigned L>
+struct DataType2Int<short[L]> {enum {id = 0x13};};
+template <unsigned L>
+struct DataType2Int<unsigned short[L]> {enum {id = 0x14};};
+template <unsigned L>
+struct DataType2Int<int[L]> {enum {id = 0x15};};
+template <unsigned L>
+struct DataType2Int<unsigned int[L]> {enum {id = 0x16};};
+template <unsigned L>
+struct DataType2Int<long[L]> {enum {id = 0x17};};
+template <unsigned L>
+struct DataType2Int<unsigned long[L]> {enum {id = 0x18};};
+template <unsigned L>
+struct DataType2Int<long long[L]> {enum {id = 0x19};};
+template <unsigned L>
+struct DataType2Int<unsigned long long[L]> {enum {id = 0x1a};};
+
+template <unsigned L>
+struct DataType2Int<float[L]> {enum {id = 0x1f};};
+template <unsigned L>
+struct DataType2Int<double[L]> {enum {id = 0x1d};};
 /* id = 0 reserved for combined types */
+
+}
 
 #endif /* DATATYPEID_H */

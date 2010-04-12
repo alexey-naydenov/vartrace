@@ -36,6 +36,7 @@
 #include "tracetypes.h"
 #include "simplestack.h"
 #include "datatypeid.h"
+#include "datatraits.h"
 
 namespace vartrace {
 
@@ -51,10 +52,7 @@ public:
 			    + sizeof(DataIdType)),
 	/*! Size of a header with a timestamp. */
 	HeaderSize = (sizeof(TimestampType) + sizeof(LengthType)
-		      + sizeof(MessageIdType) + sizeof(DataIdType))
-    };
-    enum
-    {
+		      + sizeof(MessageIdType) + sizeof(DataIdType)),
 	/*! Length of a header without a timestamp. */
 	NestedHeaderLength = (NestedHeaderSize/sizeof(AlignmentType)
 			      + (NestedHeaderSize%sizeof(AlignmentType) == 0
@@ -74,7 +72,7 @@ public:
     template <typename T> void logMessage(
 	MessageIdType message_id, const T& value,
 	const SizeofCopyTag& copy_tag, unsigned data_id,
-	unsigned object_size, unsigned object_length);
+	unsigned object_size);
     
 public: /* private */
     /*! Length of the data array. */
@@ -106,22 +104,23 @@ unsigned aligned_size()
 	+ (sizeof(T)%sizeof(AlignmentType) == 0 ? 0 : 1);
 }
 
+/*! Calculates the number of AlingmentType elements required to store
+    an object. */
+unsigned message_length(unsigned size);
+
 template <typename T>
 void VarTrace::log(MessageIdType message_id, const T& value) 
 {
-    logMessage(message_id, value,
-	       typename CopyTraits<T>::CopyCategory(),
-	       CopyTraits<T>::DataTypeId,
-	       CopyTraits<T>::ObjectSize,
-	       CopyTraits<T>::ObjectLength);
+    logMessage(message_id, value, typename CopyTraits<T>::CopyCategory(),
+	       DataTypeTraits<T>::DataTypeId, DataTypeTraits<T>::TypeSize);
 }
 
 template <typename T>
 void VarTrace::logMessage(MessageIdType message_id, const T& value,
 			  const SizeofCopyTag& copy_tag, unsigned data_id,
-			  unsigned object_size, unsigned object_length)
+			  unsigned object_size)
 {
-    static const unsigned message_length = HeaderLength + object_length;
+    unsigned length = message_length(object_size);
 
     ShortestType *tail = reinterpret_cast<ShortestType*>(&data_[tail_]);
 
@@ -136,7 +135,7 @@ void VarTrace::logMessage(MessageIdType message_id, const T& value,
 
     std::memcpy(tail, &value, object_size);
     
-    tail_ += message_length;
+    tail_ += length;
 }
 
 }

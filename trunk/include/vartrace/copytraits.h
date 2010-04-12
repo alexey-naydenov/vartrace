@@ -21,7 +21,7 @@
  */
 
 /*! \file copytraits.h 
- * Traits that describe copying data into log. 
+ * Traits that describe how to copy data into a log. 
  */
 
 #ifndef COPYTRAITS_H
@@ -37,6 +37,9 @@ struct SizeofCopyTag {};
 /*! Object will copy itself into the trace. */
 struct SelfCopyTag : public SizeofCopyTag {};
 
+/*! Object is a tuple, create subtrace. */
+struct TupleCopyTag : public SizeofCopyTag {};
+
 /*! Object can be copied through an assignment. */
 struct AssignmentCopyTag : public SizeofCopyTag {};
     
@@ -45,14 +48,6 @@ template<typename T> struct CopyTraits
 {
     /*! Describes how to copy an object into the log. */
     typedef SizeofCopyTag CopyCategory;
-    /*! Size and data type information. */
-    enum
-    {
-	DataTypeId = DataType2Int<T>::id,
-	ObjectSize = sizeof(T),
-	ObjectLength = (sizeof(T)/sizeof(AlignmentType)
-			 + (sizeof(T)%sizeof(AlignmentType) == 0 ? 0 : 1))
-    };
 };
 
 }

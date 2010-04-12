@@ -30,6 +30,12 @@
 
 namespace vartrace {
 
+unsigned message_length(unsigned size)
+{
+    return VarTrace::HeaderLength + size/sizeof(AlignmentType)
+	   + (size%sizeof(AlignmentType) == 0 ? 0 : 1);
+}
+
 TimestampType incremental_timestamp() 
 {
     static TimestampType timestamp = 0;
@@ -45,7 +51,5 @@ VarTrace::VarTrace(size_t size) :
 {
     heads_.push(0);
 }
-
-
 
 }

@@ -8,7 +8,7 @@
 /*! \file vartrace_test.cpp
  * Main test for the vartrace project. */
 
-namespace {
+//namespace {
 
 using vartrace::VarTrace;
 using vartrace::CopyTraits;
@@ -16,6 +16,22 @@ using vartrace::aligned_size;
 
 typedef struct { char c[3]; } c3Type;
 typedef struct { char c[5]; } c5Type;
+
+// typedef double MyDouble;
+// template <> struct DataType2Int<MyDouble> {enum {id = 0xdd};};
+namespace vartrace {
+//template <> struct DataType2Int<c5Type> {enum {id = 0xc5};};
+template<> struct DataTypeTraits<c5Type>
+{
+    enum
+    {
+	DataTypeId = 0xc5,
+	TypeSize = 10
+    };
+};
+
+}
+
 
 class VarTraceTest : public ::testing::Test
 {
@@ -45,6 +61,26 @@ TEST_F(VarTraceTest, LogMessage)
     }
 }
 
+TEST_F(VarTraceTest, LogCustomType) 
+{
+
+    double d = 3.14;
+    c5Type c5 = {{0x11,0x22,0x33,0x44,0x55}};
+    int i = 0x42;
+    int c1[] = {0xaa};
+    int ct[] = {0x66, 0x77, 0x88, 0x99};
+    int *ip;
+    
+
+    trace.log(3, c1);
+    trace.log(5, i);
+    trace.log(6, ct);
+
+    for (int i = 0; i < 20; ++i) {
+	std::cout << std::hex << trace.data_[i] << std::endl;	
+    }
+}
+
 TEST(AlignedSizeTest, SmallValues) 
 {
     EXPECT_EQ(aligned_size<char>(), 1);
@@ -56,7 +92,7 @@ TEST(AlignedSizeTest, SmallValues)
     EXPECT_EQ(aligned_size<c5Type>(), 2);
 }
 
-} /* namespace */
+//} /* namespace */
 
 int main (int argc, char *argv[])
 {
