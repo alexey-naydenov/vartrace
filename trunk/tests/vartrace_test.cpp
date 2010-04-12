@@ -8,8 +8,6 @@
 /*! \file vartrace_test.cpp
  * Main test for the vartrace project. */
 
-//namespace {
-
 using vartrace::VarTrace;
 using vartrace::CopyTraits;
 using vartrace::aligned_size;
@@ -17,16 +15,16 @@ using vartrace::aligned_size;
 typedef struct { char c[3]; } c3Type;
 typedef struct { char c[5]; } c5Type;
 
-// typedef double MyDouble;
-// template <> struct DataType2Int<MyDouble> {enum {id = 0xdd};};
 namespace vartrace {
-//template <> struct DataType2Int<c5Type> {enum {id = 0xc5};};
+
+template<> struct DataType2Int<c3Type> { enum {id = 0xc3}; };
+
 template<> struct DataTypeTraits<c5Type>
 {
     enum
     {
 	DataTypeId = 0xc5,
-	TypeSize = 10
+	TypeSize = 3
     };
 };
 
@@ -46,39 +44,57 @@ public:
     VarTrace trace;
 };
 
-TEST_F(VarTraceTest, LogMessage) 
+TEST_F(VarTraceTest, LogSimpleType) 
 {
-    int a = 0x123;
-    unsigned b = 0x456;
-    double d = 3.14;
+    unsigned char a = 0x11;
+    unsigned b = 0x222222;
+    vartrace::AlignmentType *p = trace.rawData();
 
     trace.log(1, a);
     trace.log(2, b);
-    trace.log(3, d);
 
-    for (int i = 0; i < 20; ++i) {
-	std::cout << std::hex << trace.data_[i] << std::endl;	
+    EXPECT_EQ(p[2] & 0xff, a);
+    EXPECT_EQ(p[5], b);
+}
+
+TEST_F(VarTraceTest, LogArray) 
+{
+    int a[] = {0x1111, 0x2222, 0x3333};
+    vartrace::AlignmentType *p = trace.rawData();
+
+    trace.log(7, a);
+
+    for (int i = 0; i < sizeof(a)/sizeof(a[0]); ++i) {
+	EXPECT_EQ(p[2 + i], a[i])
+	    << "Element " << i << "of an array was not copied correctly";
     }
 }
 
 TEST_F(VarTraceTest, LogCustomType) 
 {
-
-    double d = 3.14;
-    c5Type c5 = {{0x11,0x22,0x33,0x44,0x55}};
-    int i = 0x42;
-    int c1[] = {0xaa};
-    int ct[] = {0x66, 0x77, 0x88, 0x99};
-    int *ip;
+    c3Type c3 = {{0xaa, 0xbb}};
+    c5Type c5 = {{0x11, 0x22, 0x33, 0x44, 0x55}};
+    vartrace::AlignmentType *p = trace.rawData();
     
+    trace.log(3, c3);
+    trace.log(5, c5);
+    
+    EXPECT_EQ((p[1] & 0xff000000)>>24, 0xc3)
+	<< "Data type id was not set correctly";
+    EXPECT_EQ((p[4] & 0xff000000)>>24, 0xc5)
+	<< "Data type id was not set correctly";
+    EXPECT_EQ(p[5] & 0xffffff, c5.c[0] + (c5.c[1]<<8) + (c5.c[2]<<16))
+	<< "Data was not copied correctly";
+}
 
-    trace.log(3, c1);
-    trace.log(5, i);
-    trace.log(6, ct);
 
-    for (int i = 0; i < 20; ++i) {
-	std::cout << std::hex << trace.data_[i] << std::endl;	
-    }
+TEST_F(VarTraceTest, UtilityFunct) 
+{
+    int i = 1;
+
+    EXPECT_TRUE(trace.isEmpty());
+    trace.log(1, i);
+    EXPECT_FALSE(trace.isEmpty());
 }
 
 TEST(AlignedSizeTest, SmallValues) 
@@ -91,8 +107,6 @@ TEST(AlignedSizeTest, SmallValues)
     EXPECT_EQ(aligned_size<c3Type>(), 1);
     EXPECT_EQ(aligned_size<c5Type>(), 2);
 }
-
-//} /* namespace */
 
 int main (int argc, char *argv[])
 {

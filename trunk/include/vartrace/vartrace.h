@@ -67,14 +67,19 @@ public:
     /*! Destructor. */
     virtual ~VarTrace() {}
 
+    AlignmentType* rawData() const;
+    
     template <typename T> void log(MessageIdType message_id, const T& value);
     
-    template <typename T> void logMessage(
+    template <typename T> void doLog(
 	MessageIdType message_id, const T& value,
 	const SizeofCopyTag& copy_tag, unsigned data_id,
 	unsigned object_size);
+
+    /*! Checks if trace is empty. */
+    bool isEmpty();
     
-public: /* private */
+private:
     /*! Length of the data array. */
     unsigned length_;
     /*! Pointer to the memory block that contains the trace. */
@@ -111,18 +116,24 @@ unsigned message_length(unsigned size);
 template <typename T>
 void VarTrace::log(MessageIdType message_id, const T& value) 
 {
-    logMessage(message_id, value, typename CopyTraits<T>::CopyCategory(),
-	       DataTypeTraits<T>::DataTypeId, DataTypeTraits<T>::TypeSize);
+    doLog(message_id, value, typename CopyTraits<T>::CopyCategory(),
+	  DataTypeTraits<T>::DataTypeId, DataTypeTraits<T>::TypeSize);
 }
 
 template <typename T>
-void VarTrace::logMessage(MessageIdType message_id, const T& value,
-			  const SizeofCopyTag& copy_tag, unsigned data_id,
-			  unsigned object_size)
+void VarTrace::doLog(MessageIdType message_id, const T& value,
+		     const SizeofCopyTag& copy_tag, unsigned data_id,
+		     unsigned object_size)
 {
-    unsigned length = message_length(object_size);
-
+    bool wrap_happened = false;
+    unsigned required_length = message_length(object_size);
     ShortestType *tail = reinterpret_cast<ShortestType*>(&data_[tail_]);
+
+    if (length_ - tail_ < required_length) {
+	wrap_ = tail_;
+	tail_ = 0;
+	wrap_happened = true;
+    } 
 
     *(reinterpret_cast<TimestampType*>(tail)) = getTimestamp();
     tail += sizeof(TimestampType);
@@ -135,7 +146,11 @@ void VarTrace::logMessage(MessageIdType message_id, const T& value,
 
     std::memcpy(tail, &value, object_size);
     
-    tail_ += length;
+    tail_ += required_length;
+
+    if (wrap_ >= tail_) {
+	wrap_ = tail_;
+    }
 }
 
 }

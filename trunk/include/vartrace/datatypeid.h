@@ -45,7 +45,6 @@ template <> struct DataType2Int<unsigned long long> {enum {id = 0xa};};
 template <> struct DataType2Int<float> {enum {id = 0xf};};
 template <> struct DataType2Int<double> {enum {id = 0xd};};
 
-
 template <unsigned L>
 struct DataType2Int<char[L]> {enum {id = 0x11};};
 template <unsigned L>

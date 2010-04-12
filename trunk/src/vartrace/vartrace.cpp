@@ -52,4 +52,14 @@ VarTrace::VarTrace(size_t size) :
     heads_.push(0);
 }
 
+AlignmentType* VarTrace::rawData() const
+{
+    return data_.get();
+}
+
+bool VarTrace::isEmpty()
+{
+    return heads_.top() == tail_;
+}
+
 }
