@@ -47,6 +47,7 @@ VarTrace::VarTrace(size_t size) :
     data_(new AlignmentType[length_]),
     heads_(MaxNestingDepth),
     tail_(0), wrap_(length_),
+    errorFlags_(0),
     getTimestamp(incremental_timestamp)
 {
     heads_.push(0);
@@ -62,19 +63,39 @@ bool VarTrace::isEmpty()
     return heads_.top() == tail_;
 }
 
-bool isConsistent() 
+bool VarTrace::isConsistent() 
 {
     bool has_error = false;
 
-    if (heads_.top_() + NestedHeaderLength >= wrap_) { has_error = true; }
-    if (heads_.top_() + NestedHeaderLength >= length_) { has_error = true; }
+    if (heads_.top() + NestedHeaderLength >= wrap_) {
+	errorFlags_ |= 1;
+	has_error = true;
+    }
+    if (heads_.top() + NestedHeaderLength >= length_) {
+	errorFlags_ |= 2;
+	has_error = true;
+    }
 
-    if (tail_ > length_) { has_error = true; }
-    if (tail_ > wrap_) { has_error = true; }
+    if (tail_ > length_) {
+	errorFlags_ |= 4;
+	has_error = true;
+    }
+    if (tail_ > wrap_) {
+	errorFlags_ |= 8;
+	has_error = true;
+    }
     
-    if (wrap_ > length_) { has_error = true; }
+    if (wrap_ > length_) {
+	errorFlags_ |= 16;
+	has_error = true;
+    }
 
     return !has_error;
+}
+
+unsigned VarTrace::errorFlags() const
+{
+    return errorFlags_;
 }
 
 }

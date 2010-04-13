@@ -55,6 +55,8 @@ TEST_F(VarTraceTest, LogSimpleType)
     trace.log(1, a);
     trace.log(2, b);
 
+    EXPECT_TRUE(trace.isConsistent()) << "Error flags: " << trace.errorFlags();
+    
     EXPECT_EQ(p[2] & 0xff, a);
     EXPECT_EQ(p[5], b);
 }
@@ -65,6 +67,7 @@ TEST_F(VarTraceTest, LogArray)
     vartrace::AlignmentType *p = trace.rawData();
 
     trace.log(7, a);
+    EXPECT_TRUE(trace.isConsistent()) << "Error flags: " << trace.errorFlags();
 
     for (int i = 0; i < sizeof(a)/sizeof(a[0]); ++i) {
 	EXPECT_EQ(p[2 + i], a[i])
@@ -80,6 +83,7 @@ TEST_F(VarTraceTest, LogCustomType)
     
     trace.log(3, c3);
     trace.log(5, c5);
+    EXPECT_TRUE(trace.isConsistent()) << "Error flags: " << trace.errorFlags();
     
     EXPECT_EQ((p[1] & 0xff000000)>>24, 0xc3)
 	<< "Data type id was not set correctly";
@@ -97,6 +101,7 @@ TEST_F(VarTraceTest, UtilityFunct)
     EXPECT_TRUE(trace.isEmpty());
     trace.log(1, i);
     EXPECT_FALSE(trace.isEmpty());
+    EXPECT_TRUE(trace.isConsistent()) << "Error flags: " << trace.errorFlags();
 }
 
 TEST(AlignedSizeTest, SmallValues) 

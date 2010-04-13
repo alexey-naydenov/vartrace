@@ -81,6 +81,9 @@ public:
 
     /*! Checks if internal structure is consistent. */
     bool isConsistent();
+
+    /*! Return error state of the trace. */
+    unsigned errorFlags() const;
     
 private:
     /*! Length of the data array. */
@@ -93,7 +96,9 @@ private:
     unsigned tail_;
     /*! Position of the trace wrap. */
     unsigned wrap_;
-
+    /*! Error states of the trace. */
+    unsigned errorFlags_;
+    
     /*! Pointer to function that returns timestamp. */
     TimestampFunctionType getTimestamp;
 
@@ -151,7 +156,7 @@ void VarTrace::doLog(MessageIdType message_id, const T& value,
     
     tail_ += required_length;
 
-    if (wrap_ >= tail_) {
+    if (wrap_ > tail_) {
 	wrap_ = tail_;
     }
 }
