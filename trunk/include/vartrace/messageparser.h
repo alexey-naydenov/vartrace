@@ -34,7 +34,7 @@ class MessageParser
 {
 public:
     MessageParser(void *datastream);
-    virtual ~MessageParser();
+    virtual ~MessageParser() {};
 
     unsigned timestamp;
     unsigned dataSize;

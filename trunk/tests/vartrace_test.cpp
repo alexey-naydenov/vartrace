@@ -61,6 +61,12 @@ TEST_F(VarTraceTest, LogSimpleType)
     
     EXPECT_EQ(p[2] & 0xff, a);
     EXPECT_EQ(p[5], b);
+
+    /* use message parser, test it also */
+    MessageParser msg(trace.rawData());
+    EXPECT_EQ(msg.dataSize, sizeof(a));
+    EXPECT_EQ(msg.dataTypeId, 2);
+    EXPECT_EQ(msg.messageId, 1);
 }
 
 TEST_F(VarTraceTest, LogArray) 
@@ -75,6 +81,11 @@ TEST_F(VarTraceTest, LogArray)
 	EXPECT_EQ(p[2 + i], a[i])
 	    << "Element " << i << "of an array was not copied correctly";
     }
+    /* use message parser, test it also */
+    MessageParser msg(trace.rawData());
+    EXPECT_EQ(msg.dataSize, sizeof(a));
+    EXPECT_EQ(msg.dataTypeId, 0x15);
+    EXPECT_EQ(msg.messageId, 7);
 }
 
 TEST_F(VarTraceTest, LogCustomType) 
@@ -93,6 +104,11 @@ TEST_F(VarTraceTest, LogCustomType)
 	<< "Data type id was not set correctly";
     EXPECT_EQ(p[5] & 0xffffff, c5.c[0] + (c5.c[1]<<8) + (c5.c[2]<<16))
 	<< "Data was not copied correctly";
+    /* use message parser, test it also */
+    MessageParser msg(trace.rawData());
+    EXPECT_EQ(msg.dataSize, sizeof(c3));
+    EXPECT_EQ(msg.dataTypeId, 0xc3);
+    EXPECT_EQ(msg.messageId, 3);
 }
 
 
