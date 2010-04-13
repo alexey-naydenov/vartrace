@@ -4,12 +4,14 @@
 #include <gmock/gmock.h>
 
 #include "vartrace/vartrace.h"
+#include "vartrace/messageparser.h"
 
 /*! \file vartrace_test.cpp
  * Main test for the vartrace project. */
 
 using vartrace::VarTrace;
 using vartrace::CopyTraits;
+using vartrace::MessageParser;
 using vartrace::aligned_size;
 
 typedef struct { char c[3]; } c3Type;

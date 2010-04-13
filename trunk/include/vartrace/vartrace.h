@@ -138,10 +138,10 @@ void VarTrace::doLog(MessageIdType message_id, const T& value,
     ShortestType *tail = reinterpret_cast<ShortestType*>(&data_[tail_]);
 
     if (length_ - tail_ < required_length) {
-	wrap_ = tail_;
-	tail_ = 0;
-	wrap_happened = true;
-    } 
+    	wrap_ = tail_;
+    	tail_ = 0;
+    	wrap_happened = true;
+    }
 
     *(reinterpret_cast<TimestampType*>(tail)) = getTimestamp();
     tail += sizeof(TimestampType);
@@ -156,8 +156,8 @@ void VarTrace::doLog(MessageIdType message_id, const T& value,
     
     tail_ += required_length;
 
-    if (wrap_ > tail_) {
-	wrap_ = tail_;
+    if (wrap_ < tail_) {
+    	wrap_ = tail_;
     }
 }
 
