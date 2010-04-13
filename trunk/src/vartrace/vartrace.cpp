@@ -62,4 +62,19 @@ bool VarTrace::isEmpty()
     return heads_.top() == tail_;
 }
 
+bool isConsistent() 
+{
+    bool has_error = false;
+
+    if (heads_.top_() + NestedHeaderLength >= wrap_) { has_error = true; }
+    if (heads_.top_() + NestedHeaderLength >= length_) { has_error = true; }
+
+    if (tail_ > length_) { has_error = true; }
+    if (tail_ > wrap_) { has_error = true; }
+    
+    if (wrap_ > length_) { has_error = true; }
+
+    return !has_error;
+}
+
 }

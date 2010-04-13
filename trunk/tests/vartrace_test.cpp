@@ -35,13 +35,15 @@ class VarTraceTest : public ::testing::Test
 {
 public:
     
-    VarTraceTest() : trace(0x100000) {}
+    VarTraceTest() : trace(0x100000), small(16), medium(64) {}
 
     virtual void SetUp() {}
 
     virtual void TearDown() {}
 
     VarTrace trace;
+    VarTrace small;
+    VarTrace medium;
 };
 
 TEST_F(VarTraceTest, LogSimpleType) 

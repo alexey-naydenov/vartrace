@@ -78,6 +78,9 @@ public:
 
     /*! Checks if trace is empty. */
     bool isEmpty();
+
+    /*! Checks if internal structure is consistent. */
+    bool isConsistent();
     
 private:
     /*! Length of the data array. */
