@@ -46,7 +46,7 @@ VarTrace::VarTrace(size_t size) :
     length_(size/sizeof(AlignmentType) + 1),
     data_(new AlignmentType[length_]),
     heads_(MaxNestingDepth),
-    tail_(0), wrap_(length_),
+    tail_(0), wrap_(0),
     errorFlags_(0),
     isEmpty_(true),
     getTimestamp(incremental_timestamp)
@@ -107,12 +107,13 @@ unsigned VarTrace::errorFlags() const
 unsigned VarTrace::nextHead()
 {
     if (isEmpty()) return 0;
-    
+    // get the pointer to the length field
     ShortestType *ch =
 	reinterpret_cast<ShortestType*>(head()) + sizeof(TimestampType);
+    // find the end of head message
     unsigned next_head =
 	heads_.top() + message_length(*(reinterpret_cast<LengthType*>(ch)));
-
+    // if the wrap point is reached return 0
     if (next_head == wrap_) return 0;
 
     return next_head;

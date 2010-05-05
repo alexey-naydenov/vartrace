@@ -117,7 +117,7 @@ private:
 };
 
 /*! Calculates the number of AlingmentType elements required to store
-    an object. */
+ *  an object. */
 template <typename T>
 unsigned aligned_size()
 {
@@ -126,7 +126,7 @@ unsigned aligned_size()
 }
 
 /*! Calculates the number of AlingmentType elements required to store
-    an object. */
+ *  an object. */
 unsigned message_length(unsigned size);
 
 template <typename T>
@@ -149,6 +149,7 @@ void VarTrace::doLog(MessageIdType message_id, const T& value,
     if (new_tail_index > length_) {
 	copy_index = 0;
 	new_tail_index = required_length;
+	wrap_ = tail_;
     }
 
     if (!isEmpty()) {
@@ -158,7 +159,8 @@ void VarTrace::doLog(MessageIdType message_id, const T& value,
 	    heads_.top() = next_head;
 	}
     }
-    
+
+    // create header
     ShortestType *tail = reinterpret_cast<ShortestType*>(&data_[copy_index]);
     *(reinterpret_cast<TimestampType*>(tail)) = getTimestamp();
     tail += sizeof(TimestampType);
@@ -171,10 +173,11 @@ void VarTrace::doLog(MessageIdType message_id, const T& value,
 
     std::memcpy(tail, &value, object_size);
 
-    if ((copy_index == 0) && (tail_ > 0)) {
-	wrap_ = tail_;
-    }
+    if ((copy_index == 0) && (tail_ > 0)) wrap_ = tail_;
+    
     tail_ = new_tail_index;
+    
+    if (wrap_ < tail_) wrap_ = tail_;
 
     isEmpty_ = false;
 }
