@@ -71,7 +71,9 @@ public:
     AlignmentType* rawData() const;
     /*! Returns the pointer to the first message. */
     AlignmentType* head();
-    /*! Dump trace content into a buffer. */
+    /*! Dump trace content into a buffer.
+     *
+     * The trace is emtied after this operation. */
     unsigned dump(void *buffer, unsigned size);
     
     template <typename T> void log(MessageIdType message_id, const T& value);
