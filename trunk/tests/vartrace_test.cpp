@@ -145,7 +145,7 @@ TEST_F(VarTraceTest, UniformTraceWrap)
 	    MessageParser msg(t32.head());
 	    EXPECT_EQ(msg.dataSize, sizeof(i));
 	    EXPECT_EQ(msg.dataTypeId, 0x5);
-	    EXPECT_EQ(i - 1, msg.messageId)
+	    EXPECT_EQ(i, msg.messageId)
 		<< "Head pointer " << std::hex << t32.head()
 		<< " data pointer " << t32.rawData();
 	}
@@ -161,11 +161,11 @@ TEST_F(VarTraceTest, WrappedTraceDump)
 	t32.log(i + 1, i);
 	EXPECT_TRUE(t32.isConsistent()) << "Error flags: " << t32.errorFlags();
     }
-    // check dump: 2 messages starts from 2nd
+    // check dump: 2 messages, starts from 2nd
     int rc = t32.dump(buffer, 256);
     EXPECT_EQ(2*(t32.HeaderSize + sizeof(int)), rc);
     MessageParser msg(buffer);
-    EXPECT_EQ(1, msg.messageId);
+    EXPECT_EQ(2, msg.messageId);
 }
 
 TEST(AlignedSizeTest, SmallValues) 
