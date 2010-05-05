@@ -24,6 +24,9 @@
  * Definitions for trace object. 
  */
 
+#include <stddef.h>
+#include <cstring>
+
 #include "vartrace/tracetypes.h"
 #include "vartrace/vartrace.h"
 #include "vartrace/simplestack.h"
@@ -64,6 +67,41 @@ AlignmentType* VarTrace::head()
     return data_.get() + heads_.top();
 }
 
+unsigned VarTrace::dump(void *buffer, unsigned buffer_size)
+{
+    if (isEmpty()) return 0;
+
+    unsigned copied_size = 0;
+    // check if the trace is wrapped around
+    if (heads_.top() < tail_) { 
+	// copy trace of buffer_size bytes
+	unsigned size2copy = (tail_ - heads_.top())*sizeof(AlignmentType);
+	if (size2copy > buffer_size) size2copy = buffer_size;
+	std::memcpy(buffer, data_.get() + heads_.top(), size2copy);
+	copied_size += size2copy;
+    } else {
+	// copy from head to wrap
+	unsigned size2copy = (wrap_ - heads_.top())*sizeof(AlignmentType);
+	if (size2copy > buffer_size) size2copy = buffer_size;
+	std::memcpy(buffer, data_.get() + heads_.top(), size2copy);
+	copied_size += size2copy;
+	buffer_size -= copied_size;
+	// copy from the trace storage start to the tail
+	if (buffer_size > 0) {
+	    size2copy = tail_*sizeof(AlignmentType);
+	    if (size2copy > buffer_size) size2copy = buffer_size;
+	    std::memcpy(reinterpret_cast<char*>(buffer) + copied_size,
+			data_.get(), size2copy);
+	    copied_size += size2copy;
+	}
+    }
+    
+    // clean up the trace
+    reset();
+
+    return copied_size;
+}
+
 bool VarTrace::isEmpty()
 {
     return isEmpty_;
@@ -82,7 +120,7 @@ bool VarTrace::isConsistent()
 	has_error = true;
     }
 
-    if (tail_ > length_) {
+    if (tail_ >= length_) {
 	errorFlags_ |= 4;
 	has_error = true;
     }
@@ -117,6 +155,20 @@ unsigned VarTrace::nextHead()
     if (next_head == wrap_) return 0;
 
     return next_head;
+}
+
+void VarTrace::reset() 
+{
+    // reset all pointers and errors
+    tail_ = 0;
+    wrap_ = 0;
+    errorFlags_ = 0;
+    isEmpty_ = true;
+    // clean up stack of heads
+    while (!heads_.empty()) {
+	heads_.pop();
+    }
+    heads_.push(0);
 }
 
 }

@@ -67,10 +67,12 @@ public:
     /*! Destructor. */
     virtual ~VarTrace() {}
 
-    /*! Returns pointer to the begining of data buffer. */
+    /*! Returns the pointer to the begining of data buffer. */
     AlignmentType* rawData() const;
-    /*! Returns pointer to the first message. */
+    /*! Returns the pointer to the first message. */
     AlignmentType* head();
+    /*! Dump trace content into a buffer. */
+    unsigned dump(void *buffer, unsigned size);
     
     template <typename T> void log(MessageIdType message_id, const T& value);
     
@@ -109,7 +111,9 @@ private:
 
     /*! Get position of the next head. */
     unsigned nextHead();
-    
+    /*! Clean up trace. */
+    void reset();
+
     /*! Disabled default copy constructor. */
     VarTrace(const VarTrace&);
     /*! Disabled default assingment operator. */
@@ -146,12 +150,13 @@ void VarTrace::doLog(MessageIdType message_id, const T& value,
     unsigned new_tail_index = tail_ + required_length;
     unsigned next_head;
 	
-    if (new_tail_index > length_) {
+    // check for need to wrap around
+    if (new_tail_index >= length_) {
 	copy_index = 0;
 	new_tail_index = required_length;
 	wrap_ = tail_;
     }
-
+    // check if head should be moved and shift it
     if (!isEmpty()) {
 	while (heads_.top() >= copy_index && heads_.top() < new_tail_index) {
 	    next_head = nextHead();
@@ -171,14 +176,14 @@ void VarTrace::doLog(MessageIdType message_id, const T& value,
     *(reinterpret_cast<DataIdType*>(tail)) = data_id;
     tail += sizeof(DataIdType);
 
+    // copy data
     std::memcpy(tail, &value, object_size);
 
-    if ((copy_index == 0) && (tail_ > 0)) wrap_ = tail_;
-    
+    // move tail
     tail_ = new_tail_index;
-    
+    // advance the wrap point if the tail moved past it
     if (wrap_ < tail_) wrap_ = tail_;
-
+    // log is not empty anymore
     isEmpty_ = false;
 }
 

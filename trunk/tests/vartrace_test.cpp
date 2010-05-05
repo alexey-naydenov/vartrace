@@ -152,6 +152,22 @@ TEST_F(VarTraceTest, UniformTraceWrap)
     }
 }
 
+TEST_F(VarTraceTest, WrappedTraceDump) 
+{
+    char buffer[256];
+
+    // write 3 messages, logs fits only 2 
+    for (int i = 0; i < 3; ++i) {
+	t32.log(i + 1, i);
+	EXPECT_TRUE(t32.isConsistent()) << "Error flags: " << t32.errorFlags();
+    }
+    // check dump: 2 messages starts from 2nd
+    int rc = t32.dump(buffer, 256);
+    EXPECT_EQ(2*(t32.HeaderSize + sizeof(int)), rc);
+    MessageParser msg(buffer);
+    EXPECT_EQ(1, msg.messageId);
+}
+
 TEST(AlignedSizeTest, SmallValues) 
 {
     EXPECT_EQ(aligned_size<char>(), 1);
