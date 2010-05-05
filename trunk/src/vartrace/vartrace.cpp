@@ -48,6 +48,7 @@ VarTrace::VarTrace(size_t size) :
     heads_(MaxNestingDepth),
     tail_(0), wrap_(length_),
     errorFlags_(0),
+    isEmpty_(true),
     getTimestamp(incremental_timestamp)
 {
     heads_.push(0);
@@ -58,9 +59,14 @@ AlignmentType* VarTrace::rawData() const
     return data_.get();
 }
 
+AlignmentType* VarTrace::head()
+{
+    return data_.get() + heads_.top();
+}
+
 bool VarTrace::isEmpty()
 {
-    return heads_.top() == tail_;
+    return isEmpty_;
 }
 
 bool VarTrace::isConsistent() 
@@ -96,6 +102,20 @@ bool VarTrace::isConsistent()
 unsigned VarTrace::errorFlags() const
 {
     return errorFlags_;
+}
+
+unsigned VarTrace::nextHead()
+{
+    if (isEmpty()) return 0;
+    
+    ShortestType *ch =
+	reinterpret_cast<ShortestType*>(head()) + sizeof(TimestampType);
+    unsigned next_head =
+	heads_.top() + message_length(*(reinterpret_cast<LengthType*>(ch)));
+
+    if (next_head == wrap_) return 0;
+
+    return next_head;
 }
 
 }

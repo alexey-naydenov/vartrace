@@ -32,20 +32,20 @@ template<> struct DataTypeTraits<c5Type>
 
 }
 
-
 class VarTraceTest : public ::testing::Test
 {
 public:
     
-    VarTraceTest() : trace(0x100000), small(16), medium(64) {}
+    VarTraceTest() : trace(0x100000), t16(16), t32(32), t64(64) {}
 
     virtual void SetUp() {}
 
     virtual void TearDown() {}
 
     VarTrace trace;
-    VarTrace small;
-    VarTrace medium;
+    VarTrace t16;
+    VarTrace t32;
+    VarTrace t64;
 };
 
 TEST_F(VarTraceTest, LogSimpleType) 
@@ -111,7 +111,6 @@ TEST_F(VarTraceTest, LogCustomType)
     EXPECT_EQ(msg.messageId, 3);
 }
 
-
 TEST_F(VarTraceTest, UtilityFunct) 
 {
     int i = 1;
@@ -120,6 +119,37 @@ TEST_F(VarTraceTest, UtilityFunct)
     trace.log(1, i);
     EXPECT_FALSE(trace.isEmpty());
     EXPECT_TRUE(trace.isConsistent()) << "Error flags: " << trace.errorFlags();
+}
+
+TEST_F(VarTraceTest, SingleMessageTrace) 
+{
+    for (int i = 1; i < 3; ++i) {
+	t16.log(i + 1, i);
+	EXPECT_TRUE(t16.isConsistent()) << "Error flags: " << t16.errorFlags();
+	MessageParser msg(t16.head());
+	EXPECT_EQ(msg.dataSize, sizeof(i));
+	EXPECT_EQ(msg.dataTypeId, 0x5);
+	EXPECT_EQ(msg.messageId, i + 1)
+	    << "Head pointer " << std::hex << t16.head()
+	    << " data pointer " << t16.rawData();
+    }
+}
+
+TEST_F(VarTraceTest, UniformTraceWrap) 
+{
+    for (int i = 0; i < 6; ++i) {
+	t32.log(i + 1, i);
+	EXPECT_TRUE(t32.isConsistent()) << "Error flags: " << t32.errorFlags();
+	/* check if head is moving */
+	if (i > 1) {
+	    MessageParser msg(t32.head());
+	    EXPECT_EQ(msg.dataSize, sizeof(i));
+	    EXPECT_EQ(msg.dataTypeId, 0x5);
+	    EXPECT_EQ(i - 1, msg.messageId)
+		<< "Head pointer " << std::hex << t32.head()
+		<< " data pointer " << t32.rawData();
+	}
+    }
 }
 
 TEST(AlignedSizeTest, SmallValues) 

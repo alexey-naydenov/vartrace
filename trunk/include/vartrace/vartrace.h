@@ -67,7 +67,10 @@ public:
     /*! Destructor. */
     virtual ~VarTrace() {}
 
+    /*! Returns pointer to the begining of data buffer. */
     AlignmentType* rawData() const;
+    /*! Returns pointer to the first message. */
+    AlignmentType* head();
     
     template <typename T> void log(MessageIdType message_id, const T& value);
     
@@ -98,10 +101,15 @@ private:
     unsigned wrap_;
     /*! Error states of the trace. */
     unsigned errorFlags_;
+
+    bool isEmpty_;
     
     /*! Pointer to function that returns timestamp. */
     TimestampFunctionType getTimestamp;
 
+    /*! Get position of the next head. */
+    unsigned nextHead();
+    
     /*! Disabled default copy constructor. */
     VarTrace(const VarTrace&);
     /*! Disabled default assingment operator. */
@@ -133,16 +141,25 @@ void VarTrace::doLog(MessageIdType message_id, const T& value,
 		     const SizeofCopyTag& copy_tag, unsigned data_id,
 		     unsigned object_size)
 {
-    bool wrap_happened = false;
     unsigned required_length = message_length(object_size);
-    ShortestType *tail = reinterpret_cast<ShortestType*>(&data_[tail_]);
-
-    if (length_ - tail_ < required_length) {
-    	wrap_ = tail_;
-    	tail_ = 0;
-    	wrap_happened = true;
+    unsigned copy_index = tail_;
+    unsigned new_tail_index = tail_ + required_length;
+    unsigned next_head;
+	
+    if (new_tail_index > length_) {
+	copy_index = 0;
+	new_tail_index = required_length;
     }
 
+    if (!isEmpty()) {
+	while (heads_.top() >= copy_index && heads_.top() < new_tail_index) {
+	    next_head = nextHead();
+	    if (next_head == heads_.top()) break;
+	    heads_.top() = next_head;
+	}
+    }
+    
+    ShortestType *tail = reinterpret_cast<ShortestType*>(&data_[copy_index]);
     *(reinterpret_cast<TimestampType*>(tail)) = getTimestamp();
     tail += sizeof(TimestampType);
     *(reinterpret_cast<LengthType*>(tail)) = object_size;
@@ -153,12 +170,13 @@ void VarTrace::doLog(MessageIdType message_id, const T& value,
     tail += sizeof(DataIdType);
 
     std::memcpy(tail, &value, object_size);
-    
-    tail_ += required_length;
 
-    if (wrap_ < tail_) {
-    	wrap_ = tail_;
+    if ((copy_index == 0) && (tail_ > 0)) {
+	wrap_ = tail_;
     }
+    tail_ = new_tail_index;
+
+    isEmpty_ = false;
 }
 
 }
