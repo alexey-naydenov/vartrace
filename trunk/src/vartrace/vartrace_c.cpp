@@ -56,3 +56,13 @@ void VT_logInt(VT_TraceHandle trace, int message_id, int var)
 {
     trace->log(message_id, var);
 }
+
+void VT_logUnsigned(VT_TraceHandle trace, unsigned message_id, unsigned var)
+{
+    trace->log(message_id, var);
+}
+
+void VT_logDouble(VT_TraceHandle trace, double message_id, double var)
+{
+    trace->log(message_id, var);
+}

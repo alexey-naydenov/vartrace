@@ -38,15 +38,17 @@ typedef void* VT_TraceHandle;
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
-    VT_TraceHandle VT_create(unsigned size);
-    void VT_destroy(VT_TraceHandle trace);
-    unsigned VT_dump(VT_TraceHandle trace, void *buffer, unsigned size);
-    int VT_isEmpty(VT_TraceHandle trace);
-    unsigned VT_errorFlags(VT_TraceHandle trace);
+VT_TraceHandle VT_create(unsigned size);
+void VT_destroy(VT_TraceHandle trace);
+unsigned VT_dump(VT_TraceHandle trace, void *buffer, unsigned size);
+int VT_isEmpty(VT_TraceHandle trace);
+unsigned VT_errorFlags(VT_TraceHandle trace);
 
-    void VT_logInt(VT_TraceHandle trace, int message_id, int var);
+void VT_logInt(VT_TraceHandle trace, int message_id, int var);
+void VT_logUnsigned(VT_TraceHandle trace, unsigned message_id, unsigned var);
+void VT_logDouble(VT_TraceHandle trace, double message_id, double var);
     
 #ifdef __cplusplus
 } /* extern "C" */
