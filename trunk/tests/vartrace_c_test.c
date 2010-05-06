@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "vartrace/tracetypes.h"
 #include "vartrace/vartrace_c.h"
 
 int main(void) 
@@ -16,9 +17,9 @@ int main(void)
 
     printf("\nMessage\n");
     printf("stamp: %d\n", buffer[0]);
-    printf("data size: %d\n", *( ((unsigned short* )buffer) + 2));
-    printf("message id: %d\n", *( ((unsigned char* )buffer) + 6));
-    printf("data type id: %d\n", *( ((unsigned char* )buffer) + 7));
+    printf("data size: %d\n", *( ((LengthType* )buffer) + 2));
+    printf("message id: %d\n", *( ((MessageIdType* )buffer) + 6));
+    printf("data type id: %d\n", *( ((DataIdType* )buffer) + 7));
     printf("value: %d\n", buffer[2]);
 
     VT_destroy(trace);

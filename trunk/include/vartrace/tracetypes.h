@@ -27,7 +27,10 @@
 #ifndef TRACETYPES_H
 #define TRACETYPES_H
 
+#ifdef __cplusplus
 namespace vartrace {
+#endif
+
 /*! Sets type for minimal unit of data. */
 typedef unsigned char ShortestType;
 /*! Sets alingment of message boundaries and data fields. */
@@ -43,6 +46,9 @@ typedef unsigned char DataIdType;
 
 /*! Function type for timestamps. */
 typedef TimestampType (*TimestampFunctionType) ();
-}
+
+#ifdef __cplusplus
+} /* namespace vartrace */
+#endif
 
 #endif /* TRACETYPES_H */
