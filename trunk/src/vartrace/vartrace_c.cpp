@@ -27,13 +27,27 @@
 #include "vartrace/vartrace.h"
 #include "vartrace/vartrace_c.h"
 
-VT_TraceHandle VT_create(void)
+VT_TraceHandle VT_create(unsigned size)
 {
-    return 0;
+    return new vartrace::VarTrace(size);
 }
 
 void VT_destroy(VT_TraceHandle trace) 
 {
+    delete trace;
 }
 
+unsigned VT_dump(VT_TraceHandle trace, void *buffer, unsigned size) 
+{
+    return trace->dump(buffer, size);
+}
 
+int VT_isEmpty(VT_TraceHandle trace)
+{
+    return trace->isEmpty();
+}
+
+unsigned VT_errorFlags(VT_TraceHandle trace)
+{
+    return trace->errorFlags();
+}

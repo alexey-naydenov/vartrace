@@ -111,11 +111,11 @@ bool VarTrace::isConsistent()
 {
     bool has_error = false;
 
-    if (heads_.top() + NestedHeaderLength >= wrap_) {
+    if ((heads_.top() + NestedHeaderLength >= wrap_) && !isEmpty()) {
 	errorFlags_ |= 1;
 	has_error = true;
     }
-    if (heads_.top() + NestedHeaderLength >= length_) {
+    if ((heads_.top() + NestedHeaderLength >= length_) && !isEmpty()) {
 	errorFlags_ |= 2;
 	has_error = true;
     }

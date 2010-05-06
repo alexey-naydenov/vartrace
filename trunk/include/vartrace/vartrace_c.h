@@ -40,9 +40,12 @@ typedef void* VT_TraceHandle;
 extern "C" {
 #endif 
 
-    VT_TraceHandle VT_create(void);
+    VT_TraceHandle VT_create(unsigned size);
     void VT_destroy(VT_TraceHandle trace);
-
+    unsigned VT_dump(VT_TraceHandle trace, void *buffer, unsigned size);
+    int VT_isEmpty(VT_TraceHandle trace);
+    unsigned VT_errorFlags(VT_TraceHandle trace);
+    
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
