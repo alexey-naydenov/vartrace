@@ -45,6 +45,8 @@ extern "C" {
     unsigned VT_dump(VT_TraceHandle trace, void *buffer, unsigned size);
     int VT_isEmpty(VT_TraceHandle trace);
     unsigned VT_errorFlags(VT_TraceHandle trace);
+
+    void VT_logInt(VT_TraceHandle trace, int message_id, int var);
     
 #ifdef __cplusplus
 } /* extern "C" */

@@ -51,3 +51,8 @@ unsigned VT_errorFlags(VT_TraceHandle trace)
 {
     return trace->errorFlags();
 }
+
+void VT_logInt(VT_TraceHandle trace, int message_id, int var)
+{
+    trace->log(message_id, var);
+}
