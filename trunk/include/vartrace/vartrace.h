@@ -78,8 +78,19 @@ public:
     
     template <typename T> void log(MessageIdType message_id, const T& value);
     
+    //! Add an array of values to the trace.
+    /*! An array of size known at compiletime can be logged by log
+      function.
+  
+      \param message_id message type id;
+      \param data pointer to the data;
+      \param length length of the array.
+    */
+    template <typename T> void logArray(MessageIdType message_id,
+					const T * data, int length);
+
     template <typename T> void doLog(
-	MessageIdType message_id, const T& value,
+	MessageIdType message_id, const T * value,
 	const SizeofCopyTag& copy_tag, unsigned data_id,
 	unsigned object_size);
 
@@ -138,12 +149,18 @@ unsigned message_length(unsigned size);
 template <typename T>
 void VarTrace::log(MessageIdType message_id, const T& value) 
 {
-    doLog(message_id, value, typename CopyTraits<T>::CopyCategory(),
+    doLog(message_id, &value, typename CopyTraits<T>::CopyCategory(),
 	  DataTypeTraits<T>::DataTypeId, DataTypeTraits<T>::TypeSize);
 }
 
 template <typename T>
-void VarTrace::doLog(MessageIdType message_id, const T& value,
+void VarTrace::logArray(MessageIdType message_id, const T* data, int length)
+{
+    
+}
+
+template <typename T>
+void VarTrace::doLog(MessageIdType message_id, const T * value,
 		     const SizeofCopyTag& copy_tag, unsigned data_id,
 		     unsigned object_size)
 {
@@ -179,7 +196,7 @@ void VarTrace::doLog(MessageIdType message_id, const T& value,
     tail += sizeof(DataIdType);
 
     // copy data
-    std::memcpy(tail, &value, object_size);
+    std::memcpy(tail, value, object_size);
 
     // move tail
     tail_ = new_tail_index;
