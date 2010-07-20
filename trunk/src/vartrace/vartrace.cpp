@@ -33,10 +33,15 @@
 
 namespace vartrace {
 
-unsigned message_length(unsigned size)
+unsigned message_length(unsigned size, bool isNested)
 {
-    return VarTrace::HeaderLength + size/sizeof(AlignmentType)
-	   + (size%sizeof(AlignmentType) == 0 ? 0 : 1);
+    if (isNested) {
+	return VarTrace::NestedHeaderLength + size/sizeof(AlignmentType)
+	    + (size%sizeof(AlignmentType) == 0 ? 0 : 1);
+    } else {
+	return VarTrace::HeaderLength + size/sizeof(AlignmentType)
+	    + (size%sizeof(AlignmentType) == 0 ? 0 : 1);
+    }
 }
 
 TimestampType incremental_timestamp() 
@@ -48,13 +53,14 @@ TimestampType incremental_timestamp()
 VarTrace::VarTrace(size_t size) :
     length_(size/sizeof(AlignmentType) + 1),
     data_(new AlignmentType[length_]),
-    heads_(MaxNestingDepth),
+    mainHead_(0),
+    currentHead_(0),
     tail_(0), wrap_(0),
     errorFlags_(0),
     isEmpty_(true),
+    isNested_(false),
     getTimestamp(incremental_timestamp)
 {
-    heads_.push(0);
 }
 
 AlignmentType* VarTrace::rawData() const
@@ -64,7 +70,7 @@ AlignmentType* VarTrace::rawData() const
 
 AlignmentType* VarTrace::head()
 {
-    return data_.get() + heads_.top();
+    return data_.get() + mainHead_;
 }
 
 unsigned VarTrace::dump(void *buffer, unsigned buffer_size)
@@ -73,17 +79,17 @@ unsigned VarTrace::dump(void *buffer, unsigned buffer_size)
 
     unsigned copied_size = 0;
     // check if the trace is wrapped around
-    if (heads_.top() < tail_) { 
+    if (mainHead_ < tail_) { 
 	// copy trace of buffer_size bytes
-	unsigned size2copy = (tail_ - heads_.top())*sizeof(AlignmentType);
+	unsigned size2copy = (tail_ - mainHead_)*sizeof(AlignmentType);
 	if (size2copy > buffer_size) size2copy = buffer_size;
-	std::memcpy(buffer, data_.get() + heads_.top(), size2copy);
+	std::memcpy(buffer, data_.get() + mainHead_, size2copy);
 	copied_size += size2copy;
     } else {
 	// copy from head to wrap
-	unsigned size2copy = (wrap_ - heads_.top())*sizeof(AlignmentType);
+	unsigned size2copy = (wrap_ - mainHead_)*sizeof(AlignmentType);
 	if (size2copy > buffer_size) size2copy = buffer_size;
-	std::memcpy(buffer, data_.get() + heads_.top(), size2copy);
+	std::memcpy(buffer, data_.get() + mainHead_, size2copy);
 	copied_size += size2copy;
 	buffer_size -= copied_size;
 	// copy from the trace storage start to the tail
@@ -111,11 +117,11 @@ bool VarTrace::isConsistent()
 {
     bool has_error = false;
 
-    if ((heads_.top() + NestedHeaderLength >= wrap_) && !isEmpty()) {
+    if ((mainHead_ + NestedHeaderLength >= wrap_) && !isEmpty()) {
 	errorFlags_ |= 1;
 	has_error = true;
     }
-    if ((heads_.top() + NestedHeaderLength >= length_) && !isEmpty()) {
+    if ((mainHead_ + NestedHeaderLength >= length_) && !isEmpty()) {
 	errorFlags_ |= 2;
 	has_error = true;
     }
@@ -142,7 +148,7 @@ unsigned VarTrace::errorFlags() const
     return errorFlags_;
 }
 
-unsigned VarTrace::nextHead()
+unsigned VarTrace::nextMainHead()
 {
     if (isEmpty()) return 0;
     // get the pointer to the length field
@@ -150,7 +156,8 @@ unsigned VarTrace::nextHead()
 	reinterpret_cast<ShortestType*>(head()) + sizeof(TimestampType);
     // find the end of head message
     unsigned next_head =
-	heads_.top() + message_length(*(reinterpret_cast<LengthType*>(ch)));
+	mainHead_ + message_length(*(reinterpret_cast<LengthType*>(ch)),
+				   isNested_);
     // if the wrap point is reached return 0
     if (next_head == wrap_) return 0;
 
@@ -164,11 +171,7 @@ void VarTrace::reset()
     wrap_ = 0;
     errorFlags_ = 0;
     isEmpty_ = true;
-    // clean up stack of heads
-    while (!heads_.empty()) {
-	heads_.pop();
-    }
-    heads_.push(0);
+    mainHead_ = 0;
 }
 
 }

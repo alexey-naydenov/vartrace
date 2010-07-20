@@ -29,6 +29,7 @@
 
 #include <stddef.h>
 #include <cstring>
+#include <cassert>
 
 #include <boost/scoped_array.hpp>
 
@@ -108,8 +109,9 @@ private:
     unsigned length_;
     /*! Pointer to the memory block that contains the trace. */
     boost::scoped_array<AlignmentType> data_;
+    unsigned mainHead_;
     /*! Positions of heads for recursive messages. */
-    SimpleStack<unsigned> heads_;
+    unsigned currentHead_;
     /*! Index of the element after the end of the last message. */
     unsigned tail_;
     /*! Position of the trace wrap. */
@@ -118,12 +120,13 @@ private:
     unsigned errorFlags_;
 
     bool isEmpty_;
+    bool isNested_;
     
     /*! Pointer to function that returns timestamp. */
     TimestampFunctionType getTimestamp;
 
     /*! Get position of the next head. */
-    unsigned nextHead();
+    unsigned nextMainHead();
     /*! Clean up trace. */
     void reset();
 
@@ -144,7 +147,7 @@ unsigned aligned_size()
 
 /*! Calculates the number of AlingmentType elements required to store
  *  an object. */
-unsigned message_length(unsigned size);
+unsigned message_length(unsigned size, bool isNested);
 
 template <typename T>
 void VarTrace::log(MessageIdType message_id, const T& value) 
@@ -164,7 +167,7 @@ void VarTrace::doLog(MessageIdType message_id, const T * value,
 		     const SizeofCopyTag& copy_tag, unsigned data_id,
 		     unsigned object_size)
 {
-    unsigned required_length = message_length(object_size);
+    unsigned required_length = message_length(object_size, isNested_);
     unsigned copy_index = tail_;
     unsigned new_tail_index = tail_ + required_length;
     unsigned next_head;
@@ -177,16 +180,18 @@ void VarTrace::doLog(MessageIdType message_id, const T * value,
     }
     // check if head should be moved and shift it
     if (!isEmpty()) {
-	while (heads_.top() >= copy_index && heads_.top() < new_tail_index) {
-	    next_head = nextHead();
-	    if (next_head == heads_.top()) break;
-	    heads_.top() = next_head;
+	while (mainHead_ >= copy_index && mainHead_ < new_tail_index) {
+	    next_head = nextMainHead();
+	    if (next_head == mainHead_) break;
+	    mainHead_ = next_head;
 	}
     }
 
     // create header
     ShortestType *tail = reinterpret_cast<ShortestType*>(&data_[copy_index]);
-    *(reinterpret_cast<TimestampType*>(tail)) = getTimestamp();
+    if (!isNested_) {
+	*(reinterpret_cast<TimestampType*>(tail)) = getTimestamp();
+    }
     tail += sizeof(TimestampType);
     *(reinterpret_cast<LengthType*>(tail)) = object_size;
     tail += sizeof(LengthType);
