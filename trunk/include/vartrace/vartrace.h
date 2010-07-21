@@ -66,7 +66,7 @@ public:
     /*! Create a trace of a given size. */
     VarTrace(size_t size);
     /*! Destructor. */
-    virtual ~VarTrace() {}
+    virtual ~VarTrace();
 
     /*! Returns the pointer to the begining of data buffer. */
     AlignmentType* rawData() const;
@@ -108,10 +108,9 @@ private:
     /*! Length of the data array. */
     unsigned length_;
     /*! Pointer to the memory block that contains the trace. */
-    boost::scoped_array<AlignmentType> data_;
-    unsigned mainHead_;
+    AlignmentType * data_;
     /*! Positions of heads for recursive messages. */
-    unsigned currentHead_;
+    unsigned head_;
     /*! Index of the element after the end of the last message. */
     unsigned tail_;
     /*! Position of the trace wrap. */
@@ -121,6 +120,10 @@ private:
 
     bool isEmpty_;
     bool isNested_;
+    bool isWritingEnabled_;
+
+    VarTrace * parent_;
+    VarTrace * root_;
     
     /*! Pointer to function that returns timestamp. */
     TimestampFunctionType getTimestamp;
@@ -167,23 +170,26 @@ void VarTrace::doLog(MessageIdType message_id, const T * value,
 		     const SizeofCopyTag& copy_tag, unsigned data_id,
 		     unsigned object_size)
 {
+    assert(isWritingEnabled_);
     unsigned required_length = message_length(object_size, isNested_);
     unsigned copy_index = tail_;
     unsigned new_tail_index = tail_ + required_length;
     unsigned next_head;
 	
-    // check for need to wrap around
+    // check if there is enough space at the end of the trace memory
+    // block
     if (new_tail_index >= length_) {
-	copy_index = 0;
+	copy_index = 0; // write from trace start
 	new_tail_index = required_length;
-	wrap_ = tail_;
+	root_->wrap_ = tail_; // set new wrap point
     }
-    // check if head should be moved and shift it
+    // check if there is enough memory to fit the message
     if (!isEmpty()) {
-	while (mainHead_ >= copy_index && mainHead_ < new_tail_index) {
+	while (root_->head_ >= copy_index
+	       && root_->head_ < new_tail_index) {
 	    next_head = nextMainHead();
-	    if (next_head == mainHead_) break;
-	    mainHead_ = next_head;
+	    if (next_head == root_->head_) break;
+	    root_->head_ = next_head;
 	}
     }
 
