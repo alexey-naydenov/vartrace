@@ -65,6 +65,7 @@ public:
 
     /*! Create a trace of a given size. */
     VarTrace(size_t size);
+    VarTrace(VarTrace * parent);
     /*! Destructor. */
     virtual ~VarTrace();
 
@@ -95,6 +96,8 @@ public:
 	const SizeofCopyTag& copy_tag, unsigned data_id,
 	unsigned object_size);
 
+    VarTrace * createSubTrace(MessageIdType message_id);
+    
     /*! Checks if trace is empty. */
     bool isEmpty();
 
@@ -103,18 +106,24 @@ public:
 
     /*! Return error state of the trace. */
     unsigned errorFlags() const;
+
+    struct TraceStorage 
+    {
+	/*! Length of the data array. */
+	unsigned length_;
+	/*! Pointer to the memory block that contains the trace. */
+	AlignmentType * data_;
+	/*! Positions of heads for recursive messages. */
+	unsigned head_;
+	/*! Index of the element after the end of the last message. */
+	unsigned tail_;
+	/*! Position of the trace wrap. */
+	unsigned wrap_;
+    };
     
 private:
-    /*! Length of the data array. */
-    unsigned length_;
-    /*! Pointer to the memory block that contains the trace. */
-    AlignmentType * data_;
-    /*! Positions of heads for recursive messages. */
-    unsigned head_;
-    /*! Index of the element after the end of the last message. */
-    unsigned tail_;
-    /*! Position of the trace wrap. */
-    unsigned wrap_;
+    TraceStorage * storage_;
+    
     /*! Error states of the trace. */
     unsigned errorFlags_;
 
@@ -123,7 +132,6 @@ private:
     bool isWritingEnabled_;
 
     VarTrace * parent_;
-    VarTrace * root_;
     
     /*! Pointer to function that returns timestamp. */
     TimestampFunctionType getTimestamp;
@@ -172,27 +180,29 @@ void VarTrace::doLog(MessageIdType message_id, const T * value,
 {
     assert(isWritingEnabled_);
     unsigned required_length = message_length(object_size, isNested_);
-    unsigned copy_index = tail_;
-    unsigned new_tail_index = tail_ + required_length;
+    unsigned copy_index = storage_->tail_;
+    unsigned new_tail_index = storage_->tail_ + required_length;
     unsigned next_head;
 	
     // check if there is enough space at the end of the trace memory
     // block
-    if (new_tail_index >= length_) {
+    if (new_tail_index >= storage_->length_) {
 	copy_index = 0; // write from trace start
 	new_tail_index = required_length;
-	wrap_ = tail_; // set new wrap point
+	storage_->wrap_ = storage_->tail_; // set new wrap point
     }
     // head of the trace must be outside of the indices range for the
     // new message
-    while (root_->head_ >= copy_index && root_->head_ < new_tail_index) {
-	next_head = root_->nextHead();
-	if (next_head == root_->head_) break; // trace is empty
-	root_->head_ = next_head;
+    while (storage_->head_ >= copy_index
+	   && storage_->head_ < new_tail_index) {
+	next_head = nextHead();
+	if (next_head == storage_->head_) break; // trace is empty
+	storage_->head_ = next_head;
     }
 
     // create header
-    ShortestType *tail = reinterpret_cast<ShortestType*>(&data_[copy_index]);
+    ShortestType *tail =
+	reinterpret_cast<ShortestType*>(&storage_->data_[copy_index]);
     // write timestamp only for top level trace
     if (!isNested_) {
 	*(reinterpret_cast<TimestampType*>(tail)) = getTimestamp();
@@ -209,13 +219,22 @@ void VarTrace::doLog(MessageIdType message_id, const T * value,
     std::memcpy(tail, value, object_size);
 
     // move tail
-    tail_ = new_tail_index;
+    storage_->tail_ = new_tail_index;
     // advance the wrap point if the tail moved past it
-    if (wrap_ < tail_) wrap_ = tail_;
+    if (storage_->wrap_ < storage_->tail_) storage_->wrap_ = storage_->tail_;
     // log is not empty anymore
     isEmpty_ = false;
 }
 
+//! Spacialization of trait structure for subtraces.
+template<> struct DataTypeTraits<VarTrace>
+{
+    enum {
+	DataTypeId = 0,
+	TypeSize = 0
+    };
+};
+    
 }
 
 #endif /* VARTRACE_H */
