@@ -71,12 +71,12 @@ VarTrace::~VarTrace()
 }
 
 
-AlignmentType* VarTrace::rawData() const
+AlignmentType * VarTrace::rawData() const
 {
     return data_;
 }
 
-AlignmentType* VarTrace::head()
+AlignmentType * VarTrace::head()
 {
     return data_ + head_;
 }
@@ -156,7 +156,7 @@ unsigned VarTrace::errorFlags() const
     return errorFlags_;
 }
 
-unsigned VarTrace::nextMainHead()
+unsigned VarTrace::nextHead()
 {
     if (isEmpty()) return 0;
     // get the pointer to the length field
@@ -165,7 +165,7 @@ unsigned VarTrace::nextMainHead()
     // find the end of head message
     unsigned next_head =
 	head_ + message_length(*(reinterpret_cast<LengthType*>(ch)),
-				   isNested_);
+			       isNested_);
     // if the wrap point is reached return 0
     if (next_head == wrap_) return 0;
 

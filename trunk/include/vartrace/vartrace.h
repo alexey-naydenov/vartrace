@@ -129,7 +129,7 @@ private:
     TimestampFunctionType getTimestamp;
 
     /*! Get position of the next head. */
-    unsigned nextMainHead();
+    unsigned nextHead();
     /*! Clean up trace. */
     void reset();
 
@@ -181,20 +181,19 @@ void VarTrace::doLog(MessageIdType message_id, const T * value,
     if (new_tail_index >= length_) {
 	copy_index = 0; // write from trace start
 	new_tail_index = required_length;
-	root_->wrap_ = tail_; // set new wrap point
+	wrap_ = tail_; // set new wrap point
     }
-    // check if there is enough memory to fit the message
-    if (!isEmpty()) {
-	while (root_->head_ >= copy_index
-	       && root_->head_ < new_tail_index) {
-	    next_head = nextMainHead();
-	    if (next_head == root_->head_) break;
-	    root_->head_ = next_head;
-	}
+    // head of the trace must be outside of the indices range for the
+    // new message
+    while (root_->head_ >= copy_index && root_->head_ < new_tail_index) {
+	next_head = root_->nextHead();
+	if (next_head == root_->head_) break; // trace is empty
+	root_->head_ = next_head;
     }
 
     // create header
     ShortestType *tail = reinterpret_cast<ShortestType*>(&data_[copy_index]);
+    // write timestamp only for top level trace
     if (!isNested_) {
 	*(reinterpret_cast<TimestampType*>(tail)) = getTimestamp();
     }
