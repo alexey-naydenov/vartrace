@@ -171,9 +171,10 @@ void VarTrace::log(MessageIdType message_id, const T& value)
 }
 
 template <typename T>
-void VarTrace::logArray(MessageIdType message_id, const T* data, int length)
+void VarTrace::logArray(MessageIdType message_id, const T * data, int length)
 {
-    
+    doLog(message_id, data, typename CopyTraits<T>::CopyCategory(),
+	  DataTypeTraits<T[1]>::DataTypeId, sizeof(T)*length);
 }
 
 template <typename T>

@@ -284,6 +284,28 @@ TEST_F(VarTraceTest, CreateSubtraceWrap)
     EXPECT_EQ(0x1234, *((int *) msg.data));
 }
 
+TEST_F(VarTraceTest, LogVarArray) 
+{
+    int * a = new int[5];
+    char buffer[256] = {0};
+    MessageParser msg;
+    char * position = buffer;
+
+    for (int i = 0; i < 5; ++i) {
+	a[i] = 3*(i+1);
+    }
+    trace.logArray(0x11, a, 5);
+    trace.dump(buffer, 256);
+    // parse logged array
+    position = (char *) msg.parse(position, false);
+    EXPECT_EQ(20, msg.dataSize);
+    EXPECT_EQ(vartrace::DataType2Int<int[1]>::id, msg.dataTypeId);
+    EXPECT_EQ(0x11, msg.messageId);
+    for (int i = 0; i < 5; ++i) {
+	EXPECT_EQ(a[i], ((int *) msg.data)[i]);
+    }
+    delete [] a;
+}
 
 TEST(AlignedSizeTest, SmallValues) 
 {
