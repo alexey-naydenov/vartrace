@@ -181,7 +181,7 @@ unsigned VarTrace::nextHead()
     // find the end of head message
     unsigned next_head =
 	 storage_->head_ + message_length(*(reinterpret_cast<LengthType*>(ch)),
-					  isNested_);
+					  false);
     // if the wrap point is reached return 0
     if (next_head == storage_->wrap_) return 0;
 

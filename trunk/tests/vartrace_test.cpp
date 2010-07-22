@@ -32,6 +32,19 @@ template<> struct DataTypeTraits<c5Type>
 
 }
 
+void print_data(void * data, int length) 
+{
+    std::cout<<std::hex<<"----------"<<std::endl;
+    for (int i = 0; i < length; ++i) {
+	for (int j = 0; j < 4; ++j) {
+	    std::cout<<(unsigned) ((char *) data)[4*i+j]<<" ";
+	}
+	std::cout<<std::endl;
+    }
+    std::cout<<"----------"<<std::endl;
+}
+
+
 class VarTraceTest : public ::testing::Test
 {
 public:
@@ -231,6 +244,46 @@ TEST_F(VarTraceTest, CreateSubtrace)
     EXPECT_EQ(0x33, msg.messageId);
     EXPECT_EQ(0x5678, *((int *) msg.data));
 }
+
+TEST_F(VarTraceTest, CreateSubtraceWrap) 
+{
+    VarTrace tr32(32);
+    char buffer[256] = {0};
+    MessageParser msg;
+    char * position = buffer;
+    int v;
+
+    // write a couple of int messages
+    for (int i = 0; i < 2; ++i) {
+	v = 7*(i+1);
+	tr32.log(i+1, v);
+    }
+    // add subtrace
+    VarTrace * subtrace = tr32.createSubtrace(0x11);
+    v = 0x1234;
+    subtrace->log(0x33, v);
+    delete subtrace;
+    // trace should have second int message and 1 subtrace
+    tr32.dump(buffer, 256);
+    // second int message
+    position = (char *) msg.parse(position, false);
+    EXPECT_EQ(4, msg.dataSize);
+    EXPECT_EQ(vartrace::DataType2Int<int>::id, msg.dataTypeId);
+    EXPECT_EQ(2, msg.messageId);
+    EXPECT_EQ(14, *((int *) msg.data));
+    // subtrace header
+    position = (char *) msg.parse(position, false);
+    EXPECT_EQ(8, msg.dataSize);
+    EXPECT_EQ(0, msg.dataTypeId);
+    EXPECT_EQ(0x11, msg.messageId);
+    // logged int value inside subtrace
+    position = (char *) msg.parse(position, true);
+    EXPECT_EQ(4, msg.dataSize);
+    EXPECT_EQ(vartrace::DataType2Int<int>::id, msg.dataTypeId);
+    EXPECT_EQ(0x33, msg.messageId);
+    EXPECT_EQ(0x1234, *((int *) msg.data));
+}
+
 
 TEST(AlignedSizeTest, SmallValues) 
 {
