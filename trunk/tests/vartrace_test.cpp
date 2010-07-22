@@ -187,6 +187,8 @@ TEST_F(VarTraceTest, TraceDumpSmallBuffer)
 TEST_F(VarTraceTest, CreateSubtrace) 
 {
     char buffer[256] = {0};
+    MessageParser msg;
+    char * position;
 
     int v;
     VarTrace * subtrace = trace.createSubtrace(0x11);
@@ -200,13 +202,34 @@ TEST_F(VarTraceTest, CreateSubtrace)
 
     trace.dump(buffer, 256);
 
-    unsigned * tmp = (unsigned *) buffer;
-    for (int i = 0; i < 16; ++i) {
-	for (int j = 0; j < 4; ++j) {
-	    std::cout<<std::hex<<(int) buffer[4*i+j]<<" ";
-	}
-	std::cout<<std::endl;
-    }
+    // check top subtrace header
+    position = buffer;
+    position = (char *) msg.parse(position, false);
+    // data size = 2 int messages without timestamp + 1 subtrace
+    // header
+    EXPECT_EQ(2*8 + 4, msg.dataSize);
+    EXPECT_EQ(0, msg.dataTypeId);
+    EXPECT_EQ(0x11, msg.messageId);
+    // check subsubtrace header
+    position = (char *) msg.parse(position, true);
+    // data size = 1 int messages without timestamp
+    EXPECT_EQ(8, msg.dataSize);
+    EXPECT_EQ(0, msg.dataTypeId);
+    EXPECT_EQ(0x22, msg.messageId);
+    // innermost int message
+    position = (char *) msg.parse(position, true);
+    // data size = 1 int
+    EXPECT_EQ(4, msg.dataSize);
+    EXPECT_EQ(vartrace::DataType2Int<int>::id, msg.dataTypeId);
+    EXPECT_EQ(0x44, msg.messageId);
+    EXPECT_EQ(0x1234, *((int *) msg.data));
+    // int message in subtrace
+    position = (char *) msg.parse(position, true);
+    // data size = 1 int
+    EXPECT_EQ(4, msg.dataSize);
+    EXPECT_EQ(vartrace::DataType2Int<int>::id, msg.dataTypeId);
+    EXPECT_EQ(0x33, msg.messageId);
+    EXPECT_EQ(0x5678, *((int *) msg.data));
 }
 
 TEST(AlignedSizeTest, SmallValues) 

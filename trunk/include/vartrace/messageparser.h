@@ -33,14 +33,16 @@ namespace vartrace {
 class MessageParser
 {
 public:
-    MessageParser(void *datastream);
+    MessageParser() {};
+    MessageParser(void * datastream, bool isNested = false);
     virtual ~MessageParser() {};
+    void * parse(void * datastream, bool isNested = false);
 
     unsigned timestamp;
     unsigned dataSize;
     unsigned dataTypeId;
     unsigned messageId;
-    void *data;
+    void * data;
     
 private:
     /*! Disabled default copy constructor. */
