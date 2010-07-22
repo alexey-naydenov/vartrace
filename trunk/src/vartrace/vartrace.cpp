@@ -68,7 +68,15 @@ VarTrace::VarTrace(size_t size) :
 
 VarTrace::~VarTrace()
 {
-    delete []  storage_->data_;
+    // notify parent that subtrace is getting destroyed
+    if (isNested_) {
+	parent_->subtraceClosed();
+    }
+    // delete allocated memory if top level trace is destroyed
+    if (!isNested_) {
+	delete []  storage_->data_;
+	delete storage_;
+    }
 }
 
 
@@ -85,6 +93,9 @@ AlignmentType * VarTrace::head()
 unsigned VarTrace::dump(void *buffer, unsigned buffer_size)
 {
     if (isEmpty()) return 0;
+    // dump is possible if only from top level trace after all
+    // subtraces were closed
+    if ((!isWritingEnabled_) || isNested_) return 0;
 
     unsigned copied_size = 0;
     // check if the trace is wrapped around
@@ -198,15 +209,45 @@ VarTrace::VarTrace(VarTrace * parent) :
 {
 }
 
-VarTrace * VarTrace::createSubTrace(MessageIdType message_id)
+VarTrace * VarTrace::createSubtrace(MessageIdType message_id)
 {
     // create header for subtrace with timestamp and 0 data size
+    subtraceStart_ = storage_->tail_;
     log(message_id, *this);
+    // if new tail is smaller then the saved one then wrap happened,
+    // save real position
+    if (storage_->tail_ < subtraceStart_) {
+	subtraceStart_ = storage_->tail_;
+    }
     // create new trace object
     VarTrace * sub_trace = new VarTrace(this);
     isWritingEnabled_ = false;
 
     return sub_trace;
+}
+
+void VarTrace::subtraceClosed()
+{
+    // enable trace writing
+    isWritingEnabled_ = true;
+    // clculate size of the closed subtrace child
+    int subtrace_length;
+    int header_length = isNested_ ?
+	VarTrace::NestedHeaderLength : VarTrace::HeaderLength;
+    if (storage_->tail_ > subtraceStart_) {
+	subtrace_length = storage_->tail_ - subtraceStart_
+	    - header_length;
+    } else {
+	subtrace_length = storage_->wrap_ - subtraceStart_
+	    - header_length + storage_->tail_;
+    }
+    // update size of the closed subtrace
+    ShortestType * subtrace_header =
+	reinterpret_cast<ShortestType*>(&storage_->data_[subtraceStart_]);
+    // if *this is a top level trace skip over timestamp
+    if (!isNested_) subtrace_header += sizeof(TimestampType);
+    *(reinterpret_cast<LengthType*>(subtrace_header)) =
+	subtrace_length*sizeof(AlignmentType);
 }
 
 }

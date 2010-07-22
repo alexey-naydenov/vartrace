@@ -184,6 +184,31 @@ TEST_F(VarTraceTest, TraceDumpSmallBuffer)
     EXPECT_EQ(2, msg.messageId);
 }
 
+TEST_F(VarTraceTest, CreateSubtrace) 
+{
+    char buffer[256] = {0};
+
+    int v;
+    VarTrace * subtrace = trace.createSubtrace(0x11);
+    VarTrace * subsubtrace = subtrace->createSubtrace(0x22);
+    v = 0x1234;
+    subsubtrace->log(0x44, v);
+    delete subsubtrace;
+    v= 0x5678;
+    subtrace->log(0x33, v);
+    delete subtrace;
+
+    trace.dump(buffer, 256);
+
+    unsigned * tmp = (unsigned *) buffer;
+    for (int i = 0; i < 16; ++i) {
+	for (int j = 0; j < 4; ++j) {
+	    std::cout<<std::hex<<(int) buffer[4*i+j]<<" ";
+	}
+	std::cout<<std::endl;
+    }
+}
+
 TEST(AlignedSizeTest, SmallValues) 
 {
     EXPECT_EQ(aligned_size<char>(), 1);

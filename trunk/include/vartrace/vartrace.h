@@ -30,6 +30,7 @@
 #include <stddef.h>
 #include <cstring>
 #include <cassert>
+#include <iostream>
 
 #include <boost/scoped_array.hpp>
 
@@ -96,7 +97,8 @@ public:
 	const SizeofCopyTag& copy_tag, unsigned data_id,
 	unsigned object_size);
 
-    VarTrace * createSubTrace(MessageIdType message_id);
+    VarTrace * createSubtrace(MessageIdType message_id);
+    void subtraceClosed();
     
     /*! Checks if trace is empty. */
     bool isEmpty();
@@ -123,6 +125,7 @@ public:
     
 private:
     TraceStorage * storage_;
+    unsigned subtraceStart_;
     
     /*! Error states of the trace. */
     unsigned errorFlags_;
@@ -206,8 +209,8 @@ void VarTrace::doLog(MessageIdType message_id, const T * value,
     // write timestamp only for top level trace
     if (!isNested_) {
 	*(reinterpret_cast<TimestampType*>(tail)) = getTimestamp();
+	tail += sizeof(TimestampType);
     }
-    tail += sizeof(TimestampType);
     *(reinterpret_cast<LengthType*>(tail)) = object_size;
     tail += sizeof(LengthType);
     *(reinterpret_cast<MessageIdType*>(tail)) = message_id;
