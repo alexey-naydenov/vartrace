@@ -129,6 +129,13 @@ unsigned VarTrace::dump(void *buffer, unsigned buffer_size)
     return copied_size;
 }
 
+void VarTrace::setTimestampFunction(TimestampFunctionType fnct)
+{
+    assert(fnct != 0);
+    getTimestamp = fnct;
+}
+
+
 bool VarTrace::isEmpty()
 {
     return isEmpty_;

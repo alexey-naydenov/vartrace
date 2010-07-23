@@ -32,6 +32,11 @@ VT_TraceHandle VT_create(unsigned size)
     return new vartrace::VarTrace(size);
 }
 
+VT_TraceHandle VT_createSubtrace(VT_TraceHandle trace, int message_id)
+{
+    return trace->createSubtrace(message_id);
+}
+
 void VT_destroy(VT_TraceHandle trace) 
 {
     delete trace;
@@ -66,3 +71,10 @@ void VT_logDouble(VT_TraceHandle trace, double message_id, double var)
 {
     trace->log(message_id, var);
 }
+
+void VT_logIntArray(VT_TraceHandle trace, int message_id,
+		    int * data, int length)
+{
+    trace->logArray(message_id, data, length);
+}
+

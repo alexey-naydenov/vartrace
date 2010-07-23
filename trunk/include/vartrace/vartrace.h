@@ -96,6 +96,8 @@ public:
 
     VarTrace * createSubtrace(MessageIdType message_id);
     void subtraceClosed();
+
+    void setTimestampFunction(TimestampFunctionType fnct);
     
     /*! Checks if trace is empty. */
     bool isEmpty();

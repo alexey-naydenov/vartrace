@@ -31,9 +31,9 @@
 namespace vartrace {
 class VarTrace;
 }
-typedef vartrace::VarTrace* VT_TraceHandle;
+typedef vartrace::VarTrace * VT_TraceHandle;
 #else
-typedef void* VT_TraceHandle;
+typedef void * VT_TraceHandle;
 #endif
 
 #ifdef __cplusplus
@@ -41,6 +41,7 @@ extern "C" {
 #endif
 
 VT_TraceHandle VT_create(unsigned size);
+VT_TraceHandle VT_createSubtrace(VT_TraceHandle trace, int message_id);
 void VT_destroy(VT_TraceHandle trace);
 unsigned VT_dump(VT_TraceHandle trace, void *buffer, unsigned size);
 int VT_isEmpty(VT_TraceHandle trace);
@@ -49,7 +50,10 @@ unsigned VT_errorFlags(VT_TraceHandle trace);
 void VT_logInt(VT_TraceHandle trace, int message_id, int var);
 void VT_logUnsigned(VT_TraceHandle trace, unsigned message_id, unsigned var);
 void VT_logDouble(VT_TraceHandle trace, double message_id, double var);
-    
+
+void VT_logIntArray(VT_TraceHandle trace, int message_id,
+		    int * data, int length);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
