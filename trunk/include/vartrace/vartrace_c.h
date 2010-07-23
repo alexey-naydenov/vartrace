@@ -27,11 +27,14 @@
 #ifndef VARTRACE_C_H
 #define VARTRACE_C_H
 
+#include "vartrace/tracetypes.h"
+
 #ifdef __cplusplus
 namespace vartrace {
 class VarTrace;
 }
 typedef vartrace::VarTrace * VT_TraceHandle;
+using vartrace::TimestampFunctionType;
 #else
 typedef void * VT_TraceHandle;
 #endif
@@ -54,6 +57,8 @@ void VT_logDouble(VT_TraceHandle trace, double message_id, double var);
 void VT_logIntArray(VT_TraceHandle trace, int message_id,
 		    int * data, int length);
 
+void VT_setTimestampFunction(VT_TraceHandle trace,
+			     TimestampFunctionType fnct);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

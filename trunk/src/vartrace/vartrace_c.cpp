@@ -78,3 +78,9 @@ void VT_logIntArray(VT_TraceHandle trace, int message_id,
     trace->logArray(message_id, data, length);
 }
 
+void VT_setTimestampFunction(VT_TraceHandle trace,
+			     TimestampFunctionType fnct)
+{
+    trace->setTimestampFunction(fnct);
+}
+
