@@ -29,7 +29,6 @@
 
 #include "vartrace/tracetypes.h"
 #include "vartrace/vartrace.h"
-#include "vartrace/simplestack.h"
 
 namespace vartrace {
 

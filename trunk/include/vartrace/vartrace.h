@@ -32,11 +32,8 @@
 #include <cassert>
 #include <iostream>
 
-#include <boost/scoped_array.hpp>
-
 #include "copytraits.h"
 #include "tracetypes.h"
-#include "simplestack.h"
 #include "datatypeid.h"
 #include "datatraits.h"
 
