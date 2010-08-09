@@ -84,3 +84,18 @@ void VT_setTimestampFunction(VT_TraceHandle trace,
     trace->setTimestampFunction(fnct);
 }
 
+namespace vartrace {
+template void VarTrace::log<VarTrace>(MessageIdType, const VarTrace&);
+template void VarTrace::doLog<VarTrace>(
+    MessageIdType, const VarTrace *, const SizeofCopyTag&, unsigned, unsigned);
+template void VarTrace::log<int>(MessageIdType, const int&);
+template void VarTrace::doLog<int>(MessageIdType, const int *,
+				   const SizeofCopyTag&, unsigned, unsigned);
+template void VarTrace::log<unsigned>(MessageIdType, const unsigned&);
+template void VarTrace::doLog<unsigned>(
+    MessageIdType, const unsigned *, const SizeofCopyTag&, unsigned, unsigned);
+template void VarTrace::log<double>(MessageIdType, const double&);
+template void VarTrace::doLog<double>(
+    MessageIdType, const double *, const SizeofCopyTag&, unsigned, unsigned);
+template void VarTrace::logArray<int>(MessageIdType, const int *, int);
+}
