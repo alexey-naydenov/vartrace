@@ -30,7 +30,6 @@
 #include <stddef.h>
 #include <cstring>
 #include <cassert>
-#include <iostream>
 
 #include "copytraits.h"
 #include "tracetypes.h"
