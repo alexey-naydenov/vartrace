@@ -55,10 +55,10 @@ public:
 
     virtual void TearDown() {}
 
-    VarTrace trace;
-    VarTrace t16;
-    VarTrace t32;
-    VarTrace t64;
+    VarTrace<> trace;
+    VarTrace<> t16;
+    VarTrace<> t32;
+    VarTrace<> t64;
 };
 
 TEST_F(VarTraceTest, LogSimpleType) 
@@ -204,8 +204,8 @@ TEST_F(VarTraceTest, CreateSubtrace)
     char * position;
 
     int v;
-    VarTrace * subtrace = trace.createSubtrace(0x11);
-    VarTrace * subsubtrace = subtrace->createSubtrace(0x22);
+    VarTrace<> * subtrace = trace.createSubtrace(0x11);
+    VarTrace<> * subsubtrace = subtrace->createSubtrace(0x22);
     v = 0x1234;
     subsubtrace->log(0x44, v);
     delete subsubtrace;
@@ -247,7 +247,7 @@ TEST_F(VarTraceTest, CreateSubtrace)
 
 TEST_F(VarTraceTest, CreateSubtraceWrap) 
 {
-    VarTrace tr32(32);
+    VarTrace<> tr32(32);
     char buffer[256] = {0};
     MessageParser msg;
     char * position = buffer;
@@ -259,7 +259,7 @@ TEST_F(VarTraceTest, CreateSubtraceWrap)
 	tr32.log(i+1, v);
     }
     // add subtrace
-    VarTrace * subtrace = tr32.createSubtrace(0x11);
+    VarTrace<> * subtrace = tr32.createSubtrace(0x11);
     v = 0x1234;
     subtrace->log(0x33, v);
     delete subtrace;
