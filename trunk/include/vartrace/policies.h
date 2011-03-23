@@ -25,30 +25,27 @@
 
 namespace vartrace {
 
-template <class T>
-struct NewCreator
+template <class T> struct NewCreator
 {
-    static T * create()
-    {
-	return new T;
-    }
+  static T * create()
+  {
+    return new T;
+  }
     
-protected:
-    ~NewCreator() {}
+ protected:
+  ~NewCreator() {}
 };
 
-template <class T>
-struct SingleThreaded
+template <class T> struct SingleThreaded
 {
-
-protected:
-    ~SingleThreaded() {}
+ protected:
+  ~SingleThreaded() {}
 };
 
 struct NewAllocator
 {
-protected:
-    ~NewAllocator() {}
+ protected:
+  ~NewAllocator() {}
 };
 
 } /* vartrace */

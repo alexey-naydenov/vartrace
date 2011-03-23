@@ -41,9 +41,7 @@ namespace vartrace {
 
 /*! Calculates the number of AlingmentType elements required to store
  *  an object. */
-template <typename T>
-unsigned aligned_size()
-{
+template <typename T> unsigned aligned_size() {
     return sizeof(T)/sizeof(AlignmentType)
 	+ (sizeof(T)%sizeof(AlignmentType) == 0 ? 0 : 1);
 }
@@ -432,5 +430,7 @@ private:
 // };
     
 } /* vartrace */
+
+#include "vartrace/vartrace-inl.h"
 
 #endif /* VARTRACE_H */
