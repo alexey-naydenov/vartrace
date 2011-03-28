@@ -29,19 +29,17 @@
 
 namespace vartrace {
 
-MessageParser::MessageParser(void * datastream, bool isNested)
-{
+MessageParser::MessageParser(void *datastream, bool isNested) {
     parse(datastream, isNested);
 }
 
-void * MessageParser::parse(void * datastream, bool isNested)
-{
-    ShortestType * tail = reinterpret_cast<ShortestType*>(datastream);
+void * MessageParser::parse(void *datastream, bool isNested) {
+    ShortestType *tail = reinterpret_cast<ShortestType *>(datastream);
     if (!isNested) {
-	timestamp = *(reinterpret_cast<TimestampType*>(tail));
-	tail += sizeof(TimestampType);
+      timestamp = *(reinterpret_cast<TimestampType *>(tail));
+      tail += sizeof(TimestampType);
     } else {
-	timestamp = 0;
+      timestamp = 0;
     }
     dataSize = *(reinterpret_cast<LengthType*>(tail));
     tail += sizeof(LengthType);
@@ -52,12 +50,11 @@ void * MessageParser::parse(void * datastream, bool isNested)
     data = tail;
     // if there is actual data skip over it
     if (dataTypeId != 0) {
-	int reminder = dataSize%sizeof(AlignmentType);
-	tail += dataSize
-	    + (reminder == 0 ? 0 : sizeof(AlignmentType) - reminder);
+      int reminder = dataSize%sizeof(AlignmentType);
+      tail += dataSize
+          + (reminder == 0 ? 0 : sizeof(AlignmentType) - reminder);
     }
     return tail;
 }
-
-} /* vartrace */
+}  // namespace vartrace
 
