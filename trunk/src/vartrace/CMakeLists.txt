@@ -1,4 +1,4 @@
-set (VARTRACE_SRC vartrace.cpp messageparser.cpp)
+set (VARTRACE_SRC vartrace.cc)
 
 add_library (vartrace ${VARTRACE_SRC})
 target_link_libraries (vartrace stdc++)

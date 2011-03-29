@@ -24,7 +24,7 @@
 #define TRUNK_INCLUDE_VARTRACE_TRACETYPES_H_
 
 #ifdef __cplusplus
-#include <cstdint>
+#include <stdint.h>
 namespace vartrace {
 #else
 #include <stdint.h>

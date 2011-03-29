@@ -27,33 +27,34 @@
 
 #include <vector>
 
-#iclude "vartrace/tracetypes.h"
+#include "vartrace/tracetypes.h"
 
 namespace vartrace {
 
 static int kDefaultBlockCount = 3;
 static int kDefaultBlockSize = 0x1000;
 
-//! Object creation policy using new.
-template <class T> struct CreateNewObject {
-  static boost::shared_ptr<T> Create(int block_count = kDefaultBlockCount,
-                                     int block_size = kDefaultBlockSize) {
-    return boost::shared_ptr<T>(new T(block_count, block_size));
+template <class T> struct NewCreator {
+ public:
+  typedef boost::shared_ptr<T> Pointer;
+  static Pointer Create(int block_count = kDefaultBlockCount,
+                        int block_size = kDefaultBlockSize) {
+    return Pointer(new T(block_count, block_size));
   }
  protected:
-  ~CreateNewObject() {}
+  ~NewCreator() {}
 };
 
 //! No lock policy.
-template <class T> struct LockSingleThread {
+template <class T> struct SingleThreadedLocker {
  protected:
-  ~LockSingleThread() {}
+  ~SingleThreadedLocker() {}
 };
 
 //! Policy to allocate log storage through new operator.
-struct AllocateNewStorage {
+struct NewAllocator {
  protected:
-  ~AllocateNewStorage() {}
+  ~NewAllocator() {}
 };
 }  // namespace vartrace
 
