@@ -34,14 +34,16 @@ class PolicyTest : public ::testing::Test {
   VarTrace<>::Pointer trace3;
 };
 
-//! NewCreator should create a new object every time (compiler test).
+//! NewCreator should create different objects (compiler test).
 TEST_F(PolicyTest, NewCreatorTest) {
   trace = VarTrace<vartrace::NewCreator>::Create(3, 1000);
   trace2 = VarTrace<vartrace::NewCreator>::Create(3, 1000);
+  EXPECT_TRUE(trace);
+  EXPECT_TRUE(trace2);
   EXPECT_NE(trace.get(), trace2.get());
+  EXPECT_TRUE(trace->is_initialized());
+  EXPECT_TRUE(trace2->is_initialized());
 }
-
-
 
 int main(int argc, char *argv[]) {
     ::testing::InitGoogleTest(&argc, argv);

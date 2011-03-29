@@ -33,9 +33,6 @@
 
 namespace vartrace {
 
-//! Divide 2 ints and round up the result.
-#define CEIL_DIV(num, div) ((num) + (div) - 1)/(div)
-
 /*! Calculates the number of AlingmentType elements required to store
  *  an object. */
 template <typename T> unsigned aligned_size() {
@@ -49,31 +46,31 @@ TimestampType incremental_timestamp() {
 
 /*! Class for variable trace objects. */
 template <
-  template <class> class CP = NewCreator,
-  template <class> class LP = SingleThreadedLocker,
-  class AP = NewAllocator
+  template <class> class CP = NewCreator, // creation policy
+  template <class> class LP = SingleThreadedLocker, // locking policy
+  class AP = NewAllocator // storage allocation policy
   >
 class VarTrace
     : public CP< VarTrace<CP, LP, AP> >,
       public LP< VarTrace<CP, LP, AP> >,
       public AP {
  public:
-  //! Shared pointer to the class, used for handling vartrace objects.
-  //typedef boost::shared_ptr< VarTrace<CP, LP, AP> > Pointer;
-  VarTrace(int block_count, int block_size) {}
+  //! Create a new trace with the given number of blocks and block size.
+  /*! \note The constructor should not be called directly, use Create
+   *  function provided by creation policy.
+   */
+  VarTrace(int block_count, int block_size);
+  void Initialize();
+
+  bool is_initialized() const {
+    return is_initialized_;
+  }
+
  private:
-  enum {
-    //! Size of a header without a timestamp.
-    NestedHeaderSize = (sizeof(LengthType) + sizeof(MessageIdType)
-                        + sizeof(DataIdType)),
-    //! Size of a header with a timestamp.
-    HeaderSize = (sizeof(TimestampType) + sizeof(LengthType)
-                  + sizeof(MessageIdType) + sizeof(DataIdType)),
-    //! Length of a header without a timestamp.
-    NestedHeaderLength = CEIL_DIV(NestedHeaderSize, sizeof(AlignmentType)),
-    //! Length of a header with a timestamp.
-    HeaderLength = CEIL_DIV(HeaderSize, sizeof(AlignmentType))
-  };
+  bool is_initialized_;
+  int block_count_;
+  int block_length_;
+  typename AP::StorageArrayType data_;
 };
 }  // vartrace
 

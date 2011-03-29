@@ -31,8 +31,8 @@
 
 namespace vartrace {
 
-static int kDefaultBlockCount = 3;
-static int kDefaultBlockSize = 0x1000;
+static const int kDefaultBlockCount = 3;
+static const int kDefaultBlockSize = 0x1000;
 
 template <class T> struct NewCreator {
  public:
@@ -53,6 +53,14 @@ template <class T> struct SingleThreadedLocker {
 
 //! Policy to allocate log storage through new operator.
 struct NewAllocator {
+ public:
+  //! Type for storing trace data.
+  typedef boost::shared_array<AlignmentType> StorageArrayType;
+  //! Create new shared array of type AlingmentType.
+  static StorageArrayType Allocate(int length, int *allocated_length) {
+    *allocated_length = length;
+    return StorageArrayType(new AlignmentType[length]);
+  }
  protected:
   ~NewAllocator() {}
 };

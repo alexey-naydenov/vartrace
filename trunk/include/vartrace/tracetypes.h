@@ -23,27 +23,40 @@
 #ifndef TRUNK_INCLUDE_VARTRACE_TRACETYPES_H_
 #define TRUNK_INCLUDE_VARTRACE_TRACETYPES_H_
 
+#include <stdint.h>
+
 #ifdef __cplusplus
-#include <stdint.h>
 namespace vartrace {
-#else
-#include <stdint.h>
 #endif
 
-/// Sets type for minimal unit of data.
+//! Divide 2 ints and round up the result.
+#define CEIL_DIV(num, div) ((num) + (div) - 1)/(div)
+
+//! Sets type for minimal unit of data.
 typedef uint8_t ShortestType;
-/// Sets alingment of message boundaries and data fields.
+//! Sets alingment of message boundaries and data fields.
 typedef uint32_t AlignmentType;
-/// Timestamp type.
+//! Timestamp type.
 typedef uint32_t TimestampType;
-/// Type to store message size.
+//! Type to store message size.
 typedef uint16_t LengthType;
-/// Message type fields type
+//! Message type fields type
 typedef uint8_t MessageIdType;
-/// Data type fields type.
+//! Data type fields type.
 typedef uint8_t DataIdType;
 
-/// Function type for timestamps.
+//! Size of a header without a timestamp.
+const int kNestedHeaderSize = sizeof(LengthType) + sizeof(MessageIdType)
+    + sizeof(DataIdType);
+//! Size of a header with a timestamp.
+const int kHeaderSize = sizeof(TimestampType) + kNestedHeaderSize;
+//! Length of a header without a timestamp.
+const int kNestedHeaderLength = CEIL_DIV(kNestedHeaderSize,
+                                         sizeof(AlignmentType));
+//! Length of a header with a timestamp.
+const int kHeaderLength = CEIL_DIV(kHeaderSize, sizeof(AlignmentType));
+
+//! Function type for timestamps.
 typedef TimestampType (*TimestampFunctionType) ();
 
 #ifdef __cplusplus

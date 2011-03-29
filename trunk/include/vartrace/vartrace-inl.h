@@ -23,6 +23,27 @@
 #define TRUNK_INCLUDE_VARTRACE_VARTRACE_INL_H_
 
 namespace vartrace {
+template <template <class> class CP, template <class> class LP, class AP>
+VarTrace<CP, LP, AP>::VarTrace(int block_count, int block_size)
+    : is_initialized_(false), block_count_(block_count),
+      block_length_(block_size/sizeof(AlignmentType)) {
+  Initialize();
+}
+
+template <template <class> class CP, template <class> class LP, class AP>
+void VarTrace<CP, LP, AP>::Initialize() {
+  // check for double initialization
+  if (is_initialized_) { return; }
+  // try to allocate storage, if success init success
+  int allocated_length = 0;
+  data_ = this->Allocate(block_count_*block_length_, &allocated_length);
+  if (data_) {
+    is_initialized_ = true;
+    if (allocated_length != block_count_*block_length_) {
+      block_length_ = allocated_length/block_count_;
+    }
+  }
+}
 }  // vartrace
 
 #endif  // TRUNK_INCLUDE_VARTRACE_VARTRACE_INL_H_
