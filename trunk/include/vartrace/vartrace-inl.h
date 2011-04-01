@@ -23,26 +23,60 @@
 #define TRUNK_INCLUDE_VARTRACE_VARTRACE_INL_H_
 
 namespace vartrace {
-template <template <class> class CP, template <class> class LP, class AP>
+
+#define VAR_TRACE_TEMPLATE \
+  template <template <class> class CP, template <class> class LP, class AP>
+
+VAR_TRACE_TEMPLATE
 VarTrace<CP, LP, AP>::VarTrace(int block_count, int block_size)
     : is_initialized_(false), block_count_(block_count),
       block_length_(block_size/sizeof(AlignmentType)) {
   Initialize();
 }
 
-template <template <class> class CP, template <class> class LP, class AP>
+VAR_TRACE_TEMPLATE
 void VarTrace<CP, LP, AP>::Initialize() {
   // check for double initialization
   if (is_initialized_) { return; }
-  // try to allocate storage, if success init success
+  // check block count size
+  if (block_count_ < kMinBlockCount) { return; }
+  // try to allocate storage
   int allocated_length = 0;
   data_ = this->Allocate(block_count_*block_length_, &allocated_length);
-  if (data_) {
+  if (data_ && allocated_length >= block_count_*kMinBlockLength) {
     is_initialized_ = true;
+    // if less then required memory was allocated then decrease
+    // block_length
     if (allocated_length != block_count_*block_length_) {
       block_length_ = allocated_length/block_count_;
     }
+    // init trace description variables
+    first_block_ = 0;
+    last_block_ = 0;
+    // init blocks description variables
+    block_first_indices_ = boost::shared_array<int>(new int[block_count_]);
+    block_last_indices_ = boost::shared_array<int>(new int[block_count_]);
+    block_heads_ = boost::shared_array<int>(new int[block_count_]);
+    block_tails_ = boost::shared_array<int>(new int[block_count_]);
+    for (int i = 0; i < block_count_; ++i) {
+      block_first_indices_[i] = i*block_length_;
+      block_last_indices_[i] = (i+1)*block_length_ - 1;
+      block_heads_[i] = 0;
+      block_tails_[i] = 0;
+    }
   }
+}
+
+VAR_TRACE_TEMPLATE template <typename T>
+void VarTrace<CP, LP, AP>::log(MessageIdType message_id, const T &value) {
+  doLog(message_id, &value, typename CopyTraits<T>::CopyCategory(),
+        DataTypeTraits<T>::DataTypeId, DataTypeTraits<T>::TypeSize);
+}
+
+VAR_TRACE_TEMPLATE template <typename T>
+void VarTrace<CP, LP, AP>::doLog(MessageIdType message_id, const T *value,
+                                 const SizeofCopyTag &copy_tag,
+                                 unsigned data_id, unsigned object_size) {
 }
 }  // vartrace
 

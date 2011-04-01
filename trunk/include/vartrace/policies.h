@@ -33,6 +33,8 @@ namespace vartrace {
 
 static const int kDefaultBlockCount = 3;
 static const int kDefaultBlockSize = 0x1000;
+static const int kMinBlockCount = 3;
+static const int kMinBlockLength = 3;
 
 template <class T> struct NewCreator {
  public:
@@ -46,9 +48,9 @@ template <class T> struct NewCreator {
 };
 
 //! No lock policy.
-template <class T> struct SingleThreadedLocker {
+template <class T> struct NoLocker {
  protected:
-  ~SingleThreadedLocker() {}
+  ~NoLocker() {}
 };
 
 //! Policy to allocate log storage through new operator.

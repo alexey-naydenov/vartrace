@@ -24,6 +24,7 @@
 
 #include <cstring>
 #include <cassert>
+#include <vector>
 
 #include "vartrace/copytraits.h"
 #include "vartrace/tracetypes.h"
@@ -47,7 +48,7 @@ TimestampType incremental_timestamp() {
 /*! Class for variable trace objects. */
 template <
   template <class> class CP = NewCreator, // creation policy
-  template <class> class LP = SingleThreadedLocker, // locking policy
+  template <class> class LP = NoLocker, // locking policy
   class AP = NewAllocator // storage allocation policy
   >
 class VarTrace
@@ -62,14 +63,26 @@ class VarTrace
   VarTrace(int block_count, int block_size);
   void Initialize();
 
-  bool is_initialized() const {
-    return is_initialized_;
-  }
+  bool is_initialized() const { return is_initialized_; }
+  int block_count() const { return block_count_; }
+  int block_size() const { return sizeof(AlignmentType)*block_length_; }
+
+  template <typename T> void log(MessageIdType message_id, const T &value);
+
+  template <typename T> void doLog(
+      MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
+      unsigned data_id, unsigned object_size);
 
  private:
-  bool is_initialized_;
-  int block_count_;
-  int block_length_;
+  bool is_initialized_; /*!< True after memory allocation. */
+  int block_count_; /*!< Total number of blocks. */
+  int block_length_; /*!< Lnegth of each block in  AlignmentType units.*/
+  int first_block_; /*!< First block that contains data. */
+  int last_block_; /*!< Block that is being used for storing data. */
+  boost::shared_array<int> block_first_indices_;
+  boost::shared_array<int> block_last_indices_;
+  boost::shared_array<int> block_heads_;
+  boost::shared_array<int> block_tails_;
   typename AP::StorageArrayType data_;
 };
 }  // vartrace

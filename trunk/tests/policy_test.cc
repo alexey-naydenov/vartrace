@@ -37,12 +37,16 @@ class PolicyTest : public ::testing::Test {
 //! NewCreator should create different objects (compiler test).
 TEST_F(PolicyTest, NewCreatorTest) {
   trace = VarTrace<vartrace::NewCreator>::Create(3, 1000);
-  trace2 = VarTrace<vartrace::NewCreator>::Create(3, 1000);
+  trace2 = VarTrace<vartrace::NewCreator>::Create(5, 1002);
   EXPECT_TRUE(trace);
   EXPECT_TRUE(trace2);
   EXPECT_NE(trace.get(), trace2.get());
   EXPECT_TRUE(trace->is_initialized());
   EXPECT_TRUE(trace2->is_initialized());
+  EXPECT_EQ(trace->block_count(), 3);
+  EXPECT_EQ(trace2->block_count(), 5);
+  EXPECT_EQ(trace->block_size(), 1000);
+  EXPECT_EQ(trace2->block_size(), 1000); // this size should be rounded down
 }
 
 int main(int argc, char *argv[]) {
