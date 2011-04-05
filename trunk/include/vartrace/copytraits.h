@@ -43,6 +43,10 @@ struct AssignmentCopyTag : public SizeofCopyTag {};
 template<typename T> struct CopyTraits {
     typedef SizeofCopyTag CopyCategory;
 };
+
+template<> struct CopyTraits<int> {
+  typedef AssignmentCopyTag CopyCategory;
+};
 }  // vartrace
 
 #endif  // TRUNK_INCLUDE_VARTRACE_COPYTRAITS_H_

@@ -32,25 +32,24 @@ namespace vartrace {
 /*! Converts binary stream into a set of fields. */
 class MessageParser
 {
-public:
-    MessageParser() {};
-    MessageParser(void * datastream, bool isNested = false);
-    virtual ~MessageParser() {};
-    void * parse(void * datastream, bool isNested = false);
+ public:
+  MessageParser() {};
+  MessageParser(void * datastream, bool isNested = false);
+  virtual ~MessageParser() {};
+  void * parse(void * datastream, bool isNested = false);
 
-    unsigned timestamp;
-    unsigned dataSize;
-    unsigned dataTypeId;
-    unsigned messageId;
-    void * data;
+  unsigned timestamp;
+  unsigned dataSize;
+  unsigned dataTypeId;
+  unsigned messageId;
+  void * data;
     
-private:
-    /*! Disabled default copy constructor. */
-    MessageParser(const MessageParser&);
-    /*! Disabled default assingment operator. */
-    MessageParser& operator=(const MessageParser&);
+ private:
+  /*! Disabled default copy constructor. */
+  MessageParser(const MessageParser&);
+  /*! Disabled default assingment operator. */
+  MessageParser& operator=(const MessageParser&);
 };
-
 } /* vartrace */
 
 #endif /* MESSAGEPARSER_H */

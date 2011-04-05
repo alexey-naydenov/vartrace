@@ -31,17 +31,24 @@
 
 namespace vartrace {
 
-static const int kDefaultBlockCount = 3;
-static const int kDefaultBlockSize = 0x1000;
-static const int kMinBlockCount = 3;
-static const int kMinBlockLength = 3;
+static const int kDefaultBlockCount = 4;
+static const int kDefaultTraceSize = 0x1000;
+static const int kMinBlockCount = 4;
 
 template <class T> struct NewCreator {
  public:
   typedef boost::shared_ptr<T> Pointer;
-  static Pointer Create(int block_count = kDefaultBlockCount,
-                        int block_size = kDefaultBlockSize) {
-    return Pointer(new T(block_count, block_size));
+  static Pointer Create(int trace_size = kDefaultTraceSize,
+                        int block_count = kDefaultBlockCount) {
+    // find most significant bit of block_count that is 1
+    int log2_count = 0;
+    while ( (block_count >> log2_count) > 1) log2_count++;
+    // block length not rounded down to 2^n
+    int block_length = trace_size/sizeof(AlignmentType)/(1<<log2_count);
+    // find most significant bit of block_length that is 1
+    int log2_length = 0;
+    while ( (block_length >> log2_length) > 1) log2_length++;
+    return Pointer(new T(log2_count, log2_length));
   }
  protected:
   ~NewCreator() {}
@@ -59,8 +66,7 @@ struct NewAllocator {
   //! Type for storing trace data.
   typedef boost::shared_array<AlignmentType> StorageArrayType;
   //! Create new shared array of type AlingmentType.
-  static StorageArrayType Allocate(int length, int *allocated_length) {
-    *allocated_length = length;
+  static StorageArrayType Allocate(int length) {
     return StorageArrayType(new AlignmentType[length]);
   }
  protected:

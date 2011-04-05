@@ -28,9 +28,12 @@ namespace vartrace {
   template <template <class> class CP, template <class> class LP, class AP>
 
 VAR_TRACE_TEMPLATE
-VarTrace<CP, LP, AP>::VarTrace(int block_count, int block_size)
-    : is_initialized_(false), block_count_(block_count),
-      block_length_(block_size/sizeof(AlignmentType)) {
+VarTrace<CP, LP, AP>::VarTrace(int log2_count, int log2_length)
+    : is_initialized_(false), is_nested_(false),
+      log2_block_count_(log2_count), log2_block_length_(log2_length),
+      block_count_(1<<log2_block_count_), block_length_(1<<log2_block_length_),
+      current_block_(0), current_index_(0),
+      get_timestamp_(incremental_timestamp) {
   Initialize();
 }
 
@@ -42,29 +45,34 @@ void VarTrace<CP, LP, AP>::Initialize() {
   if (block_count_ < kMinBlockCount) { return; }
   // try to allocate storage
   int allocated_length = 0;
-  data_ = this->Allocate(block_count_*block_length_, &allocated_length);
-  if (data_ && allocated_length >= block_count_*kMinBlockLength) {
+  data_ = this->Allocate(block_count_*block_length_);
+  if (data_) {
     is_initialized_ = true;
-    // if less then required memory was allocated then decrease
-    // block_length
-    if (allocated_length != block_count_*block_length_) {
-      block_length_ = allocated_length/block_count_;
-    }
-    // init trace description variables
-    first_block_ = 0;
-    last_block_ = 0;
     // init blocks description variables
-    block_first_indices_ = boost::shared_array<int>(new int[block_count_]);
-    block_last_indices_ = boost::shared_array<int>(new int[block_count_]);
-    block_heads_ = boost::shared_array<int>(new int[block_count_]);
-    block_tails_ = boost::shared_array<int>(new int[block_count_]);
+    index_mask_ = (block_count_*block_length_) - 1;
+    block_end_indices_ = boost::shared_array<int>(new int[block_count_]);
     for (int i = 0; i < block_count_; ++i) {
-      block_first_indices_[i] = i*block_length_;
-      block_last_indices_[i] = (i+1)*block_length_ - 1;
-      block_heads_[i] = 0;
-      block_tails_[i] = 0;
+      block_end_indices_[i] = (i + 1)*block_length_;
     }
   }
+}
+
+VAR_TRACE_TEMPLATE
+void VarTrace<CP, LP, AP>::IncrementIndex() {
+  current_index_ = (current_index_ + 1) & index_mask_;
+}
+
+VAR_TRACE_TEMPLATE
+void VarTrace<CP, LP, AP>::CreateHeader(MessageIdType message_id,
+                                        unsigned data_id,
+                                        unsigned object_size) {
+  if (!is_nested_) {
+    data_[current_index_] = get_timestamp_();
+    IncrementIndex();
+  }
+  data_[current_index_] = (object_size << kSizeShift)
+      + (message_id << kMessageIdShift) + data_id;
+  IncrementIndex();
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
@@ -77,6 +85,16 @@ VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<CP, LP, AP>::doLog(MessageIdType message_id, const T *value,
                                  const SizeofCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
+}
+
+VAR_TRACE_TEMPLATE template <typename T>
+void VarTrace<CP, LP, AP>::doLog(MessageIdType message_id, const T *value,
+                                 const AssignmentCopyTag &copy_tag,
+                                 unsigned data_id, unsigned object_size) {
+  CreateHeader(message_id, data_id, object_size);
+  data_[current_index_] = reinterpret_cast<AlignmentType>(*value);
+  block_end_indices_[current_index_ >> log2_block_length_] = current_index_;
+  IncrementIndex();
 }
 }  // vartrace
 

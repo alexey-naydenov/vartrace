@@ -60,30 +60,47 @@ class VarTrace
   /*! \note The constructor should not be called directly, use Create
    *  function provided by creation policy.
    */
-  VarTrace(int block_count, int block_size);
+  VarTrace(int log2_count, int log2_size);
   void Initialize();
 
+  //! Returns true after memory allocation.
   bool is_initialized() const { return is_initialized_; }
+  //! Number of memory blocks used to store trace.
   int block_count() const { return block_count_; }
+  //! Approximate size of each block in bytes.
   int block_size() const { return sizeof(AlignmentType)*block_length_; }
-
+  //! Store a variable value in the trace.
+  /*! 
+   */
   template <typename T> void log(MessageIdType message_id, const T &value);
 
+ private:
+  //! Store object by copying through memcpy.
   template <typename T> void doLog(
       MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
       unsigned data_id, unsigned object_size);
+  //! Store a variable through assignment.
+  template <typename T> void doLog(
+      MessageIdType message_id, const T *value,
+      const AssignmentCopyTag &copy_tag, unsigned data_id,
+      unsigned object_size);
 
- private:
+  void IncrementIndex();
+  void CreateHeader(MessageIdType message_id, unsigned data_id,
+                    unsigned object_size);
+
   bool is_initialized_; /*!< True after memory allocation. */
-  int block_count_; /*!< Total number of blocks. */
-  int block_length_; /*!< Lnegth of each block in  AlignmentType units.*/
-  int first_block_; /*!< First block that contains data. */
-  int last_block_; /*!< Block that is being used for storing data. */
-  boost::shared_array<int> block_first_indices_;
-  boost::shared_array<int> block_last_indices_;
-  boost::shared_array<int> block_heads_;
-  boost::shared_array<int> block_tails_;
-  typename AP::StorageArrayType data_;
+  bool is_nested_; /*!< True if trace object is not top level one. */
+  int log2_block_count_; /*!< Log base 2 of number of blocks. */
+  int log2_block_length_; /*!< Log base 2 of block length. */
+  int block_count_; /*!< Total number of blocks, should be power of 2. */
+  int block_length_; /*!< Length of each block in AlignmentType units. */
+  unsigned index_mask_; /*!< Restricts array index to the range 0...2^n. */
+  int current_block_; /*!< Block currently being written into. */
+  int current_index_; /*!< Next array element to write to. */
+  boost::shared_array<int> block_end_indices_; /*!< Block boundaries. */
+  typename AP::StorageArrayType data_; /*!< Data storage. */
+  TimestampFunctionType get_timestamp_; /*!< Pointer to a timestamp function. */
 };
 }  // vartrace
 

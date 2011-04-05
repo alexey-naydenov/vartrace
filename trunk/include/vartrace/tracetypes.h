@@ -36,7 +36,7 @@ namespace vartrace {
 typedef uint8_t ShortestType;
 //! Sets alingment of message boundaries and data fields.
 typedef uint32_t AlignmentType;
-//! Timestamp type.
+//! Timestamp type, should be a similar to AlignmentType.
 typedef uint32_t TimestampType;
 //! Type to store message size.
 typedef uint16_t LengthType;
@@ -55,6 +55,9 @@ const int kNestedHeaderLength = CEIL_DIV(kNestedHeaderSize,
                                          sizeof(AlignmentType));
 //! Length of a header with a timestamp.
 const int kHeaderLength = CEIL_DIV(kHeaderSize, sizeof(AlignmentType));
+
+const int kMessageIdShift = 8*sizeof(DataIdType);
+const int kSizeShift = 8*(sizeof(DataIdType) + sizeof(MessageIdType));
 
 //! Function type for timestamps.
 typedef TimestampType (*TimestampFunctionType) ();
