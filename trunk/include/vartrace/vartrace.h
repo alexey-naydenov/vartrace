@@ -72,20 +72,24 @@ class VarTrace
   //! Store a variable value in the trace.
   /*! 
    */
-  template <typename T> void log(MessageIdType message_id, const T &value);
+  template <typename T> void Log(MessageIdType message_id, const T &value);
+
+  int DumpInto(void *buffer, int size);
 
  private:
   //! Store object by copying through memcpy.
-  template <typename T> void doLog(
+  template <typename T> void DoLog(
       MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
       unsigned data_id, unsigned object_size);
   //! Store a variable through assignment.
-  template <typename T> void doLog(
+  template <typename T> void DoLog(
       MessageIdType message_id, const T *value,
       const AssignmentCopyTag &copy_tag, unsigned data_id,
       unsigned object_size);
 
-  void IncrementIndex();
+  void IncrementCurrentIndex();
+  int NextIndex(int index);
+  int PreviousIndex(int index);
   void CreateHeader(MessageIdType message_id, unsigned data_id,
                     unsigned object_size);
 

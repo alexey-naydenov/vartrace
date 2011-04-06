@@ -21,6 +21,7 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <boost/shared_array.hpp>
 
 #include "vartrace/vartrace.h"
 
@@ -50,6 +51,21 @@ TEST_F(PolicyTest, NewCreatorTest) {
   ASSERT_EQ(vartrace::kDefaultTraceSize/(1<<vartrace::kDefaultBlockCount)
             *sizeof(vartrace::AlignmentType), trace->block_size());
   ASSERT_EQ(trace_size/block_count, trace2->block_size());
+}
+
+//! Test logging of simple types.
+TEST_F(PolicyTest, LogNoWrapTest) {
+  int trace_size = 0x1000;
+  int buffer_size = trace_size;
+  int message_size = vartrace::kHeaderSize + sizeof(vartrace::AlignmentType);
+  trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
+  boost::shared_array<char> buffer(new char[buffer_size]);
+  int copied_size;
+  // log simple variables and check dumped data, no overfill of the trace
+  for (int i = 0; i < trace_size/message_size/3*2; ++i) {
+    trace->Log(2*i, 3*i);
+    ASSERT_EQ((i+1)*message_size, trace->DumpInto(buffer.get(), buffer_size));
+  }
 }
 
 int main(int argc, char *argv[]) {

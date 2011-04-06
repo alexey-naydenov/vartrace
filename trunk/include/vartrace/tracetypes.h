@@ -56,8 +56,8 @@ const int kNestedHeaderLength = CEIL_DIV(kNestedHeaderSize,
 //! Length of a header with a timestamp.
 const int kHeaderLength = CEIL_DIV(kHeaderSize, sizeof(AlignmentType));
 
-const int kMessageIdShift = 8*sizeof(DataIdType);
-const int kSizeShift = 8*(sizeof(DataIdType) + sizeof(MessageIdType));
+const int kMessageIdShift = 8*sizeof(LengthType);
+const int kDataIdShift = 8*(sizeof(MessageIdType) + sizeof(LengthType));
 
 //! Function type for timestamps.
 typedef TimestampType (*TimestampFunctionType) ();
