@@ -31,7 +31,7 @@
 
 namespace vartrace {
 
-static const int kDefaultBlockCount = 4;
+static const int kDefaultBlockCount = 8;
 static const int kDefaultTraceSize = 0x1000;
 static const int kMinBlockCount = 4;
 

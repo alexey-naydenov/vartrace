@@ -48,23 +48,38 @@ TEST_F(PolicyTest, NewCreatorTest) {
   ASSERT_TRUE(trace2->is_initialized());
   ASSERT_EQ(trace->block_count(), vartrace::kDefaultBlockCount);
   ASSERT_EQ(trace2->block_count(), block_count);
-  ASSERT_EQ(vartrace::kDefaultTraceSize/(1<<vartrace::kDefaultBlockCount)
-            *sizeof(vartrace::AlignmentType), trace->block_size());
+  ASSERT_EQ(vartrace::kDefaultTraceSize/vartrace::kDefaultBlockCount,
+            trace->block_size());
   ASSERT_EQ(trace_size/block_count, trace2->block_size());
 }
 
 //! Test logging of simple types.
 TEST_F(PolicyTest, LogNoWrapTest) {
   int trace_size = 0x1000;
-  int buffer_size = trace_size;
+  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
+  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
   int message_size = vartrace::kHeaderSize + sizeof(vartrace::AlignmentType);
+  int message_length = 3;
   trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
-  boost::shared_array<char> buffer(new char[buffer_size]);
+  boost::shared_array<vartrace::AlignmentType> buffer(
+      new vartrace::AlignmentType[buffer_length]);
   int copied_size;
   // log simple variables and check dumped data, no overfill of the trace
   for (int i = 0; i < trace_size/message_size/3*2; ++i) {
     trace->Log(2*i, 3*i);
+    // check total size of the dump
     ASSERT_EQ((i+1)*message_size, trace->DumpInto(buffer.get(), buffer_size));
+    // check timestamp of the last message
+    ASSERT_EQ(i, buffer[i*message_length]);
+    // check size of the last message
+    ASSERT_EQ(sizeof(i), buffer[i*message_length + 1] & 0xffff);
+    // check message id of the last message
+    ASSERT_EQ((2*i)%256, (buffer[i*message_length + 1]>>16) & 0xff);
+    // check data type of the last message
+    ASSERT_EQ(vartrace::DataType2Int<int>::id,
+              (buffer[i*message_length + 1]>>24) & 0xff);
+    // check last message value
+    ASSERT_EQ(3*i, buffer[i*message_length + 2]);
   }
 }
 
