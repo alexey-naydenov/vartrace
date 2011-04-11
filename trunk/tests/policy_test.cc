@@ -23,6 +23,8 @@
 #include <gmock/gmock.h>
 #include <boost/shared_array.hpp>
 
+#include <cstdio>
+
 #include "vartrace/vartrace.h"
 
 using vartrace::VarTrace;
@@ -54,7 +56,7 @@ TEST_F(PolicyTest, NewCreatorTest) {
 }
 
 //! Test logging of simple types.
-TEST_F(PolicyTest, LogNoWrapTest) {
+TEST_F(PolicyTest, LogIntegersTest) {
   int trace_size = 0x1000;
   int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
   int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
@@ -64,22 +66,39 @@ TEST_F(PolicyTest, LogNoWrapTest) {
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   int copied_size;
-  // log simple variables and check dumped data, no overfill of the trace
-  for (int i = 0; i < trace_size/message_size/3*2; ++i) {
+  // write 5 times the trace capacity
+  for (int i = 0; i < 5*trace_size/message_size; ++i) {
     trace->Log(2*i, 3*i);
-    // check total size of the dump
-    ASSERT_EQ((i+1)*message_size, trace->DumpInto(buffer.get(), buffer_size));
-    // check timestamp of the last message
-    ASSERT_EQ(i, buffer[i*message_length]);
-    // check size of the last message
-    ASSERT_EQ(sizeof(i), buffer[i*message_length + 1] & 0xffff);
-    // check message id of the last message
-    ASSERT_EQ((2*i)%256, (buffer[i*message_length + 1]>>16) & 0xff);
-    // check data type of the last message
-    ASSERT_EQ(vartrace::DataType2Int<int>::id,
-              (buffer[i*message_length + 1]>>24) & 0xff);
-    // check last message value
-    ASSERT_EQ(3*i, buffer[i*message_length + 2]);
+    // dump trace
+    int dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+    ASSERT_GE(buffer_size, dumped_size);
+    // check total dumped size of the dump in the predictable case
+    // when less then trace capacity of data was written
+    if (i < 3*trace_size/message_size/4) {
+      ASSERT_EQ((i+1)*message_size, dumped_size);
+    }
+    std::cout << i << std::endl;
+    // check all dumped messaged
+    for (int j = 0; j < dumped_size/message_size; ++j) {
+      // timestamp is the message couter
+      int message_counter = buffer[j*message_length];
+      // check size of the message
+      if (sizeof(i) != (buffer[j*message_length + 1] & 0xffff)) {
+        std::cout << i << " " << j << std::endl;
+        for (int k = 0; k < 30; ++k) {
+          std::cout << std::hex << buffer[k] << " ";
+        }
+      }
+      ASSERT_EQ(sizeof(i), buffer[j*message_length + 1] & 0xffff);
+      // check message id of the message
+      ASSERT_EQ((2*message_counter)%256,
+                (buffer[j*message_length + 1]>>16) & 0xff);
+      // check data type of the message
+      ASSERT_EQ(vartrace::DataType2Int<int>::id,
+                (buffer[j*message_length + 1]>>24) & 0xff);
+      // check the value of the message
+      ASSERT_EQ(3*message_counter, buffer[j*message_length + 2]);
+    }
   }
 }
 

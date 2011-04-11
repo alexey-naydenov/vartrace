@@ -134,7 +134,7 @@ int VarTrace<CP, LP, AP>::DumpInto(void *buffer, int size) {
       copied_size = (block_length_*block_count_ - copy_from)
           *sizeof(AlignmentType);
        memcpy(buffer, &data_[copy_from], copied_size);
-       // try to copy from index 0 till copy_to
+       // try to c opy from index 0 till copy_to
        int leftover_to_copy = 0;
        if (copy_to*sizeof(AlignmentType) <= size - copied_size) {
          // everything fits
