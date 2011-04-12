@@ -79,6 +79,11 @@ int VarTrace<CP, LP, AP>::PreviousIndex(int index) {
 }
 
 VAR_TRACE_TEMPLATE
+int VarTrace<CP, LP, AP>::NextBlock(int block_index) {
+  return (block_index + 1) % block_count_;
+}
+
+VAR_TRACE_TEMPLATE
 void VarTrace<CP, LP, AP>::CreateHeader(MessageIdType message_id,
                                         unsigned data_id,
                                         unsigned object_size) {
@@ -119,7 +124,7 @@ void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
 VAR_TRACE_TEMPLATE
 int VarTrace<CP, LP, AP>::DumpInto(void *buffer, int size) {
   // start copying from the end of the next block
-  int copy_from = block_end_indices_[NextIndex(current_block_)];
+  int copy_from = block_end_indices_[NextBlock(current_block_)];
   // if end index of the next block is -1 then the trace was not
   // filled even once, copy from index 0
   if (copy_from < 0) { copy_from = 0; }

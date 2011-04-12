@@ -77,18 +77,11 @@ TEST_F(PolicyTest, LogIntegersTest) {
     if (i < 3*trace_size/message_size/4) {
       ASSERT_EQ((i+1)*message_size, dumped_size);
     }
-    std::cout << i << std::endl;
     // check all dumped messaged
     for (int j = 0; j < dumped_size/message_size; ++j) {
       // timestamp is the message couter
       int message_counter = buffer[j*message_length];
       // check size of the message
-      if (sizeof(i) != (buffer[j*message_length + 1] & 0xffff)) {
-        std::cout << i << " " << j << std::endl;
-        for (int k = 0; k < 30; ++k) {
-          std::cout << std::hex << buffer[k] << " ";
-        }
-      }
       ASSERT_EQ(sizeof(i), buffer[j*message_length + 1] & 0xffff);
       // check message id of the message
       ASSERT_EQ((2*message_counter)%256,

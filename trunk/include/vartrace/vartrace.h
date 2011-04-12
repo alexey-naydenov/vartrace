@@ -90,6 +90,7 @@ class VarTrace
   void IncrementCurrentIndex();
   int NextIndex(int index);
   int PreviousIndex(int index);
+  int NextBlock(int block_index);
   void CreateHeader(MessageIdType message_id, unsigned data_id,
                     unsigned object_size);
 
