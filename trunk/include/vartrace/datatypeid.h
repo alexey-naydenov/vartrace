@@ -71,7 +71,6 @@ struct DataType2Int<float[L]> {enum {id = 0x1f};};
 template <unsigned L>
 struct DataType2Int<double[L]> {enum {id = 0x1d};};
 /* id = 0 reserved for combined types */
-
 }
 
 #endif /* DATATYPEID_H */

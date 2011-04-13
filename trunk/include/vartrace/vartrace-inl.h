@@ -44,7 +44,6 @@ void VarTrace<CP, LP, AP>::Initialize() {
   // check block count size
   if (block_count_ < kMinBlockCount) { return; }
   // try to allocate storage
-  int allocated_length = 0;
   data_ = this->Allocate(block_count_*block_length_);
   if (data_) {
     is_initialized_ = true;
@@ -122,7 +121,7 @@ void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
 }
 
 VAR_TRACE_TEMPLATE
-int VarTrace<CP, LP, AP>::DumpInto(void *buffer, int size) {
+int VarTrace<CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
   // start copying from the end of the next block
   int copy_from = block_end_indices_[NextBlock(current_block_)];
   // if end index of the next block is -1 then the trace was not

@@ -44,7 +44,23 @@ template<typename T> struct CopyTraits {
     typedef SizeofCopyTag CopyCategory;
 };
 
+
+template<> struct CopyTraits<char> {
+  typedef AssignmentCopyTag CopyCategory;
+};
+template<> struct CopyTraits<unsigned char> {
+  typedef AssignmentCopyTag CopyCategory;
+};
+template<> struct CopyTraits<short> {
+  typedef AssignmentCopyTag CopyCategory;
+};
+template<> struct CopyTraits<unsigned short> {
+  typedef AssignmentCopyTag CopyCategory;
+};
 template<> struct CopyTraits<int> {
+  typedef AssignmentCopyTag CopyCategory;
+};
+template<> struct CopyTraits<unsigned> {
   typedef AssignmentCopyTag CopyCategory;
 };
 }  // vartrace
