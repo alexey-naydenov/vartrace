@@ -155,6 +155,32 @@ TEST_F(PolicyTest, LogDifferentTypesTest) {
   ASSERT_EQ(sizeof(ui), uimsg.data_size());
 }
 
+//! Check that max/min int values stored and restored correctly.
+TEST_F(PolicyTest, LogIntLimitsTest) {
+  int trace_size = 0x100;
+  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
+  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
+  trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
+  boost::shared_array<vartrace::AlignmentType> buffer(
+      new vartrace::AlignmentType[buffer_length]);
+  // init and log int values
+  int maxint = 0x7fffffff;
+  int minint = -maxint - 1;
+
+  trace->Log(1, minint);
+  trace->Log(2, maxint);
+  // parse trace
+  trace->DumpInto(buffer.get(), buffer_size);
+  int offset = 0;
+  Message minmsg(&buffer[offset]);
+  offset += minmsg.message_size()/sizeof(vartrace::AlignmentType);
+  Message maxmsg(&buffer[offset]);
+  // check results
+  ASSERT_EQ(minint, minmsg.value<int>());
+  ASSERT_EQ(maxint, maxmsg.value<int>());
+  ASSERT_EQ(maxint, maxmsg.value<unsigned>());
+}
+
 int main(int argc, char *argv[]) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

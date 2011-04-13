@@ -77,13 +77,5 @@ void Message::ParseStream(void *byte_stream, bool is_nested) {
                              sizeof(AlignmentType)) + data_length;
 }
 
-template <typename T> T Message::value() const {
-
-}
-
-template <typename T> T* Message::data() const {
-
-}
-
 }  // namespace vartrace
 

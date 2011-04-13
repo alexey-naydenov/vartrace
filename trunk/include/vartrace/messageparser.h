@@ -47,7 +47,7 @@ class Message {
   int data_size() const { return data_size_; }
   int message_size() const { return sizeof(AlignmentType)*message_length_; }
   template <typename T> T value() const;
-  template <typename T> T* data() const;
+  template <typename T> T* pointer() const;
   const std::vector<Pointer>& children() const { return children_; }
 
  private:
@@ -63,6 +63,16 @@ class Message {
   boost::scoped_array<AlignmentType> data_;
   std::vector<Pointer> children_;
 };
+
+template <typename T> T Message::value() const {
+  T value;
+  memset(&value, 0, sizeof(value));
+  memcpy(&value, data_.get(), data_size_);
+  return value;
+}
+
+template <typename T> T* Message::pointer() const {
+}
 } /* vartrace */
 
 #endif  // TRUNK_INCLUDE_VARTRACE_MESSAGEPARSER_H_
