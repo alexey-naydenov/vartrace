@@ -24,6 +24,7 @@
 #include <boost/shared_array.hpp>
 
 #include <cstdio>
+#include <limits>
 
 #include "vartrace/vartrace.h"
 #include "vartrace/messageparser.h"
@@ -164,21 +165,72 @@ TEST_F(PolicyTest, LogIntLimitsTest) {
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // init and log int values
-  int maxint = 0x7fffffff;
-  int minint = -maxint - 1;
-
+  int minint = std::numeric_limits<int>::min();
+  int maxint = std::numeric_limits<int>::max();
+  unsigned maxuint = std::numeric_limits<unsigned>::max();
+  // log values
   trace->Log(1, minint);
   trace->Log(2, maxint);
+  trace->Log(3, maxuint);
   // parse trace
   trace->DumpInto(buffer.get(), buffer_size);
   int offset = 0;
   Message minmsg(&buffer[offset]);
   offset += minmsg.message_size()/sizeof(vartrace::AlignmentType);
   Message maxmsg(&buffer[offset]);
+  offset += maxmsg.message_size()/sizeof(vartrace::AlignmentType);
+  Message umaxmsg(&buffer[offset]);
   // check results
   ASSERT_EQ(minint, minmsg.value<int>());
   ASSERT_EQ(maxint, maxmsg.value<int>());
+  ASSERT_EQ(maxuint, umaxmsg.value<unsigned>());
+  // try to get max int through unsigned template
   ASSERT_EQ(maxint, maxmsg.value<unsigned>());
+}
+
+//! Check logging types longer then int.
+TEST_F(PolicyTest, MultipleAssignmentTest) {
+  int trace_size = 0x100;
+  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
+  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
+  trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
+  boost::shared_array<vartrace::AlignmentType> buffer(
+      new vartrace::AlignmentType[buffer_length]);
+  // initialize some long variables
+  long lmin = std::numeric_limits<long>::min();
+  long lmax = std::numeric_limits<long>::max();
+  unsigned long ulmax = std::numeric_limits<unsigned long>::max();
+  long long llmin = std::numeric_limits<long long>::min();
+  long long llmax = std::numeric_limits<long long>::max();
+  unsigned long long ullmax = std::numeric_limits<unsigned long long>::max();
+  float f = 0.123456e-22;
+  double d = 0.789123e-44;
+  // log everything
+  trace->Log(1, lmin);
+  trace->Log(2, lmax);
+  trace->Log(3, ulmax);
+  trace->Log(4, llmin);
+  trace->Log(5, llmax);
+  trace->Log(6, ullmax);
+  trace->Log(7, f);
+  trace->Log(8, d);
+  // parse trace
+  size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
+  // check stored size
+  ASSERT_EQ(sizeof(lmin), vt[0]->data_size());
+  ASSERT_EQ(sizeof(llmin), vt[3]->data_size());
+  ASSERT_EQ(sizeof(f), vt[6]->data_size());
+  ASSERT_EQ(sizeof(d), vt[7]->data_size());
+  // check values
+  ASSERT_EQ(lmin, vt[0]->value<long>());
+  ASSERT_EQ(lmax, vt[1]->value<long>());
+  ASSERT_EQ(ulmax, vt[2]->value<unsigned long>());
+  ASSERT_EQ(llmin, vt[3]->value<long long>());
+  ASSERT_EQ(llmax, vt[4]->value<long long>());
+  ASSERT_EQ(ullmax, vt[5]->value<unsigned long long>());
+  ASSERT_EQ(f, vt[6]->value<float>());
+  ASSERT_EQ(d, vt[7]->value<double>());
 }
 
 int main(int argc, char *argv[]) {

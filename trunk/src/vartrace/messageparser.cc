@@ -77,5 +77,19 @@ void Message::ParseStream(void *byte_stream, bool is_nested) {
                              sizeof(AlignmentType)) + data_length;
 }
 
+ParsedVartrace::ParsedVartrace(void *byte_stream, size_t size) {
+  ParseStream(byte_stream, size);
+}
+
+void ParsedVartrace::ParseStream(void *byte_stream, size_t size) {
+  uint8_t *unparsed_position = static_cast<uint8_t *>(byte_stream);
+  size_t parsed_size = 0;
+  while (parsed_size < size) {
+    Message::Pointer msg(new Message(unparsed_position, false));
+    messages_.push_back(msg);
+    parsed_size += msg->message_size();
+    unparsed_position += msg->message_size();
+  }
+}
 }  // namespace vartrace
 

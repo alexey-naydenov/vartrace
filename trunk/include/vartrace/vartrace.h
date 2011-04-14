@@ -89,6 +89,11 @@ class VarTrace
       MessageIdType message_id, const T *value,
       const AssignmentCopyTag &copy_tag, unsigned data_id,
       unsigned object_size);
+  //! Store a variable using multiple assignment.
+  template <typename T> void DoLog(
+      MessageIdType message_id, const T *value,
+      const MultipleAssignmentsCopyTag &copy_tag, unsigned data_id,
+      unsigned object_size);
 
   //! Increment position for the next write.
   void IncrementCurrentIndex();

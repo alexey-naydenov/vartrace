@@ -65,14 +65,29 @@ class Message {
 };
 
 template <typename T> T Message::value() const {
-  T value;
-  memset(&value, 0, sizeof(value));
-  memcpy(&value, data_.get(), data_size_);
-  return value;
+  T val;
+  memset(&val, 0, sizeof(val));
+  memcpy(&val, data_.get(), data_size_);
+  return val;
 }
 
 template <typename T> T* Message::pointer() const {
 }
+
+//! Contains whole trace.
+class ParsedVartrace {
+ public:
+  typedef boost::shared_ptr<ParsedVartrace> Pointer;
+  ParsedVartrace(void *byte_stream, size_t size);
+  ~ParsedVartrace() {}
+
+  Message::Pointer operator[](size_t position) {return messages_[position];}
+  const std::vector<Message::Pointer>& messages() const {return messages_;}
+ private:
+  void ParseStream(void *byte_stream, size_t size);
+
+  std::vector<Message::Pointer> messages_;
+};
 } /* vartrace */
 
 #endif  // TRUNK_INCLUDE_VARTRACE_MESSAGEPARSER_H_

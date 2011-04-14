@@ -27,19 +27,22 @@
 #include "vartrace/datatypeid.h"
 
 namespace vartrace {
-/// Sizeof memory segment should be copied into the trace.
+//! Sizeof memory segment should be copied into the trace.
 struct SizeofCopyTag {};
 
-/// Object will copy itself into the trace.
+//! Object will copy itself into the trace.
 struct SelfCopyTag : public SizeofCopyTag {};
 
-/// Object is a tuple, create subtrace.
+//! Object is a tuple, create subtrace.
 struct TupleCopyTag : public SizeofCopyTag {};
 
-/// Object can be copied through an assignment.
+//! Object can be copied through an assignment.
 struct AssignmentCopyTag : public SizeofCopyTag {};
 
-/// Default behaviour for adding an object into a trace.
+//! Object can be copied through multiple assignments.
+struct MultipleAssignmentsCopyTag : public SizeofCopyTag {};
+
+//! Default behaviour for adding an object into a trace.
 template<typename T> struct CopyTraits {
     typedef SizeofCopyTag CopyCategory;
 };
@@ -62,6 +65,24 @@ template<> struct CopyTraits<int> {
 };
 template<> struct CopyTraits<unsigned> {
   typedef AssignmentCopyTag CopyCategory;
+};
+template<> struct CopyTraits<long> {
+  typedef MultipleAssignmentsCopyTag CopyCategory;
+};
+template<> struct CopyTraits<unsigned long> {
+  typedef MultipleAssignmentsCopyTag CopyCategory;
+};
+template<> struct CopyTraits<long long> {
+  typedef MultipleAssignmentsCopyTag CopyCategory;
+};
+template<> struct CopyTraits<unsigned long long> {
+  typedef MultipleAssignmentsCopyTag CopyCategory;
+};
+template<> struct CopyTraits<float> {
+  typedef MultipleAssignmentsCopyTag CopyCategory;
+};
+template<> struct CopyTraits<double> {
+  typedef MultipleAssignmentsCopyTag CopyCategory;
 };
 }  // vartrace
 

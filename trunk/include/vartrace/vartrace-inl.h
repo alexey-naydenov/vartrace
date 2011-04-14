@@ -120,6 +120,20 @@ void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
   block_end_indices_[current_block_] = current_index_;
 }
 
+VAR_TRACE_TEMPLATE template <typename T>
+void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
+                                 const MultipleAssignmentsCopyTag &copy_tag,
+                                 unsigned data_id, unsigned object_size) {
+  CreateHeader(message_id, data_id, object_size);
+  for (size_t i = 0; i < sizeof(T)/sizeof(AlignmentType); ++i) {
+    data_[current_index_] = *(reinterpret_cast<const AlignmentType *>(value)
+                              + i);
+    IncrementCurrentIndex();
+  }
+  current_block_ = current_index_ >> log2_block_length_;
+  block_end_indices_[current_block_] = current_index_;
+}
+
 VAR_TRACE_TEMPLATE
 int VarTrace<CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
   // start copying from the end of the next block
