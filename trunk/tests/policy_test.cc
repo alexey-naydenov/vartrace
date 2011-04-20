@@ -233,6 +233,140 @@ TEST_F(PolicyTest, MultipleAssignmentTest) {
   ASSERT_EQ(d, vt[7]->value<double>());
 }
 
+//! Check char array logging.
+TEST_F(PolicyTest, LogCharArrayTest) {
+  int trace_size = 0x100;
+  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
+  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
+  trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
+  boost::shared_array<vartrace::AlignmentType> buffer(
+      new vartrace::AlignmentType[buffer_length]);
+  // create an array and log it
+  char anarray[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+  trace->Log(1, anarray);
+  // dump trace
+  size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
+  // check message
+  ASSERT_EQ(vartrace::DataType2Int<char[1]>::id, vt[0]->data_type_id());
+  ASSERT_EQ(1, vt[0]->message_type_id());
+  ASSERT_EQ(sizeof(anarray), vt[0]->data_size());
+  char *logged_data = vt[0]->pointer<char>();
+  for (size_t i = 0; i < sizeof(anarray)/sizeof(anarray[0]); ++i) {
+    ASSERT_EQ(anarray[i], logged_data[i]);
+  }
+}
+
+//! Check multiple char array logging.
+TEST_F(PolicyTest, LogMultipleCharArrayTest) {
+  int trace_size = 0x100;
+  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
+  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
+  trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
+  boost::shared_array<vartrace::AlignmentType> buffer(
+      new vartrace::AlignmentType[buffer_length]);
+  // create an array and log it 100 times
+  char anarray[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+  for (int i = 0; i < 1000; ++i) {
+    trace->Log(i, anarray);
+    // dump trace
+    size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+    vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
+    // first message id
+    int message_id =  vt[0]->message_type_id();
+    // check messages
+    for (std::vector<vartrace::Message::Pointer>::const_iterator pos
+             = vt.messages().begin(); pos != vt.messages().end(); ++pos) {
+      ASSERT_EQ(vartrace::DataType2Int<char[1]>::id, (*pos)->data_type_id());
+      ASSERT_EQ(message_id, (*pos)->message_type_id());
+      message_id += 1;
+      message_id = message_id%256;
+      ASSERT_EQ(sizeof(anarray), (*pos)->data_size());
+      char *logged_data = (*pos)->pointer<char>();
+      for (size_t i = 0; i < sizeof(anarray)/sizeof(anarray[0]); ++i) {
+        ASSERT_EQ(anarray[i], logged_data[i]);
+      }
+    }
+  }
+}
+
+//! Check double array logging.
+TEST_F(PolicyTest, LogDoubleArrayTest) {
+  int trace_size = 0x100;
+  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
+  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
+  trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
+  boost::shared_array<vartrace::AlignmentType> buffer(
+      new vartrace::AlignmentType[buffer_length]);
+  // create an array and log it
+  double anarray[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+  trace->Log(1, anarray);
+  // dump trace
+  size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
+  // check message
+  ASSERT_EQ(vartrace::DataType2Int<double[1]>::id, vt[0]->data_type_id());
+  ASSERT_EQ(1, vt[0]->message_type_id());
+  ASSERT_EQ(sizeof(anarray), vt[0]->data_size());
+  double *logged_data = vt[0]->pointer<double>();
+  for (size_t i = 0; i < sizeof(anarray)/sizeof(anarray[0]); ++i) {
+    ASSERT_EQ(anarray[i], logged_data[i]);
+  }
+}
+
+//! Test structure for logging.
+struct LogTestStructure {
+  char cvar;
+  int ivar;
+  double dvar;
+  char anarray[13];
+};
+//! Define data type id for custom structure.
+namespace vartrace {
+template<> struct DataTypeTraits<LogTestStructure> {
+  enum {
+    DataTypeId = 40,
+    TypeSize = sizeof(LogTestStructure)
+  };
+};
+}  // vartrace
+//! Check simple structure logging.
+TEST_F(PolicyTest, LogCustomStructureTest) {
+  int trace_size = 0x100;
+  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
+  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
+  trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
+  boost::shared_array<vartrace::AlignmentType> buffer(
+      new vartrace::AlignmentType[buffer_length]);
+  // create and fill some custom structure
+  LogTestStructure ts;
+  ts.cvar = 'a';
+  ts.ivar = 12345;
+  ts.dvar = 12e-34;
+  for (size_t i = 0; i < sizeof(ts.anarray)/sizeof(ts.anarray[0]); ++i) {
+    ts.anarray[i] = 2*i;
+  }
+  // log structure
+  trace->Log(11, ts);
+  // dump and parse trace
+  size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
+  // check message parameters
+  ASSERT_EQ(vartrace::DataTypeTraits<LogTestStructure>::DataTypeId,
+            vt[0]->data_type_id());
+  ASSERT_EQ(40, vt[0]->data_type_id());
+  ASSERT_EQ(11, vt[0]->message_type_id());
+  ASSERT_EQ(sizeof(LogTestStructure), vt[0]->data_size());
+  // check parsed structure content
+  LogTestStructure *result = vt[0]->pointer<LogTestStructure>();
+  ASSERT_EQ(ts.cvar, result->cvar);
+  ASSERT_EQ(ts.ivar, result->ivar);
+  ASSERT_EQ(ts.dvar, result->dvar);
+  for (size_t i = 0; i < sizeof(ts.anarray)/sizeof(ts.anarray[0]); ++i) {
+    ASSERT_EQ(ts.anarray[i], result->anarray[i]);
+  }
+}
+
 int main(int argc, char *argv[]) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

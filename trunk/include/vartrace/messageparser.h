@@ -72,6 +72,8 @@ template <typename T> T Message::value() const {
 }
 
 template <typename T> T* Message::pointer() const {
+  T *ptr = reinterpret_cast<T *>(data_.get());
+  return ptr;
 }
 
 //! Contains whole trace.

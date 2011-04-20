@@ -46,6 +46,7 @@ TimestampType incremental_timestamp() {
 }
 
 /*! Class for variable trace objects. */
+// size of a block must be bigger then sizeof of biggest type + 8
 template <
   template <class> class CP = NewCreator, // creation policy
   template <class> class LP = NoLocker, // locking policy
