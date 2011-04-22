@@ -22,6 +22,8 @@
 #ifndef TRUNK_INCLUDE_VARTRACE_VARTRACE_INL_H_
 #define TRUNK_INCLUDE_VARTRACE_VARTRACE_INL_H_
 
+#include <cstring>
+
 namespace vartrace {
 
 #define VAR_TRACE_TEMPLATE \
@@ -51,7 +53,7 @@ void VarTrace<CP, LP, AP>::Initialize() {
     index_mask_ = (block_count_*block_length_) - 1;
     block_end_indices_ = boost::shared_array<int>(new int[block_count_]);
     block_end_indices_[0] = 0; // start position of the cursor
-    for (int i = 1; i < block_count_; ++i) {
+    for (unsigned i = 1; i < block_count_; ++i) {
       block_end_indices_[i] = -1;
     }
   }
@@ -133,10 +135,25 @@ void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                  const SizeofCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
   CreateHeader(message_id, data_id, object_size);
-  for (size_t i = 0; i < CEIL_DIV(sizeof(T), sizeof(AlignmentType)); ++i) {
-    data_[current_index_] = *(reinterpret_cast<const AlignmentType *>(value)
-                              + i);
-    IncrementCurrentIndex();
+  // check if data fits in space left in trace
+  if ((block_count_*block_length_ - current_index_)*sizeof(AlignmentType)
+      > object_size) {
+    // copy using one function call
+    std::memcpy(&data_[current_index_], value, object_size);
+    // increment index
+    current_index_ += CEIL_DIV(object_size, sizeof(AlignmentType));
+  } else {
+    int copied_size = 0;
+    // copy till the end of the trace
+    int size_to_copy =
+        (block_count_*block_length_ - current_index_)*sizeof(AlignmentType);
+    std::memcpy(&data_[current_index_], value, size_to_copy);
+    copied_size = size_to_copy;
+    // copy rest of data to the begging of trace buffer
+    size_to_copy = object_size - copied_size;
+    std::memcpy(&data_[0], reinterpret_cast<const uint8_t *>(value)
+                + copied_size, size_to_copy);
+    current_index_ = CEIL_DIV(size_to_copy, sizeof(AlignmentType));
   }
   current_block_ = current_index_ >> log2_block_length_;
   block_end_indices_[current_block_] = current_index_;

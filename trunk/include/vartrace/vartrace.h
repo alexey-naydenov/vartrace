@@ -47,6 +47,7 @@ TimestampType incremental_timestamp() {
 
 /*! Class for variable trace objects. */
 // size of a block must be bigger then sizeof of biggest type + 8
+// logging array or class must be smaller then block size
 template <
   template <class> class CP = NewCreator, // creation policy
   template <class> class LP = NoLocker, // locking policy
@@ -110,13 +111,13 @@ class VarTrace
 
   bool is_initialized_; /*!< True after memory allocation. */
   bool is_nested_; /*!< True if trace object is not top level one. */
-  int log2_block_count_; /*!< Log base 2 of number of blocks. */
-  int log2_block_length_; /*!< Log base 2 of block length. */
-  int block_count_; /*!< Total number of blocks, should be power of 2. */
-  int block_length_; /*!< Length of each block in AlignmentType units. */
+  unsigned log2_block_count_; /*!< Log base 2 of number of blocks. */
+  unsigned log2_block_length_; /*!< Log base 2 of block length. */
+  unsigned block_count_; /*!< Total number of blocks, must be power of 2. */
+  unsigned block_length_; /*!< Length of each block in AlignmentType units. */
   unsigned index_mask_; /*!< Restricts array index to the range 0...2^n. */
-  int current_block_; /*!< Block currently being written into. */
-  int current_index_; /*!< Next array element to write to. */
+  unsigned current_block_; /*!< Block currently being written into. */
+  unsigned current_index_; /*!< Next array element to write to. */
   boost::shared_array<int> block_end_indices_; /*!< Block boundaries. */
   typename AP::StorageArrayType data_; /*!< Data storage. */
   TimestampFunctionType get_timestamp_; /*!< Pointer to a timestamp function. */

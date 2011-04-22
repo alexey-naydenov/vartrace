@@ -31,9 +31,9 @@
 
 namespace vartrace {
 
-static const int kDefaultBlockCount = 8;
-static const int kDefaultTraceSize = 0x1000;
-static const int kMinBlockCount = 4;
+static const unsigned kDefaultBlockCount = 8;
+static const unsigned kDefaultTraceSize = 0x1000;
+static const unsigned kMinBlockCount = 4;
 
 template <class T> struct NewCreator {
  public:
