@@ -45,6 +45,10 @@ typedef uint8_t MessageIdType;
 //! Data type fields type.
 typedef uint8_t DataIdType;
 
+inline unsigned RoundSize(unsigned size) {
+  return (size + sizeof(AlignmentType) - 1)/sizeof(AlignmentType);
+}
+
 //! Size of a header without a timestamp.
 const unsigned kNestedHeaderSize = sizeof(LengthType) + sizeof(MessageIdType)
     + sizeof(DataIdType);
@@ -56,8 +60,10 @@ const unsigned kNestedHeaderLength = CEIL_DIV(kNestedHeaderSize,
 //! Length of a header with a timestamp.
 const unsigned kHeaderLength = CEIL_DIV(kHeaderSize, sizeof(AlignmentType));
 
-const unsigned kMessageIdShift = 8*sizeof(LengthType);
-const unsigned kDataIdShift = 8*(sizeof(MessageIdType) + sizeof(LengthType));
+const unsigned kBitsPerByte = 8;
+const unsigned kMessageIdShift = kBitsPerByte*sizeof(LengthType);
+const unsigned kDataIdShift = kBitsPerByte*(sizeof(MessageIdType)
+                                            + sizeof(LengthType));
 
 //! Function type for timestamps.
 typedef TimestampType (*TimestampFunctionType) ();

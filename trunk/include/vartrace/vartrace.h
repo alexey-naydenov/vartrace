@@ -64,13 +64,16 @@ class VarTrace
    */
   VarTrace(int log2_count, int log2_size);
   void Initialize();
+  ~VarTrace();
 
   //! Returns true after memory allocation.
-  bool is_initialized() const { return is_initialized_; }
+  bool is_initialized() const {return is_initialized_;}
   //! Number of memory blocks used to store trace.
-  int block_count() const { return block_count_; }
+  unsigned block_count() const {return block_count_;}
   //! Approximate size of each block in bytes.
-  int block_size() const { return sizeof(AlignmentType)*block_length_; }
+  unsigned block_size() const {return sizeof(AlignmentType)*block_length_;}
+  //! Check if the trace object can log data.
+  bool can_log() const {return can_log_;}
   //! Store a variable value in the trace.
   /*! 
    */
@@ -79,9 +82,16 @@ class VarTrace
   //! Copy trace information into a buffer.
   /*! 
    */
-  int DumpInto(void *buffer, unsigned size);
+  unsigned DumpInto(void *buffer, unsigned size);
+
+  typename CP< VarTrace<CP, LP, AP> >::Pointer
+  CreateSubtrace(MessageIdType subtrace_id);
 
  private:
+  //! Subtrace constructor.
+  VarTrace(typename CP< VarTrace<CP, LP, AP> >::Pointer ancestor);
+  //! Calback for subtrace to indicate its destruction.
+  void SubtraceDestruction(unsigned subtrace_index);
   //! Store object using memcpy.
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
@@ -111,6 +121,7 @@ class VarTrace
 
   bool is_initialized_; /*!< True after memory allocation. */
   bool is_nested_; /*!< True if trace object is not top level one. */
+  bool can_log_; /*!< True if the object can write in its trace */
   unsigned log2_block_count_; /*!< Log base 2 of number of blocks. */
   unsigned log2_block_length_; /*!< Log base 2 of block length. */
   unsigned block_count_; /*!< Total number of blocks, must be power of 2. */
@@ -121,6 +132,8 @@ class VarTrace
   boost::shared_array<int> block_end_indices_; /*!< Block boundaries. */
   typename AP::StorageArrayType data_; /*!< Data storage. */
   TimestampFunctionType get_timestamp_; /*!< Pointer to a timestamp function. */
+  //! Pointer to the ancestor of a subtrace.
+  typename CP< VarTrace<CP, LP, AP> >::Pointer ancestor_;
 };
 }  // vartrace
 

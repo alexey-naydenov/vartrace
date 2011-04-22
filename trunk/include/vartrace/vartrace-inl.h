@@ -31,7 +31,7 @@ namespace vartrace {
 
 VAR_TRACE_TEMPLATE
 VarTrace<CP, LP, AP>::VarTrace(int log2_count, int log2_length)
-    : is_initialized_(false), is_nested_(false),
+    : is_initialized_(false), is_nested_(false), can_log_(true),
       log2_block_count_(log2_count), log2_block_length_(log2_length),
       block_count_(1<<log2_block_count_), block_length_(1<<log2_block_length_),
       current_block_(0), current_index_(0),
@@ -40,11 +40,27 @@ VarTrace<CP, LP, AP>::VarTrace(int log2_count, int log2_length)
 }
 
 VAR_TRACE_TEMPLATE
+VarTrace<CP, LP, AP>::VarTrace(
+    typename CP< VarTrace<CP, LP, AP> >::Pointer ancestor)
+    : is_initialized_(true), is_nested_(true), can_log_(true),
+      log2_block_count_(ancestor->log2_block_count_),
+      log2_block_length_(ancestor->log2_block_length_),
+      block_count_(1<<log2_block_count_), block_length_(1<<log2_block_length_),
+      current_block_(ancestor->current_block_),
+      current_index_(ancestor->current_index_),
+      get_timestamp_(ancestor->get_timestamp_),
+      ancestor_(ancestor) {
+  // get some info from ancestor
+  index_mask_ = ancestor_->index_mask_;
+  block_end_indices_ = ancestor->block_end_indices_;
+}
+
+VAR_TRACE_TEMPLATE
 void VarTrace<CP, LP, AP>::Initialize() {
   // check for double initialization
-  if (is_initialized_) { return; }
+  if (is_initialized_) {return;}
   // check block count size
-  if (block_count_ < kMinBlockCount) { return; }
+  if (block_count_ < kMinBlockCount) {return;}
   // try to allocate storage
   data_ = this->Allocate(block_count_*block_length_);
   if (data_) {
@@ -56,6 +72,13 @@ void VarTrace<CP, LP, AP>::Initialize() {
     for (unsigned i = 1; i < block_count_; ++i) {
       block_end_indices_[i] = -1;
     }
+  }
+}
+
+VAR_TRACE_TEMPLATE
+VarTrace<CP, LP, AP>::~VarTrace() {
+  if (is_nested_) {
+    ancestor_->SubtraceDestruction(current_index_);
   }
 }
 
@@ -109,6 +132,7 @@ VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                  const AssignmentCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
+  if (!can_log_) {return;}
   CreateHeader(message_id, data_id, object_size);
   data_[current_index_] = *value;
   IncrementCurrentIndex();
@@ -120,8 +144,9 @@ VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                  const MultipleAssignmentsCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
+  if (!can_log_) {return;}
   CreateHeader(message_id, data_id, object_size);
-  for (size_t i = 0; i < CEIL_DIV(sizeof(T), sizeof(AlignmentType)); ++i) {
+  for (size_t i = 0; i < RoundSize(sizeof(T)); ++i) {
     data_[current_index_] = *(reinterpret_cast<const AlignmentType *>(value)
                               + i);
     IncrementCurrentIndex();
@@ -134,6 +159,7 @@ VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                  const SizeofCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
+  if (!can_log_) {return;}
   CreateHeader(message_id, data_id, object_size);
   // check if data fits in space left in trace
   if ((block_count_*block_length_ - current_index_)*sizeof(AlignmentType)
@@ -141,7 +167,7 @@ void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
     // copy using one function call
     std::memcpy(&data_[current_index_], value, object_size);
     // increment index
-    current_index_ += CEIL_DIV(object_size, sizeof(AlignmentType));
+    current_index_ += RoundSize(object_size);
   } else {
     int copied_size = 0;
     // copy till the end of the trace
@@ -149,18 +175,18 @@ void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
         (block_count_*block_length_ - current_index_)*sizeof(AlignmentType);
     std::memcpy(&data_[current_index_], value, size_to_copy);
     copied_size = size_to_copy;
-    // copy rest of data to the begging of trace buffer
+    // copy rest of data to the begging of the trace buffer
     size_to_copy = object_size - copied_size;
     std::memcpy(&data_[0], reinterpret_cast<const uint8_t *>(value)
                 + copied_size, size_to_copy);
-    current_index_ = CEIL_DIV(size_to_copy, sizeof(AlignmentType));
+    current_index_ = RoundSize(size_to_copy);
   }
   current_block_ = current_index_ >> log2_block_length_;
   block_end_indices_[current_block_] = current_index_;
 }
 
 VAR_TRACE_TEMPLATE
-int VarTrace<CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
+unsigned VarTrace<CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
   // start copying from the end of the next block
   int copy_from = block_end_indices_[NextBlock(current_block_)];
   // if end index of the next block is -1 then the trace was not
@@ -202,6 +228,39 @@ int VarTrace<CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
     memcpy(buffer, &data_[copy_from], copied_size);
   }
   return copied_size;
+}
+
+VAR_TRACE_TEMPLATE
+typename CP< VarTrace<CP, LP, AP> >::Pointer
+VarTrace<CP, LP, AP>::CreateSubtrace(MessageIdType subtrace_id) {
+  if (!can_log_) {return typename CP< VarTrace<CP, LP, AP> >::Pointer(NULL);}
+  // create header for the subtrace, subtrace data id = 0, size = 0 for now
+  CreateHeader(subtrace_id, 0, 0);
+  // block logging and subtrace creation and return pointer to subtrace object
+  can_log_ = false;
+  return typename CP< VarTrace<CP, LP, AP> >::Pointer(
+      new VarTrace<CP, LP, AP>(
+          typename CP< VarTrace<CP, LP, AP> >::Pointer(this)));
+}
+
+VAR_TRACE_TEMPLATE
+void VarTrace<CP, LP, AP>::SubtraceDestruction(unsigned subtrace_index) {
+  can_log_ = true;
+  // calculate written size
+  unsigned written_length = 0;
+  if (subtrace_index < current_index_) {
+    // trace buffer was wrapped around
+    written_length = (block_count_*block_length_ - current_index_)
+        + subtrace_index;
+  } else {
+    // no wrapping happenned
+    written_length = subtrace_index - current_index_;
+  }
+  // update size of the message that contains subtrace
+  data_[PreviousIndex(current_index_)] |= written_length*sizeof(AlignmentType);
+  // update current index and current block
+  current_index_ = subtrace_index;
+  current_block_ = current_index_ >> log2_block_length_;
 }
 }  // vartrace
 
