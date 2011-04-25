@@ -84,12 +84,12 @@ class VarTrace
    */
   unsigned DumpInto(void *buffer, unsigned size);
 
-  typename CP< VarTrace<CP, LP, AP> >::Pointer
+  typename VarTrace<CP, LP, AP>::Pointer
   CreateSubtrace(MessageIdType subtrace_id);
 
  private:
   //! Subtrace constructor.
-  VarTrace(typename CP< VarTrace<CP, LP, AP> >::Pointer ancestor);
+  explicit VarTrace(VarTrace<CP, LP, AP> *ancestor);
   //! Calback for subtrace to indicate its destruction.
   void SubtraceDestruction(unsigned subtrace_index);
   //! Store object using memcpy.
@@ -133,7 +133,7 @@ class VarTrace
   typename AP::StorageArrayType data_; /*!< Data storage. */
   TimestampFunctionType get_timestamp_; /*!< Pointer to a timestamp function. */
   //! Pointer to the ancestor of a subtrace.
-  typename CP< VarTrace<CP, LP, AP> >::Pointer ancestor_;
+  VarTrace<CP, LP, AP> *ancestor_;
 };
 }  // vartrace
 

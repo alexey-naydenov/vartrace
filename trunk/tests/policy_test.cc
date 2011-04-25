@@ -367,6 +367,22 @@ TEST_F(PolicyTest, LogCustomStructureTest) {
   }
 }
 
+//! Check basic subtrace functionality.
+TEST_F(PolicyTest, LogBasicSubtraceTest) {
+  int trace_size = 0x100;
+  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
+  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
+  trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
+  boost::shared_array<vartrace::AlignmentType> buffer(
+      new vartrace::AlignmentType[buffer_length]);
+  // create subtrace
+  {
+    boost::shared_ptr<VarTrace<> > strace(trace->CreateSubtrace(1));
+  }
+  // dump and parse trace
+  size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+}
+
 int main(int argc, char *argv[]) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

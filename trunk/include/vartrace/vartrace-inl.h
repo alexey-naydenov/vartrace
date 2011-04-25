@@ -40,8 +40,7 @@ VarTrace<CP, LP, AP>::VarTrace(int log2_count, int log2_length)
 }
 
 VAR_TRACE_TEMPLATE
-VarTrace<CP, LP, AP>::VarTrace(
-    typename CP< VarTrace<CP, LP, AP> >::Pointer ancestor)
+VarTrace<CP, LP, AP>::VarTrace(VarTrace<CP, LP, AP> *ancestor)
     : is_initialized_(true), is_nested_(true), can_log_(true),
       log2_block_count_(ancestor->log2_block_count_),
       log2_block_length_(ancestor->log2_block_length_),
@@ -52,7 +51,7 @@ VarTrace<CP, LP, AP>::VarTrace(
       ancestor_(ancestor) {
   // get some info from ancestor
   index_mask_ = ancestor_->index_mask_;
-  block_end_indices_ = ancestor->block_end_indices_;
+  block_end_indices_ = ancestor_->block_end_indices_;
 }
 
 VAR_TRACE_TEMPLATE
@@ -230,17 +229,13 @@ unsigned VarTrace<CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
   return copied_size;
 }
 
-VAR_TRACE_TEMPLATE
-typename CP< VarTrace<CP, LP, AP> >::Pointer
+VAR_TRACE_TEMPLATE typename VarTrace<CP, LP, AP>::Pointer
 VarTrace<CP, LP, AP>::CreateSubtrace(MessageIdType subtrace_id) {
-  if (!can_log_) {return typename CP< VarTrace<CP, LP, AP> >::Pointer(NULL);}
   // create header for the subtrace, subtrace data id = 0, size = 0 for now
   CreateHeader(subtrace_id, 0, 0);
   // block logging and subtrace creation and return pointer to subtrace object
   can_log_ = false;
-  return typename CP< VarTrace<CP, LP, AP> >::Pointer(
-      new VarTrace<CP, LP, AP>(
-          typename CP< VarTrace<CP, LP, AP> >::Pointer(this)));
+  return typename VarTrace<CP, LP, AP>::Pointer(new VarTrace<CP, LP, AP>(this));
 }
 
 VAR_TRACE_TEMPLATE
