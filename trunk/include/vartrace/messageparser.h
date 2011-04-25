@@ -39,16 +39,16 @@ class Message {
   Message();
   Message(void *byte_stream, bool is_nested = false);
   ~Message() {}
-  bool is_nested() const { return is_nested_; }
-  bool has_children() const { return has_children_; }
-  unsigned timestamp() const { return timestamp_; }
-  int data_type_id() const { return data_type_id_; }
-  int message_type_id() const { return message_type_id_; }
-  int data_size() const { return data_size_; }
-  int message_size() const { return sizeof(AlignmentType)*message_length_; }
+  bool is_nested() const {return is_nested_;}
+  bool has_children() const {return has_children_;}
+  unsigned timestamp() const {return timestamp_;}
+  int data_type_id() const {return data_type_id_;}
+  int message_type_id() const {return message_type_id_;}
+  int data_size() const {return data_size_;}
+  int message_size() const {return sizeof(AlignmentType)*message_length_;}
   template <typename T> T value() const;
   template <typename T> T* pointer() const;
-  const std::vector<Pointer>& children() const { return children_; }
+  const std::vector<Pointer>& children() const {return children_;}
 
  private:
   void ParseStream(void *byte_stream, bool is_nested = false);

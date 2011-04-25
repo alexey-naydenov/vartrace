@@ -55,26 +55,40 @@ static uint8_t * ReadSimpleType(uint8_t *data, T *variable) {
 
 void Message::ParseStream(void *byte_stream, bool is_nested) {
   uint8_t *start_position = static_cast<uint8_t *>(byte_stream);
-  uint8_t *parse_position = start_position;
+  uint8_t *unparsed_position = start_position;
   // parse timestamp if it is present
+  is_nested_ = is_nested;
   if (!is_nested) {
-    parse_position = ReadSimpleType(parse_position, &timestamp_);
+    unparsed_position = ReadSimpleType(unparsed_position, &timestamp_);
   } else {
     timestamp_ = 0;
   };
   // get data size
-  parse_position = ReadSimpleType(parse_position, &data_size_);
+  unparsed_position = ReadSimpleType(unparsed_position, &data_size_);
   // get message id
-  parse_position = ReadSimpleType(parse_position, &message_type_id_);
+  unparsed_position = ReadSimpleType(unparsed_position, &message_type_id_);
   // get data type id
-  parse_position = ReadSimpleType(parse_position, &data_type_id_);
-  // get required storage length
-  int data_length = CEIL_DIV(data_size_, sizeof(AlignmentType));
-  data_.reset(new AlignmentType[data_length]);
-  std::memcpy(data_.get(), parse_position, data_size_);
+  unparsed_position = ReadSimpleType(unparsed_position, &data_type_id_);
+  if (data_type_id_ != 0) { // simple message
+    has_children_ = false;
+    // get required storage length
+    int data_length = RoundSize(data_size_);
+    data_.reset(new AlignmentType[data_length]);
+    std::memcpy(data_.get(), unparsed_position, data_size_);
+    unparsed_position += data_length*sizeof(AlignmentType);
+  } else { // subtrace message
+    has_children_ = true;
+    // parse all submessages and add them to children
+    int parsed_size = 0;
+    while (parsed_size < data_size_) {
+      Message::Pointer msg(new Message(unparsed_position, true));
+      children_.push_back(msg);
+      parsed_size += msg->message_size();
+      unparsed_position += msg->message_size();
+    }
+  }
   // calculate message length
-  message_length_ = CEIL_DIV(parse_position - start_position,
-                             sizeof(AlignmentType)) + data_length;
+  message_length_ = RoundSize(unparsed_position - start_position);
 }
 
 ParsedVartrace::ParsedVartrace(void *byte_stream, size_t size) {

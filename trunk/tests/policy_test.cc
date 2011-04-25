@@ -397,6 +397,59 @@ TEST_F(PolicyTest, LogBasicSubtraceTest) {
   ASSERT_EQ(m3, buffer[8]); // third value
 }
 
+//! Check basic subtrace parsing.
+TEST_F(PolicyTest, ParsingBasicSubtraceTest) {
+  int trace_size = 0x100;
+  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
+  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
+  trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
+  boost::shared_array<vartrace::AlignmentType> buffer(
+      new vartrace::AlignmentType[buffer_length]);
+  // create subtrace
+  int m1 = 0x1234;
+  int m2 = 0x5678;
+  int m3 = 0x9012;
+  {
+    VarTrace<>::Pointer strace(trace->CreateSubtrace(1));
+    strace->Log(2, m1);
+    strace->Log(3, m2);
+  }
+  trace->Log(4, m3);
+  // dump and parse trace
+  size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
+  // check complex message
+  ASSERT_EQ(false, vt[0]->is_nested());
+  ASSERT_EQ(true, vt[0]->has_children());
+  ASSERT_EQ(0, vt[0]->data_type_id());
+  ASSERT_EQ(1, vt[0]->message_type_id());
+  ASSERT_EQ(16, vt[0]->data_size());
+  // check submessages
+  ASSERT_EQ(true, vt[0]->children()[0]->is_nested());
+  ASSERT_EQ(false, vt[0]->children()[0]->has_children());
+  ASSERT_EQ(vartrace::DataType2Int<int>::id,
+            vt[0]->children()[0]->data_type_id());
+  ASSERT_EQ(2, vt[0]->children()[0]->message_type_id());
+  ASSERT_EQ(4, vt[0]->children()[0]->data_size());
+  ASSERT_EQ(8, vt[0]->children()[0]->message_size());
+  ASSERT_EQ(m1, vt[0]->children()[0]->value<int>());
+  ASSERT_EQ(true, vt[0]->children()[1]->is_nested());
+  ASSERT_EQ(false, vt[0]->children()[1]->has_children());
+  ASSERT_EQ(vartrace::DataType2Int<int>::id,
+            vt[0]->children()[1]->data_type_id());
+  ASSERT_EQ(3, vt[0]->children()[1]->message_type_id());
+  ASSERT_EQ(4, vt[0]->children()[1]->data_size());
+  ASSERT_EQ(8, vt[0]->children()[1]->message_size());
+  ASSERT_EQ(m2, vt[0]->children()[1]->value<int>());
+  // check simple message
+  ASSERT_EQ(false, vt[1]->is_nested());
+  ASSERT_EQ(false, vt[1]->has_children());
+  ASSERT_EQ(vartrace::DataType2Int<int>::id, vt[1]->data_type_id());
+  ASSERT_EQ(4, vt[1]->message_type_id());
+  ASSERT_EQ(4, vt[1]->data_size());
+  ASSERT_EQ(m3, vt[1]->value<int>());
+}
+
 int main(int argc, char *argv[]) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
