@@ -129,7 +129,7 @@ class VarTrace
   unsigned index_mask_; /*!< Restricts array index to the range 0...2^n. */
   unsigned current_block_; /*!< Block currently being written into. */
   unsigned current_index_; /*!< Next array element to write to. */
-  boost::shared_array<int> block_end_indices_; /*!< Block boundaries. */
+  int *block_end_indices_; /*!< Block boundaries. */
   typename AP::StorageArrayType data_; /*!< Data storage. */
   TimestampFunctionType get_timestamp_; /*!< Pointer to a timestamp function. */
   //! Pointer to the ancestor of a subtrace.

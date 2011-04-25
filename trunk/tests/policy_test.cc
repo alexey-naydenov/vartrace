@@ -376,12 +376,25 @@ TEST_F(PolicyTest, LogBasicSubtraceTest) {
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // create subtrace
+  int m1 = 0x1234;
+  int m2 = 0x5678;
+  int m3 = 0x9012;
   {
     VarTrace<>::Pointer strace(trace->CreateSubtrace(1));
+    ASSERT_FALSE(trace->can_log()); // parent can not log when subrace is active
+    strace->Log(2, m1);
+    strace->Log(3, m2);
   }
+  ASSERT_TRUE(trace->can_log()); // logging reenabled
+  trace->Log(4, m3);
   // dump and parse trace
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
-  ASSERT_GT(dumped_size, 0);
+  // check resulsts
+  ASSERT_EQ(36, dumped_size);
+  ASSERT_EQ((1<<16) | 16, buffer[1]); // subtrace header
+  ASSERT_EQ(m1, buffer[3]); // first value
+  ASSERT_EQ(m2, buffer[5]); // second value
+  ASSERT_EQ(m3, buffer[8]); // third value
 }
 
 int main(int argc, char *argv[]) {

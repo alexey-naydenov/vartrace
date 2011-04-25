@@ -45,13 +45,13 @@ VarTrace<CP, LP, AP>::VarTrace(VarTrace<CP, LP, AP> *ancestor)
       log2_block_count_(ancestor->log2_block_count_),
       log2_block_length_(ancestor->log2_block_length_),
       block_count_(1<<log2_block_count_), block_length_(1<<log2_block_length_),
+      index_mask_(ancestor->index_mask_),
       current_block_(ancestor->current_block_),
       current_index_(ancestor->current_index_),
+      block_end_indices_(ancestor->block_end_indices_),
       get_timestamp_(ancestor->get_timestamp_),
       ancestor_(ancestor) {
-  // get some info from ancestor
-  index_mask_ = ancestor_->index_mask_;
-  block_end_indices_ = ancestor_->block_end_indices_;
+  data_ = ancestor_->data_;
 }
 
 VAR_TRACE_TEMPLATE
@@ -66,7 +66,7 @@ void VarTrace<CP, LP, AP>::Initialize() {
     is_initialized_ = true;
     // init blocks description variables
     index_mask_ = (block_count_*block_length_) - 1;
-    block_end_indices_ = boost::shared_array<int>(new int[block_count_]);
+    block_end_indices_ = new int[block_count_];
     block_end_indices_[0] = 0; // start position of the cursor
     for (unsigned i = 1; i < block_count_; ++i) {
       block_end_indices_[i] = -1;
@@ -78,6 +78,9 @@ VAR_TRACE_TEMPLATE
 VarTrace<CP, LP, AP>::~VarTrace() {
   if (is_nested_) {
     ancestor_->SubtraceDestruction(current_index_);
+  } else {
+    // free allocated memory
+    delete[] block_end_indices_;
   }
 }
 
