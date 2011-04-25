@@ -377,10 +377,11 @@ TEST_F(PolicyTest, LogBasicSubtraceTest) {
       new vartrace::AlignmentType[buffer_length]);
   // create subtrace
   {
-    boost::shared_ptr<VarTrace<> > strace(trace->CreateSubtrace(1));
+    VarTrace<>::Pointer strace(trace->CreateSubtrace(1));
   }
   // dump and parse trace
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  ASSERT_GT(dumped_size, 0);
 }
 
 int main(int argc, char *argv[]) {

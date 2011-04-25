@@ -233,6 +233,8 @@ VAR_TRACE_TEMPLATE typename VarTrace<CP, LP, AP>::Pointer
 VarTrace<CP, LP, AP>::CreateSubtrace(MessageIdType subtrace_id) {
   // create header for the subtrace, subtrace data id = 0, size = 0 for now
   CreateHeader(subtrace_id, 0, 0);
+  current_block_ = current_index_ >> log2_block_length_;
+  block_end_indices_[current_block_] = current_index_;
   // block logging and subtrace creation and return pointer to subtrace object
   can_log_ = false;
   return typename VarTrace<CP, LP, AP>::Pointer(new VarTrace<CP, LP, AP>(this));
