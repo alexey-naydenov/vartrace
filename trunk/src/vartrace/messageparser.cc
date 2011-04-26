@@ -77,7 +77,12 @@ void Message::ParseStream(void *byte_stream, bool is_nested) {
     std::memcpy(data_.get(), unparsed_position, data_size_);
     unparsed_position += data_length*sizeof(AlignmentType);
   } else { // subtrace message
-    has_children_ = true;
+    if (data_size_ > 0) {
+      has_children_ = true;
+    } else {
+      // bad or incomplete traces can not be parsed
+      has_children_ = false;
+    }
     // parse all submessages and add them to children
     int parsed_size = 0;
     while (parsed_size < data_size_) {

@@ -460,7 +460,7 @@ TEST_F(PolicyTest, DeepSubtraceTest) {
       new vartrace::AlignmentType[buffer_length]);
   // variables to hold subtrace data
   // size of the toplevel messge must be less then 3/4 of the trace size
-  const int kMaxDepth = 40;
+  const int kMaxDepth = 45;
   VarTrace<>::Pointer strace[kMaxDepth];
   // create toplevel message
   strace[0] = trace->CreateSubtrace(1);
@@ -473,14 +473,41 @@ TEST_F(PolicyTest, DeepSubtraceTest) {
   }
   // dump trace with all subtraces open, cannot parse it
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  // check dumped with open subtraces
   ASSERT_EQ(vartrace::kHeaderSize + (kMaxDepth - 1)*vartrace::kNestedHeaderSize,
             dumped_size);
   // destroy subtrace starting from deepest one
-  for (int i = kMaxDepth - 1; i > 0; --i) {
+  for (int i = kMaxDepth - 1; i >= 0; --i) {
     ASSERT_TRUE(strace[i]->can_log());
     strace[i].reset();
   }
   // dump this stuff
+  dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
+  // check dumped with closed subtraces
+  ASSERT_EQ(vartrace::kHeaderSize + (kMaxDepth - 1)*vartrace::kNestedHeaderSize,
+            dumped_size);
+  // check top level subtrace header
+  vartrace::Message::Pointer msg = vt[0];
+  ASSERT_FALSE(msg->is_nested());
+  ASSERT_TRUE(msg->has_children());
+  ASSERT_EQ(0, msg->data_type_id());
+  ASSERT_EQ(1, msg->message_type_id());
+  ASSERT_EQ((kMaxDepth - 1)*vartrace::kNestedHeaderSize, msg->data_size());
+  // check all other headers
+  for (int i = 1; i < kMaxDepth; ++i) {
+    msg = msg->children()[0];
+    ASSERT_TRUE(msg->is_nested());
+    if (i < kMaxDepth - 1) {
+      ASSERT_TRUE(msg->has_children());
+    } else {
+      ASSERT_FALSE(msg->has_children());
+    }
+    ASSERT_EQ(0, msg->data_type_id());
+    ASSERT_EQ(2*i + 1, msg->message_type_id());
+    ASSERT_EQ((kMaxDepth - i - 1)*vartrace::kNestedHeaderSize,
+              msg->data_size());
+  }
 }
 
 int main(int argc, char *argv[]) {
