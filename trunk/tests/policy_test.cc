@@ -450,6 +450,39 @@ TEST_F(PolicyTest, ParsingBasicSubtraceTest) {
   ASSERT_EQ(m3, vt[1]->value<int>());
 }
 
+//! Check basic subtrace parsing.
+TEST_F(PolicyTest, DeepSubtraceTest) {
+  int trace_size = 0x100;
+  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
+  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
+  trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
+  boost::shared_array<vartrace::AlignmentType> buffer(
+      new vartrace::AlignmentType[buffer_length]);
+  // variables to hold subtrace data
+  // size of the toplevel messge must be less then 3/4 of the trace size
+  const int kMaxDepth = 40;
+  VarTrace<>::Pointer strace[kMaxDepth];
+  // create toplevel message
+  strace[0] = trace->CreateSubtrace(1);
+  ASSERT_FALSE(trace->can_log());
+  // create all other subtraces
+  for (int i = 1; i < kMaxDepth; ++i) {
+    strace[i] = strace[i-1]->CreateSubtrace(2*i + 1);
+    ASSERT_FALSE(strace[i-1]->can_log());
+    ASSERT_TRUE(strace[i]->can_log());
+  }
+  // dump trace with all subtraces open, cannot parse it
+  size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  ASSERT_EQ(vartrace::kHeaderSize + (kMaxDepth - 1)*vartrace::kNestedHeaderSize,
+            dumped_size);
+  // destroy subtrace starting from deepest one
+  for (int i = kMaxDepth - 1; i > 0; --i) {
+    ASSERT_TRUE(strace[i]->can_log());
+    strace[i].reset();
+  }
+  // dump this stuff
+}
+
 int main(int argc, char *argv[]) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
