@@ -96,7 +96,7 @@ class VarTrace
   //! Subtrace constructor.
   explicit VarTrace(VarTrace<CP, LP, AP> *ancestor);
   //! Calback for subtrace to indicate its destruction.
-  void SubtraceDestruction(unsigned subtrace_index);
+  void SubtraceDestruction();
   //! Store object using memcpy.
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
@@ -127,6 +127,8 @@ class VarTrace
   bool is_initialized_; /*!< True after memory allocation. */
   bool is_nested_; /*!< True if trace object is not top level one. */
   bool can_log_; /*!< True if the object can write in its trace */
+  //! Stores position of a subtrace to store its size after destruction.
+  unsigned subtrace_start_index_;
   boost::shared_ptr< VarTraceImplementation<AP> > pimpl_;
   //! Pointer to the ancestor of a subtrace.
   VarTrace<CP, LP, AP> *ancestor_;

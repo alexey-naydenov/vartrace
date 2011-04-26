@@ -31,7 +31,7 @@ namespace vartrace {
 
 VAR_TRACE_TEMPLATE
 VarTrace<CP, LP, AP>::VarTrace(int log2_count, int log2_length)
-    : is_initialized_(false), is_nested_(false), can_log_(true),
+    : is_initialized_(false), is_nested_(false), can_log_(false),
       pimpl_(new VarTraceImplementation<AP>()) {
   // set block  size and count
   pimpl_->log2_block_count_ = log2_count;
@@ -50,8 +50,7 @@ VarTrace<CP, LP, AP>::VarTrace(int log2_count, int log2_length)
 VAR_TRACE_TEMPLATE
 VarTrace<CP, LP, AP>::VarTrace(VarTrace<CP, LP, AP> *ancestor)
     : is_initialized_(true), is_nested_(true), can_log_(true),
-      pimpl_(ancestor->pimpl_), ancestor_(ancestor) {
-}
+      pimpl_(ancestor->pimpl_), ancestor_(ancestor) {}
 
 VAR_TRACE_TEMPLATE
 void VarTrace<CP, LP, AP>::Initialize() {
@@ -63,6 +62,7 @@ void VarTrace<CP, LP, AP>::Initialize() {
   pimpl_->data_ = this->Allocate(pimpl_->block_count_*pimpl_->block_length_);
   if (pimpl_->data_) {
     is_initialized_ = true;
+    can_log_ = true;
     // init blocks description variables
     pimpl_->index_mask_ = (pimpl_->block_count_*pimpl_->block_length_) - 1;
     pimpl_->block_end_indices_.reset(new int[pimpl_->block_count_]);
@@ -76,7 +76,7 @@ void VarTrace<CP, LP, AP>::Initialize() {
 VAR_TRACE_TEMPLATE
 VarTrace<CP, LP, AP>::~VarTrace() {
   if (is_nested_) {
-    ancestor_->SubtraceDestruction(pimpl_->current_index_);
+    ancestor_->SubtraceDestruction();
   }
 }
 
@@ -238,28 +238,26 @@ VarTrace<CP, LP, AP>::CreateSubtrace(MessageIdType subtrace_id) {
   pimpl_->block_end_indices_[pimpl_->current_block_] = pimpl_->current_index_;
   // block logging and subtrace creation and return pointer to subtrace object
   can_log_ = false;
+  subtrace_start_index_ = pimpl_->current_index_;
   return typename VarTrace<CP, LP, AP>::Pointer(new VarTrace<CP, LP, AP>(this));
 }
 
 VAR_TRACE_TEMPLATE
-void VarTrace<CP, LP, AP>::SubtraceDestruction(unsigned subtrace_index) {
+void VarTrace<CP, LP, AP>::SubtraceDestruction() {
   can_log_ = true;
   // calculate written size
   unsigned written_length = 0;
-  if (subtrace_index < pimpl_->current_index_) {
+  if (pimpl_->current_index_ < subtrace_start_index_) {
     // trace buffer was wrapped around
     written_length = (pimpl_->block_count_*pimpl_->block_length_
-                      - pimpl_->current_index_) + subtrace_index;
+                      - subtrace_start_index_) + pimpl_->current_index_;
   } else {
     // no wrapping happenned
-    written_length = subtrace_index - pimpl_->current_index_;
+    written_length = pimpl_->current_index_ - subtrace_start_index_;
   }
   // update size of the message that contains subtrace
-  pimpl_->data_[PreviousIndex(pimpl_->current_index_)] |=
+  pimpl_->data_[PreviousIndex(subtrace_start_index_)] |=
       written_length*sizeof(AlignmentType);
-  // update current index and current block
-  pimpl_->current_index_ = subtrace_index;
-  pimpl_->current_block_ = pimpl_->current_index_ >> pimpl_->log2_block_length_;
 }
 }  // vartrace
 
