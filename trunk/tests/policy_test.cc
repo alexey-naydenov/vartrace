@@ -364,12 +364,6 @@ TEST_F(PolicyTest, LogCustomStructureTest) {
   }
 }
 
-namespace vartrace {
-//! Define data type id for array of structures.
-// template<unsigned L> struct DataType2Int<LogTestStructure[L]> {
-//   enum {id = 41};
-// };
-}  // namespace vartrace
 //! Check logging array of structures.
 TEST_F(PolicyTest, LogCustomStructureArrayTest) {
   int trace_size = 0x1000;
@@ -383,6 +377,10 @@ TEST_F(PolicyTest, LogCustomStructureArrayTest) {
   LogTestStructure static_array[kArrayLength];
   boost::shared_array<LogTestStructure> shared_array(
       new LogTestStructure[kArrayLength]);
+  for (unsigned i = 0; i < kArrayLength; ++i) {
+    shared_array[i].cvar = i;
+    shared_array[i].ivar = i*i;
+  }
   // log static array of structures
   trace->Log(11, static_array);
   // log pointer to a structure, 1 structure stored by default
@@ -398,6 +396,12 @@ TEST_F(PolicyTest, LogCustomStructureArrayTest) {
   ASSERT_EQ(sizeof(static_array), vt[0]->data_size());
   ASSERT_EQ(sizeof(LogTestStructure), vt[1]->data_size());
   ASSERT_EQ(kArrayLength*sizeof(LogTestStructure), vt[2]->data_size());
+  // check logged values
+  LogTestStructure *pointer = vt[2]->pointer<LogTestStructure>();
+  for (unsigned i = 0; i < kArrayLength; ++i) {
+    ASSERT_EQ(i, pointer[i].cvar);
+    ASSERT_EQ(i*i, pointer[i].ivar);
+  }
 }
 
 //! Check basic subtrace functionality.
