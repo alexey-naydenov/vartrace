@@ -666,6 +666,37 @@ TEST_F(PolicyTest, SelfLogTest) {
   ASSERT_EQ(1, vt[0]->message_type_id());
 }
 
+//! Check logging of an array of self logging classes.
+TEST_F(PolicyTest, SelfLogArrayTest) {
+  int trace_size = 0x1000;
+  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
+  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
+  trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
+  boost::shared_array<vartrace::AlignmentType> buffer(
+      new vartrace::AlignmentType[buffer_length]);
+  // create and populate some objects
+  const unsigned kArrayLength = 7;
+  boost::shared_array<SelfLogClass> anarray(new SelfLogClass[kArrayLength]);
+  for (unsigned i = 0; i < kArrayLength; ++i) {
+    anarray[i].ivar = i;
+    anarray[i].dvar = i*i;
+  }
+  // log arrays
+  trace->LogPointer(1, anarray.get(), kArrayLength);
+  // dump this stuff
+  unsigned dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
+  // check results
+  ASSERT_EQ(kArrayLength*(2*vartrace::kNestedHeaderSize + 3*4),
+            vt[0]->data_size());
+  for (unsigned i = 0; i < kArrayLength; ++i) {
+    ASSERT_EQ(101, vt[0]->children()[2*i]->message_type_id());
+    ASSERT_EQ(i, vt[0]->children()[2*i]->value<int>());
+    ASSERT_EQ(102, vt[0]->children()[2*i + 1]->message_type_id());
+    ASSERT_EQ(i*i, vt[0]->children()[2*i + 1]->value<double>());
+  }
+}
+
 int main(int argc, char *argv[]) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
