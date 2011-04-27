@@ -450,7 +450,7 @@ TEST_F(PolicyTest, ParsingBasicSubtraceTest) {
   ASSERT_EQ(m3, vt[1]->value<int>());
 }
 
-//! Check basic subtrace parsing.
+//! Check writing many nested subtraces.
 TEST_F(PolicyTest, DeepSubtraceTest) {
   int trace_size = 0x100;
   int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
@@ -476,7 +476,7 @@ TEST_F(PolicyTest, DeepSubtraceTest) {
   // check dumped with open subtraces
   ASSERT_EQ(vartrace::kHeaderSize + (kMaxDepth - 1)*vartrace::kNestedHeaderSize,
             dumped_size);
-  // destroy subtrace starting from deepest one
+  // destroy subtrace starting from the deepest one
   for (int i = kMaxDepth - 1; i >= 0; --i) {
     ASSERT_TRUE(strace[i]->can_log());
     strace[i].reset();
@@ -507,6 +507,78 @@ TEST_F(PolicyTest, DeepSubtraceTest) {
     ASSERT_EQ(2*i + 1, msg->message_type_id());
     ASSERT_EQ((kMaxDepth - i - 1)*vartrace::kNestedHeaderSize,
               msg->data_size());
+  }
+}
+
+//! Check writing multiple nested subtraces with some data.
+TEST_F(PolicyTest, DeepSubtraceDoubleTest) {
+  int trace_size = 0x800;
+  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
+  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
+  trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
+  boost::shared_array<vartrace::AlignmentType> buffer(
+      new vartrace::AlignmentType[buffer_length]);
+  // variables to hold subtrace data
+  // size of the toplevel messge must be less then 3/4 of the trace size
+  const int kMaxDepth = 40;
+  VarTrace<>::Pointer strace[kMaxDepth];
+  double d;
+  // create toplevel message
+  strace[0] = trace->CreateSubtrace(1);
+  ASSERT_FALSE(trace->can_log());
+  d = 0;
+  strace[0]->Log(10, d);
+  // create all other subtraces
+  for (int i = 1; i < kMaxDepth; ++i) {
+    strace[i] = strace[i-1]->CreateSubtrace(2*i + 1);
+    ASSERT_FALSE(strace[i-1]->can_log());
+    ASSERT_TRUE(strace[i]->can_log());
+    d = i*i*i;
+    strace[i]->Log(10 + i, d);
+  }
+  // dump trace with all subtraces open, cannot parse it
+  size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  // check dumped with open subtraces and double data
+  ASSERT_EQ(vartrace::kHeaderSize + (kMaxDepth - 1)*vartrace::kNestedHeaderSize
+            + kMaxDepth*12, dumped_size);
+  // destroy subtrace starting from the deepest one
+  for (int i = kMaxDepth - 1; i >= 0; --i) {
+    ASSERT_TRUE(strace[i]->can_log());
+    d = 2*i*i*i;
+    strace[i]->Log(100 + i, d);
+    strace[i].reset();
+  }
+  // dump this stuff
+  dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
+  // check dumped with closed subtraces and two doubles per trace level
+  ASSERT_EQ(vartrace::kHeaderSize + (kMaxDepth - 1)*vartrace::kNestedHeaderSize
+            + 2*kMaxDepth*12, dumped_size);
+  // check top level subtrace header
+  vartrace::Message::Pointer msg = vt[0];
+  ASSERT_TRUE(msg->has_children());
+  ASSERT_EQ(0, msg->data_type_id());
+  ASSERT_EQ(1, msg->message_type_id());
+  ASSERT_EQ((kMaxDepth - 1)*vartrace::kNestedHeaderSize + 2*kMaxDepth*12,
+            msg->data_size());
+  // check all other headers
+  for (int i = 1; i < kMaxDepth; ++i) {
+    // get to the next level of nesting
+    msg = msg->children()[1];
+    // check messages with doubles
+    ASSERT_EQ(10 + i, (msg->children()[0])->message_type_id());
+    ASSERT_EQ(i*i*i, (msg->children()[0])->value<double>());
+    if (i < kMaxDepth - 1) {
+      ASSERT_EQ(100 + i, (msg->children()[2])->message_type_id());
+      ASSERT_EQ(2*i*i*i, (msg->children()[2])->value<double>());
+    } else {
+      ASSERT_EQ(100 + i, (msg->children()[1])->message_type_id());
+      ASSERT_EQ(2*i*i*i, (msg->children()[1])->value<double>());
+    }
+    // check next nested subtrace parameters
+    ASSERT_EQ(2*i + 1, msg->message_type_id());
+    ASSERT_EQ((kMaxDepth - i - 1)*vartrace::kNestedHeaderSize +
+              2*(kMaxDepth - i)*12, msg->data_size());
   }
 }
 
