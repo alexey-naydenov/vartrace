@@ -83,6 +83,8 @@ class VarTrace
   /*! 
    */
   template <typename T> void Log(MessageIdType message_id, const T &value);
+  template <typename T> void Log(MessageIdType message_id,
+                                 const T *value, unsigned length = 1);
 
   //! Copy trace information into a buffer.
   /*! 
@@ -110,6 +112,11 @@ class VarTrace
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value,
       const MultipleAssignmentsCopyTag &copy_tag, unsigned data_id,
+      unsigned object_size);
+  //! Class stores itself in a subtrace.
+  template <typename T> void DoLog(
+      MessageIdType message_id, const T *value,
+      const SubtraceCopyTag &copy_tag, unsigned data_id,
       unsigned object_size);
 
   //! Increment position for the next write.

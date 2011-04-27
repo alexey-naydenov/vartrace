@@ -34,7 +34,7 @@ struct SizeofCopyTag {};
 struct SelfCopyTag : public SizeofCopyTag {};
 
 //! Object is a tuple, create subtrace.
-struct TupleCopyTag : public SizeofCopyTag {};
+struct SubtraceCopyTag : public SizeofCopyTag {};
 
 //! Object can be copied through an assignment.
 struct AssignmentCopyTag : public SizeofCopyTag {};

@@ -127,6 +127,13 @@ void VarTrace<CP, LP, AP>::Log(MessageIdType message_id, const T &value) {
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
+void VarTrace<CP, LP, AP>::Log(MessageIdType message_id,
+                               const T *value, unsigned length) {
+  DoLog(message_id, value, typename CopyTraits<T>::CopyCategory(),
+        DataTypeTraits<T>::kDataTypeId, length*DataTypeTraits<T>::kTypeSize);
+}
+
+VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                  const AssignmentCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
@@ -183,6 +190,15 @@ void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
   }
   pimpl_->current_block_ = pimpl_->current_index_ >> pimpl_->log2_block_length_;
   pimpl_->block_end_indices_[pimpl_->current_block_] = pimpl_->current_index_;
+}
+
+VAR_TRACE_TEMPLATE template <typename T>
+void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
+                                 const SubtraceCopyTag &copy_tag,
+                                 unsigned data_id, unsigned object_size) {
+  if (!can_log_) {return;}
+  typename VarTrace<CP, LP, AP>::Pointer subtrace = CreateSubtrace(message_id);
+  value->LogItself(subtrace);
 }
 
 VAR_TRACE_TEMPLATE

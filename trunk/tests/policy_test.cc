@@ -323,11 +323,8 @@ struct LogTestStructure {
 };
 //! Define data type id for custom structure.
 namespace vartrace {
-template<> struct DataTypeTraits<LogTestStructure> {
-  enum {
-    kDataTypeId = 40,
-    kTypeSize = sizeof(LogTestStructure)
-  };
+template<> struct DataType2Int<LogTestStructure> {
+  enum {id = 40};
 };
 }  // vartrace
 //! Check simple structure logging.
@@ -365,6 +362,37 @@ TEST_F(PolicyTest, LogCustomStructureTest) {
   for (size_t i = 0; i < sizeof(ts.anarray)/sizeof(ts.anarray[0]); ++i) {
     ASSERT_EQ(ts.anarray[i], result->anarray[i]);
   }
+}
+
+namespace vartrace {
+//! Define data type id for array of structures.
+template<unsigned L> struct DataType2Int<LogTestStructure[L]> {
+  enum {id = 41};
+};
+}  // namespace vartrace
+//! Check logging array of structures.
+TEST_F(PolicyTest, LogCustomStructureArrayTest) {
+  int trace_size = 0x1000;
+  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
+  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
+  trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
+  boost::shared_array<vartrace::AlignmentType> buffer(
+      new vartrace::AlignmentType[buffer_length]);
+  // create and fill some custom structure
+  const unsigned kArrayLength = 7;
+  LogTestStructure tsa[kArrayLength];
+  boost::shared_array<LogTestStructure> tsp(new LogTestStructure[kArrayLength]);
+  // log static array of structures
+  trace->Log(11, tsa);
+  // log pointer to a structure
+  trace->Log(12, tsp);
+  // dump and parse trace
+  size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
+  // check static array message parameters
+  ASSERT_EQ(vartrace::DataTypeTraits<LogTestStructure[1]>::kDataTypeId,
+            vt[0]->data_type_id());
+  ASSERT_EQ(sizeof(tsa), vt[0]->data_size());
 }
 
 //! Check basic subtrace functionality.
@@ -581,6 +609,8 @@ TEST_F(PolicyTest, DeepSubtraceDoubleTest) {
               2*(kMaxDepth - i)*12, msg->data_size());
   }
 }
+
+
 
 int main(int argc, char *argv[]) {
     ::testing::InitGoogleTest(&argc, argv);
