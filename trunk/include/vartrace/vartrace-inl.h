@@ -123,7 +123,7 @@ void VarTrace<CP, LP, AP>::CreateHeader(MessageIdType message_id,
 VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<CP, LP, AP>::Log(MessageIdType message_id, const T &value) {
   DoLog(message_id, &value, typename CopyTraits<T>::CopyCategory(),
-        DataTypeTraits<T>::DataTypeId, DataTypeTraits<T>::TypeSize);
+        DataTypeTraits<T>::kDataTypeId, DataTypeTraits<T>::kTypeSize);
 }
 
 VAR_TRACE_TEMPLATE template <typename T>

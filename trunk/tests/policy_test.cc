@@ -325,8 +325,8 @@ struct LogTestStructure {
 namespace vartrace {
 template<> struct DataTypeTraits<LogTestStructure> {
   enum {
-    DataTypeId = 40,
-    TypeSize = sizeof(LogTestStructure)
+    kDataTypeId = 40,
+    kTypeSize = sizeof(LogTestStructure)
   };
 };
 }  // vartrace
@@ -352,7 +352,7 @@ TEST_F(PolicyTest, LogCustomStructureTest) {
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
   // check message parameters
-  ASSERT_EQ(vartrace::DataTypeTraits<LogTestStructure>::DataTypeId,
+  ASSERT_EQ(vartrace::DataTypeTraits<LogTestStructure>::kDataTypeId,
             vt[0]->data_type_id());
   ASSERT_EQ(40, vt[0]->data_type_id());
   ASSERT_EQ(11, vt[0]->message_type_id());

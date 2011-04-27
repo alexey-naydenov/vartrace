@@ -31,8 +31,8 @@ namespace vartrace {
 template<typename T> struct DataTypeTraits {
   /*! Size and data type information. */
   enum {
-    DataTypeId = DataType2Int<T>::id,
-    TypeSize = sizeof(T)
+    kDataTypeId = DataType2Int<T>::id,
+    kTypeSize = sizeof(T)
   };
 };
 } /* vartrace */
