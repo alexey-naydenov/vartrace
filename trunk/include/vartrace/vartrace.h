@@ -83,8 +83,8 @@ class VarTrace
   /*! 
    */
   template <typename T> void Log(MessageIdType message_id, const T &value);
-  template <typename T> void Log(MessageIdType message_id,
-                                 const T *value, unsigned length = 1);
+  template <typename T> void LogPointer(MessageIdType message_id,
+                                        const T *value, unsigned length = 1);
 
   //! Copy trace information into a buffer.
   /*! 

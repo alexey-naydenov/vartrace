@@ -366,9 +366,9 @@ TEST_F(PolicyTest, LogCustomStructureTest) {
 
 namespace vartrace {
 //! Define data type id for array of structures.
-template<unsigned L> struct DataType2Int<LogTestStructure[L]> {
-  enum {id = 41};
-};
+// template<unsigned L> struct DataType2Int<LogTestStructure[L]> {
+//   enum {id = 41};
+// };
 }  // namespace vartrace
 //! Check logging array of structures.
 TEST_F(PolicyTest, LogCustomStructureArrayTest) {
@@ -380,19 +380,24 @@ TEST_F(PolicyTest, LogCustomStructureArrayTest) {
       new vartrace::AlignmentType[buffer_length]);
   // create and fill some custom structure
   const unsigned kArrayLength = 7;
-  LogTestStructure tsa[kArrayLength];
-  boost::shared_array<LogTestStructure> tsp(new LogTestStructure[kArrayLength]);
+  LogTestStructure static_array[kArrayLength];
+  boost::shared_array<LogTestStructure> shared_array(
+      new LogTestStructure[kArrayLength]);
   // log static array of structures
-  trace->Log(11, tsa);
-  // log pointer to a structure
-  trace->Log(12, tsp);
+  trace->Log(11, static_array);
+  // log pointer to a structure, 1 structure stored by default
+  trace->LogPointer(12, shared_array.get());
+  // log dynamically allocated array of structures
+  trace->LogPointer(13, shared_array.get(), kArrayLength);
   // dump and parse trace
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
   // check static array message parameters
-  ASSERT_EQ(vartrace::DataTypeTraits<LogTestStructure[1]>::kDataTypeId,
+  ASSERT_EQ(vartrace::DataTypeTraits<LogTestStructure>::kDataTypeId,
             vt[0]->data_type_id());
-  ASSERT_EQ(sizeof(tsa), vt[0]->data_size());
+  ASSERT_EQ(sizeof(static_array), vt[0]->data_size());
+  ASSERT_EQ(sizeof(LogTestStructure), vt[1]->data_size());
+  ASSERT_EQ(kArrayLength*sizeof(LogTestStructure), vt[2]->data_size());
 }
 
 //! Check basic subtrace functionality.

@@ -127,8 +127,8 @@ void VarTrace<CP, LP, AP>::Log(MessageIdType message_id, const T &value) {
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
-void VarTrace<CP, LP, AP>::Log(MessageIdType message_id,
-                               const T *value, unsigned length) {
+void VarTrace<CP, LP, AP>::LogPointer(MessageIdType message_id,
+                                      const T *value, unsigned length) {
   DoLog(message_id, value, typename CopyTraits<T>::CopyCategory(),
         DataTypeTraits<T>::kDataTypeId, length*DataTypeTraits<T>::kTypeSize);
 }
