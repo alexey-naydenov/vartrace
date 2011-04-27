@@ -194,11 +194,13 @@ void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
 
 VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
-                                 const SubtraceCopyTag &copy_tag,
+                                 const SelfCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
   if (!can_log_) {return;}
   typename VarTrace<CP, LP, AP>::Pointer subtrace = CreateSubtrace(message_id);
-  value->LogItself(subtrace);
+  for (size_t i = 0; i < object_size/sizeof(T); ++i) {
+    value[i].LogItself(subtrace);
+  }
 }
 
 VAR_TRACE_TEMPLATE

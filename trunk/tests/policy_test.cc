@@ -378,6 +378,8 @@ TEST_F(PolicyTest, LogCustomStructureArrayTest) {
   boost::shared_array<LogTestStructure> shared_array(
       new LogTestStructure[kArrayLength]);
   for (unsigned i = 0; i < kArrayLength; ++i) {
+    static_array[i].cvar = 2*i;
+    static_array[i].ivar = 2*i*i;
     shared_array[i].cvar = i;
     shared_array[i].ivar = i*i;
   }
@@ -396,8 +398,14 @@ TEST_F(PolicyTest, LogCustomStructureArrayTest) {
   ASSERT_EQ(sizeof(static_array), vt[0]->data_size());
   ASSERT_EQ(sizeof(LogTestStructure), vt[1]->data_size());
   ASSERT_EQ(kArrayLength*sizeof(LogTestStructure), vt[2]->data_size());
-  // check logged values
-  LogTestStructure *pointer = vt[2]->pointer<LogTestStructure>();
+  // check logged values of static array
+  LogTestStructure *pointer = vt[0]->pointer<LogTestStructure>();
+  for (unsigned i = 0; i < kArrayLength; ++i) {
+    ASSERT_EQ(2*i, pointer[i].cvar);
+    ASSERT_EQ(2*i*i, pointer[i].ivar);
+  }
+  // check logged values of dynamic array
+  pointer = vt[2]->pointer<LogTestStructure>();
   for (unsigned i = 0; i < kArrayLength; ++i) {
     ASSERT_EQ(i, pointer[i].cvar);
     ASSERT_EQ(i*i, pointer[i].ivar);
@@ -619,7 +627,44 @@ TEST_F(PolicyTest, DeepSubtraceDoubleTest) {
   }
 }
 
+class SelfLogClass {
+ public:
+  int ivar;
+  double dvar;
+  double dont_log_array[10];
 
+  void LogItself(VarTrace<>::Pointer trace) const {
+    trace->Log(101, ivar);
+    trace->Log(102, dvar);
+  }
+};
+namespace vartrace {
+template<> struct CopyTraits<SelfLogClass> {
+  typedef SelfCopyTag CopyCategory;
+};
+}  // namespace vartrace
+//! Check self logging class.
+TEST_F(PolicyTest, SelfLogTest) {
+  int trace_size = 0x1000;
+  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
+  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
+  trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
+  boost::shared_array<vartrace::AlignmentType> buffer(
+      new vartrace::AlignmentType[buffer_length]);
+  // create and populate some objects
+  SelfLogClass cls;
+  cls.ivar = 1234;
+  cls.dvar = 12e-34;
+  // log
+  trace->Log(1, cls);
+  // dump this stuff
+  unsigned dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
+  // check results
+  ASSERT_EQ(2*vartrace::kNestedHeaderSize + 3*4, vt[0]->data_size());
+  ASSERT_EQ(0, vt[0]->data_type_id());
+  ASSERT_EQ(1, vt[0]->message_type_id());
+}
 
 int main(int argc, char *argv[]) {
     ::testing::InitGoogleTest(&argc, argv);

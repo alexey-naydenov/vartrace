@@ -33,9 +33,6 @@ struct SizeofCopyTag {};
 //! Object will copy itself into the trace.
 struct SelfCopyTag : public SizeofCopyTag {};
 
-//! Object is a tuple, create subtrace.
-struct SubtraceCopyTag : public SizeofCopyTag {};
-
 //! Object can be copied through an assignment.
 struct AssignmentCopyTag : public SizeofCopyTag {};
 

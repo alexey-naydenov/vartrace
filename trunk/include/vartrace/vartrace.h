@@ -116,7 +116,7 @@ class VarTrace
   //! Class stores itself in a subtrace.
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value,
-      const SubtraceCopyTag &copy_tag, unsigned data_id,
+      const SelfCopyTag &copy_tag, unsigned data_id,
       unsigned object_size);
 
   //! Increment position for the next write.
