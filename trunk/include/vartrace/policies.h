@@ -32,33 +32,7 @@
 
 namespace vartrace {
 
-static const unsigned kDefaultBlockCount = 8;
-static const unsigned kDefaultTraceSize = 0x1000;
-static const unsigned kMinBlockCount = 4;
-
-template <class T> struct SharedPtrCreator {
- public:
-  typedef boost::shared_ptr<T> Pointer;
-  static Pointer Create(int trace_size = kDefaultTraceSize,
-                        int block_count = kDefaultBlockCount) {
-    // find most significant bit of block_count that is 1
-    int log2_count = 0;
-    while ( (block_count >> log2_count) > 1) log2_count++;
-    // block length not rounded down to 2^n
-    int block_length = trace_size/sizeof(AlignmentType)/(1<<log2_count);
-    // find most significant bit of block_length that is 1
-    int log2_length = 0;
-    while ((block_length >> log2_length) > 1) log2_length++;
-    return Pointer(new T(log2_count, log2_length));
-  }
- protected:
-  ~SharedPtrCreator() {}
-};
-
-template <class T> struct SingletonCreator {
-};
-
-//! No locking.
+//! No locking policy.
 template <class T> struct SingleThreaded {
  public:
   class Lock {
@@ -69,6 +43,76 @@ template <class T> struct SingleThreaded {
  protected:
   ~SingleThreaded() {}
 };
+
+//! Class level locking.
+template <class T> struct ClassLevelLockable {
+ public:
+  class Lock {
+   public:
+    Lock() {AcquireLock();}
+    explicit Lock(const T &obj) {AcquireLock();}
+    ~Lock() {ReleaseLock();}
+   private:
+    static boost::recursive_mutex mutex_;
+    void AcquireLock() {mutex_.lock();}
+    void ReleaseLock() {mutex_.unlock();}
+  };
+ protected:
+  ~ClassLevelLockable() {}
+};
+
+template<class T> boost::recursive_mutex ClassLevelLockable<T>::Lock::mutex_;
+
+static const unsigned kDefaultBlockCount = 8;
+static const unsigned kDefaultTraceSize = 0x1000;
+static const unsigned kMinBlockCount = 4;
+
+static unsigned CalculateLog2Count(unsigned trace_size, unsigned block_count) {
+  // find most significant bit of block_count that is 1
+  unsigned log2_count = 0;
+  while ( (block_count >> log2_count) > 1) log2_count++;
+  return log2_count;
+}
+
+static unsigned CalculateLog2Length(unsigned trace_size,
+                                    unsigned block_count) {
+  unsigned log2_count = CalculateLog2Count(trace_size, block_count);
+  unsigned block_length = trace_size/sizeof(AlignmentType)/(1<<log2_count);
+  // find most significant bit of block_length that is 1
+  unsigned log2_length = 0;
+  while ((block_length >> log2_length) > 1) log2_length++;
+  return log2_length;
+}
+
+template <class T> struct SharedPtrCreator {
+ public:
+  typedef boost::shared_ptr<T> Pointer;
+  static Pointer Create(int trace_size = kDefaultTraceSize,
+                        int block_count = kDefaultBlockCount) {
+    return Pointer(new T(CalculateLog2Count(trace_size, block_count),
+                         CalculateLog2Length(trace_size, block_count)));
+  }
+ protected:
+  ~SharedPtrCreator() {}
+};
+
+template <class T> struct NoLockSingletonCreator {
+ public:
+  typedef boost::shared_ptr<T> Pointer;
+  static Pointer Create(int trace_size = kDefaultTraceSize,
+                        int block_count = kDefaultBlockCount) {
+    if (!instance_) {
+      instance_.reset(new T(CalculateLog2Count(trace_size, block_count),
+                            CalculateLog2Length(trace_size, block_count)));
+    }
+    return instance_;
+  }
+  ~NoLockSingletonCreator() {}
+ private:
+  static Pointer instance_;
+};
+template<class T> typename NoLockSingletonCreator<T>::Pointer
+NoLockSingletonCreator<T>::instance_;
 
 //! Policy to allocate log storage through new operator.
 struct SharedArrayAllocator {
