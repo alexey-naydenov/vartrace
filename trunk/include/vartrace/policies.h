@@ -63,6 +63,24 @@ template <class T> struct ClassLevelLockable {
 
 template<class T> boost::recursive_mutex ClassLevelLockable<T>::Lock::mutex_;
 
+//! Class level locking.
+template <class T> struct ObjectLevelLockable {
+ public:
+  class Lock {
+   public:
+    explicit Lock(T &obj) {
+      object_ = &obj;
+      object_->mutex_.lock();
+    }
+    ~Lock() {object_->mutex_.unlock();}
+   protected:
+    T *object_;
+  };
+ protected:
+  ~ObjectLevelLockable() {}
+  boost::recursive_mutex mutex_;
+};
+
 static const unsigned kDefaultBlockCount = 8;
 static const unsigned kDefaultTraceSize = 0x1000;
 static const unsigned kMinBlockCount = 4;
