@@ -23,6 +23,7 @@
 #define TRUNK_INCLUDE_VARTRACE_VARTRACE_H_
 
 #include <boost/shared_ptr.hpp>
+#include <boost/utility.hpp>
 
 #include <cstring>
 #include <cassert>
@@ -53,19 +54,14 @@ TimestampType incremental_timestamp() {
 // logging array or class must be smaller then block size
 template <
   template <class> class CP = SharedPtrCreator, // creation policy
-  template <class> class LP = NoLocker, // locking policy
+  template <class> class LP = SingleThreaded, // locking policy
   class AP = SharedArrayAllocator // storage allocation policy
   >
 class VarTrace
     : public CP< VarTrace<CP, LP, AP> >,
       public LP< VarTrace<CP, LP, AP> >,
-      public AP {
+      public AP, public boost::noncopyable {
  public:
-  //! Create a new trace with the given number of blocks and block size.
-  /*! \note The constructor should not be called directly, use Create
-   *  function provided by creation policy.
-   */
-  VarTrace(int log2_count, int log2_size);
   void Initialize();
   ~VarTrace();
 
@@ -95,6 +91,17 @@ class VarTrace
   CreateSubtrace(MessageIdType subtrace_id);
 
  private:
+  //! Disabled default constructor.
+  VarTrace();
+  // allow creation policy access to constructors
+  friend class CP< VarTrace<CP, LP, AP> >;
+  //! Conviniece typedef for locking.
+  typedef typename LP< VarTrace<CP, LP, AP> >::Lock Lock;
+  //! Create a new trace with the given number of blocks and block size.
+  /*! \note The constructor should not be called directly, use Create
+   *  function provided by creation policy.
+   */
+  VarTrace(int log2_count, int log2_size);
   //! Subtrace constructor.
   explicit VarTrace(VarTrace<CP, LP, AP> *ancestor);
   //! Calback for subtrace to indicate its destruction.

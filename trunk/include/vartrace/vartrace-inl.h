@@ -54,6 +54,7 @@ VarTrace<CP, LP, AP>::VarTrace(VarTrace<CP, LP, AP> *ancestor)
 
 VAR_TRACE_TEMPLATE
 void VarTrace<CP, LP, AP>::Initialize() {
+  Lock guard(*this);
   // check for double initialization
   if (is_initialized_) {return;}
   // check block count size
@@ -137,6 +138,7 @@ VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                  const AssignmentCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
+  Lock guard(*this);
   if (!can_log_) {return;}
   CreateHeader(message_id, data_id, object_size);
   pimpl_->data_[pimpl_->current_index_] = *value;
@@ -149,6 +151,7 @@ VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                  const MultipleAssignmentsCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
+  Lock guard(*this);
   if (!can_log_) {return;}
   CreateHeader(message_id, data_id, object_size);
   for (size_t i = 0; i < RoundSize(sizeof(T)); ++i) {
@@ -165,6 +168,7 @@ VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                  const SizeofCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
+  Lock guard(*this);
   if (!can_log_) {return;}
   CreateHeader(message_id, data_id, object_size);
   // check if data fits in space left in trace
@@ -196,6 +200,7 @@ VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                  const SelfCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
+  Lock guard(*this);
   if (!can_log_) {return;}
   typename VarTrace<CP, LP, AP>::Pointer subtrace = CreateSubtrace(message_id);
   for (size_t i = 0; i < object_size/sizeof(T); ++i) {
@@ -205,6 +210,7 @@ void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
 
 VAR_TRACE_TEMPLATE
 unsigned VarTrace<CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
+  Lock guard(*this);
   // start copying from the end of the next block
   int copy_from = pimpl_->block_end_indices_[NextBlock(pimpl_->current_block_)];
   // if end index of the next block is -1 then the trace was not
@@ -250,6 +256,7 @@ unsigned VarTrace<CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
 
 VAR_TRACE_TEMPLATE typename VarTrace<CP, LP, AP>::Pointer
 VarTrace<CP, LP, AP>::CreateSubtrace(MessageIdType subtrace_id) {
+  Lock guard(*this);
   // create header for the subtrace, subtrace data id = 0, size = 0 for now
   CreateHeader(subtrace_id, 0, 0);
   pimpl_->current_block_ = pimpl_->current_index_ >> pimpl_->log2_block_length_;
@@ -262,6 +269,7 @@ VarTrace<CP, LP, AP>::CreateSubtrace(MessageIdType subtrace_id) {
 
 VAR_TRACE_TEMPLATE
 void VarTrace<CP, LP, AP>::SubtraceDestruction() {
+  Lock guard(*this);
   can_log_ = true;
   // calculate written size
   unsigned written_length = 0;

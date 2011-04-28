@@ -24,6 +24,7 @@
 
 #include <boost/shared_array.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 
 #include <vector>
 
@@ -47,17 +48,26 @@ template <class T> struct SharedPtrCreator {
     int block_length = trace_size/sizeof(AlignmentType)/(1<<log2_count);
     // find most significant bit of block_length that is 1
     int log2_length = 0;
-    while ( (block_length >> log2_length) > 1) log2_length++;
+    while ((block_length >> log2_length) > 1) log2_length++;
     return Pointer(new T(log2_count, log2_length));
   }
  protected:
   ~SharedPtrCreator() {}
 };
 
-//! No lock policy.
-template <class T> struct NoLocker {
+template <class T> struct SingletonCreator {
+};
+
+//! No locking.
+template <class T> struct SingleThreaded {
+ public:
+  class Lock {
+   public:
+    Lock() {}
+    explicit Lock(const T &obj) {}
+  };
  protected:
-  ~NoLocker() {}
+  ~SingleThreaded() {}
 };
 
 //! Policy to allocate log storage through new operator.
