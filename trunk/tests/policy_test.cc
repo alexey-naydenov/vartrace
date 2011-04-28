@@ -697,6 +697,46 @@ TEST_F(PolicyTest, SelfLogArrayTest) {
   }
 }
 
+class SelfLogTemplateClass {
+ public:
+  int ivar;
+  double dvar;
+  double dont_log_array[10];
+
+  template<class LoggerHandle>
+  void LogItself(LoggerHandle trace) const {
+    trace->Log(101, ivar);
+    trace->Log(102, dvar);
+  }
+};
+namespace vartrace {
+template<> struct CopyTraits<SelfLogTemplateClass> {
+  typedef SelfCopyTag CopyCategory;
+};
+}  // namespace vartrace
+//! Check self logging template class.
+TEST_F(PolicyTest, SelfLogTemplateTest) {
+  int trace_size = 0x1000;
+  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
+  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
+  trace = VarTrace<vartrace::NewCreator>::Create(trace_size);
+  boost::shared_array<vartrace::AlignmentType> buffer(
+      new vartrace::AlignmentType[buffer_length]);
+  // create and populate some objects
+  SelfLogTemplateClass cls;
+  cls.ivar = 1234;
+  cls.dvar = 12e-34;
+  // log
+  trace->Log(1, cls);
+  // dump this stuff
+  unsigned dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
+  // check results
+  ASSERT_EQ(2*vartrace::kNestedHeaderSize + 3*4, vt[0]->data_size());
+  ASSERT_EQ(0, vt[0]->data_type_id());
+  ASSERT_EQ(1, vt[0]->message_type_id());
+}
+
 int main(int argc, char *argv[]) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
