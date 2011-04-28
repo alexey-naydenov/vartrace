@@ -107,12 +107,35 @@ template <class T> struct NoLockSingletonCreator {
     }
     return instance_;
   }
-  ~NoLockSingletonCreator() {}
  private:
+  ~NoLockSingletonCreator() {}
   static Pointer instance_;
 };
 template<class T> typename NoLockSingletonCreator<T>::Pointer
 NoLockSingletonCreator<T>::instance_;
+
+template <class T> struct LockableSingletonCreator
+    : public ClassLevelLockable< LockableSingletonCreator<T> > {
+ public:
+  typedef boost::shared_ptr<T> Pointer;
+  static Pointer Create(int trace_size = kDefaultTraceSize,
+                        int block_count = kDefaultBlockCount) {
+    if (!instance_) {
+      typename ClassLevelLockable< LockableSingletonCreator<T> >::Lock guard();
+      if (!instance_) {
+        instance_.reset(new T(CalculateLog2Count(trace_size, block_count),
+                              CalculateLog2Length(trace_size, block_count)));
+      }
+    }
+    return instance_;
+  }
+ private:
+  ~LockableSingletonCreator() {}
+  static Pointer instance_;
+};
+template<class T> typename LockableSingletonCreator<T>::Pointer
+LockableSingletonCreator<T>::instance_;
+
 
 //! Policy to allocate log storage through new operator.
 struct SharedArrayAllocator {
