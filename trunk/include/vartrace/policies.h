@@ -35,7 +35,7 @@ static const unsigned kDefaultBlockCount = 8;
 static const unsigned kDefaultTraceSize = 0x1000;
 static const unsigned kMinBlockCount = 4;
 
-template <class T> struct NewCreator {
+template <class T> struct SharedPtrCreator {
  public:
   typedef boost::shared_ptr<T> Pointer;
   static Pointer Create(int trace_size = kDefaultTraceSize,
@@ -51,7 +51,7 @@ template <class T> struct NewCreator {
     return Pointer(new T(log2_count, log2_length));
   }
  protected:
-  ~NewCreator() {}
+  ~SharedPtrCreator() {}
 };
 
 //! No lock policy.
@@ -61,7 +61,7 @@ template <class T> struct NoLocker {
 };
 
 //! Policy to allocate log storage through new operator.
-struct NewAllocator {
+struct SharedArrayAllocator {
  public:
   //! Type for storing trace data.
   typedef boost::shared_array<AlignmentType> StorageArrayType;
@@ -70,7 +70,7 @@ struct NewAllocator {
     return StorageArrayType(new AlignmentType[length]);
   }
  protected:
-  ~NewAllocator() {}
+  ~SharedArrayAllocator() {}
 };
 }  // namespace vartrace
 
