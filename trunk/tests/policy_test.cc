@@ -737,7 +737,3 @@ TEST_F(PolicyTest, SelfLogTemplateTest) {
   ASSERT_EQ(1, vt[0]->message_type_id());
 }
 
-int main(int argc, char *argv[]) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

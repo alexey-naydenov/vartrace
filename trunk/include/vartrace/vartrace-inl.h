@@ -24,6 +24,8 @@
 
 #include <cstring>
 
+#include "vartrace/vartrace-internal.h"
+
 namespace vartrace {
 
 #define VAR_TRACE_TEMPLATE \
@@ -39,7 +41,7 @@ VarTrace<CP, LP, AP>::VarTrace(int log2_count, int log2_length)
   pimpl_->log2_block_length_ = log2_length;
   pimpl_->block_length_ = 1<<pimpl_->log2_block_length_;
   // default timestamp function
-  pimpl_->get_timestamp_ = incremental_timestamp;
+  pimpl_->get_timestamp_ = internal::IncrementalTimestamp;
   // initial write position
   pimpl_->current_block_ = 0;
   pimpl_->current_index_ = 0;

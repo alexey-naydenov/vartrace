@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "vartrace/tracetypes.h"
+#include "vartrace/vartrace-internal.h"
 
 namespace vartrace {
 
@@ -85,30 +86,14 @@ static const unsigned kDefaultBlockCount = 8;
 static const unsigned kDefaultTraceSize = 0x1000;
 static const unsigned kMinBlockCount = 4;
 
-static unsigned CalculateLog2Count(unsigned trace_size, unsigned block_count) {
-  // find most significant bit of block_count that is 1
-  unsigned log2_count = 0;
-  while ( (block_count >> log2_count) > 1) log2_count++;
-  return log2_count;
-}
-
-static unsigned CalculateLog2Length(unsigned trace_size,
-                                    unsigned block_count) {
-  unsigned log2_count = CalculateLog2Count(trace_size, block_count);
-  unsigned block_length = trace_size/sizeof(AlignmentType)/(1<<log2_count);
-  // find most significant bit of block_length that is 1
-  unsigned log2_length = 0;
-  while ((block_length >> log2_length) > 1) log2_length++;
-  return log2_length;
-}
-
 template <class T> struct SharedPtrCreator {
  public:
   typedef boost::shared_ptr<T> Pointer;
   static Pointer Create(int trace_size = kDefaultTraceSize,
                         int block_count = kDefaultBlockCount) {
-    return Pointer(new T(CalculateLog2Count(trace_size, block_count),
-                         CalculateLog2Length(trace_size, block_count)));
+    return Pointer(new T(
+        internal::CalculateLog2Count(trace_size, block_count),
+        internal::CalculateLog2Length(trace_size, block_count)));
   }
  protected:
   ~SharedPtrCreator() {}
@@ -120,8 +105,9 @@ template <class T> struct NoLockSingletonCreator {
   static Pointer Create(int trace_size = kDefaultTraceSize,
                         int block_count = kDefaultBlockCount) {
     if (!instance_) {
-      instance_.reset(new T(CalculateLog2Count(trace_size, block_count),
-                            CalculateLog2Length(trace_size, block_count)));
+      instance_.reset(new T(
+          internal::CalculateLog2Count(trace_size, block_count),
+          internal::CalculateLog2Length(trace_size, block_count)));
     }
     return instance_;
   }
@@ -141,8 +127,9 @@ template <class T> struct LockableSingletonCreator
     if (!instance_) {
       typename ClassLevelLockable< LockableSingletonCreator<T> >::Lock guard();
       if (!instance_) {
-        instance_.reset(new T(CalculateLog2Count(trace_size, block_count),
-                              CalculateLog2Length(trace_size, block_count)));
+        instance_.reset(new T(
+            internal::CalculateLog2Count(trace_size, block_count),
+            internal::CalculateLog2Length(trace_size, block_count)));
       }
     }
     return instance_;

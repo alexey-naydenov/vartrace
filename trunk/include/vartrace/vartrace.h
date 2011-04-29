@@ -44,11 +44,6 @@ template <typename T> unsigned aligned_size() {
   return CEIL_DIV(sizeof(T), sizeof(AlignmentType));
 }
 
-TimestampType incremental_timestamp() {
-    static TimestampType timestamp = 0;
-    return timestamp++;
-}
-
 /*! Class for variable trace objects. */
 // size of a block must be bigger then sizeof of biggest type + 8
 // logging array or class must be smaller then block size

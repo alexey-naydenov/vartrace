@@ -24,8 +24,8 @@
  * Type to type id mappings. 
  */
 
-#ifndef DATATYPEID_H
-#define DATATYPEID_H
+#ifndef TRUNK_INCLUDE_VARTRACE_DATATYPEID_H_
+#define TRUNK_INCLUDE_VARTRACE_DATATYPEID_H_
 
 namespace vartrace {
 
@@ -51,33 +51,6 @@ struct DataType2Int<T[L]> {
     id = DataType2Int<T>::id
   };
 };
+}  // vatrace
 
-// template <unsigned L>
-// struct DataType2Int<char[L]> {enum {id = 0x11};};
-// template <unsigned L>
-// struct DataType2Int<unsigned char[L]> {enum {id = 0x12};};
-// template <unsigned L>
-// struct DataType2Int<short[L]> {enum {id = 0x13};};
-// template <unsigned L>
-// struct DataType2Int<unsigned short[L]> {enum {id = 0x14};};
-// template <unsigned L>
-// struct DataType2Int<int[L]> {enum {id = 0x15};};
-// template <unsigned L>
-// struct DataType2Int<unsigned int[L]> {enum {id = 0x16};};
-// template <unsigned L>
-// struct DataType2Int<long[L]> {enum {id = 0x17};};
-// template <unsigned L>
-// struct DataType2Int<unsigned long[L]> {enum {id = 0x18};};
-// template <unsigned L>
-// struct DataType2Int<long long[L]> {enum {id = 0x19};};
-// template <unsigned L>
-// struct DataType2Int<unsigned long long[L]> {enum {id = 0x1a};};
-
-// template <unsigned L>
-// struct DataType2Int<float[L]> {enum {id = 0x1f};};
-// template <unsigned L>
-// struct DataType2Int<double[L]> {enum {id = 0x1d};};
-/* id = 0 reserved for combined types */
-}
-
-#endif /* DATATYPEID_H */
+#endif  // TRUNK_INCLUDE_VARTRACE_DATATYPEID_H_

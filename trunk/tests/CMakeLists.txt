@@ -1,4 +1,4 @@
-add_executable (vartrace_test policy_test.cc)
+add_executable (vartrace_test policy_test.cc vartrace_test.cc)
 target_link_libraries (vartrace_test ${GTEST_BOTH_LIBRARIES} pthread)
 target_link_libraries (vartrace_test vartrace)
 add_test (vartrace_test vartrace_test)
