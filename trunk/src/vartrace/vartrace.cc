@@ -19,6 +19,6 @@
   Empty functions. 
 */
 
-#include "vartrace/vartrace.h"
+#include <vartrace/vartrace.h>
 
 

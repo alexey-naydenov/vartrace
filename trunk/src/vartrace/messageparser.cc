@@ -24,8 +24,8 @@
  * Definitions for MessageParser class. 
  */
 
-#include "vartrace/tracetypes.h"
-#include "vartrace/messageparser.h"
+#include <vartrace/tracetypes.h>
+#include <vartrace/messageparser.h>
 
 #include <cstring>
 

@@ -19,7 +19,7 @@
   Implementation of some internal functions. 
 */
 
-#include "vartrace/vartrace-internal.h"
+#include <vartrace/vartrace-internal.h>
 
 namespace vartrace {
 

@@ -24,8 +24,8 @@
  * Function implementations for C interface. 
  */
 
-#include "vartrace/vartrace.h"
-#include "vartrace/vartrace_c.h"
+#include <vartrace/vartrace.h>
+#include <vartrace/vartrace_c.h>
 
 VT_TraceHandle VT_create(unsigned size)
 {

@@ -23,8 +23,8 @@
 #ifndef TRUNK_INCLUDE_VARTRACE_COPYTRAITS_H_
 #define TRUNK_INCLUDE_VARTRACE_COPYTRAITS_H_
 
-#include "vartrace/tracetypes.h"
-#include "vartrace/datatypeid.h"
+#include <vartrace/tracetypes.h>
+#include <vartrace/datatypeid.h>
 
 namespace vartrace {
 //! Sizeof memory segment should be copied into the trace.

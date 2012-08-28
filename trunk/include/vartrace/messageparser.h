@@ -27,7 +27,7 @@
 
 #include <vector>
 
-#include "vartrace/tracetypes.h"
+#include <vartrace/tracetypes.h>
 
 namespace vartrace {
 

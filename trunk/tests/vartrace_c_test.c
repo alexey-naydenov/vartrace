@@ -1,7 +1,7 @@
 #include <stdio.h>
 
-#include "vartrace/tracetypes.h"
-#include "vartrace/vartrace_c.h"
+#include <vartrace/tracetypes.h>
+#include <vartrace/vartrace_c.h>
 
 int main(void) 
 {

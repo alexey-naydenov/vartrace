@@ -27,7 +27,7 @@
 #ifndef VARTRACE_C_H
 #define VARTRACE_C_H
 
-#include "vartrace/tracetypes.h"
+#include <vartrace/tracetypes.h>
 
 #ifdef __cplusplus
 namespace vartrace {

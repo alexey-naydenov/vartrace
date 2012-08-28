@@ -23,7 +23,7 @@
 #ifndef TRUNK_INCLUDE_VARTRACE_DATATRAITS_H_
 #define TRUNK_INCLUDE_VARTRACE_DATATRAITS_H_
 
-#include "vartrace/datatypeid.h"
+#include <vartrace/datatypeid.h>
 
 namespace vartrace {
 

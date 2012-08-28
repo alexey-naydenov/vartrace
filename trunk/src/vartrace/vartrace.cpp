@@ -27,8 +27,8 @@
 #include <stddef.h>
 #include <cstring>
 
-#include "vartrace/tracetypes.h"
-#include "vartrace/vartrace.h"
+#include <vartrace/tracetypes.h>
+#include <vartrace/vartrace.h>
 
 namespace vartrace {
 

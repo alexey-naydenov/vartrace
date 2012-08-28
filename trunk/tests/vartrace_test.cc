@@ -19,10 +19,9 @@
   Testing vartrace class. 
 */
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 
-#include "vartrace/vartrace.h"
-#include "vartrace/messageparser.h"
+#include <vartrace/vartrace.h>
+#include <vartrace/messageparser.h>
 
 
 int main(int argc, char *argv[]) {

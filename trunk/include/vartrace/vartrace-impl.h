@@ -24,7 +24,7 @@
 
 #include <boost/scoped_array.hpp>
 
-#include "vartrace/tracetypes.h"
+#include <vartrace/tracetypes.h>
 
 namespace vartrace {
 //! Data for vartrace object hierarchy.

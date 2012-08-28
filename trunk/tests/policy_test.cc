@@ -20,14 +20,13 @@
 */
 
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include <boost/shared_array.hpp>
 
 #include <cstdio>
 #include <limits>
 
-#include "vartrace/vartrace.h"
-#include "vartrace/messageparser.h"
+#include <vartrace/vartrace.h>
+#include <vartrace/messageparser.h>
 
 using vartrace::VarTrace;
 using vartrace::Message;

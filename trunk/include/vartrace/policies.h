@@ -28,8 +28,8 @@
 
 #include <vector>
 
-#include "vartrace/tracetypes.h"
-#include "vartrace/vartrace-internal.h"
+#include <vartrace/tracetypes.h>
+#include <vartrace/vartrace-internal.h>
 
 namespace vartrace {
 

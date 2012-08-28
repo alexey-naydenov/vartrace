@@ -22,7 +22,7 @@
 #ifndef TRUNK_INCLUDE_VARTRACE_VARTRACE_INTERNAL_H_
 #define TRUNK_INCLUDE_VARTRACE_VARTRACE_INTERNAL_H_
 
-#include "vartrace/tracetypes.h"
+#include <vartrace/tracetypes.h>
 
 namespace vartrace {
 

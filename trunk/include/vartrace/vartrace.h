@@ -23,18 +23,17 @@
 #define TRUNK_INCLUDE_VARTRACE_VARTRACE_H_
 
 #include <boost/shared_ptr.hpp>
-#include <boost/utility.hpp>
 
 #include <cstring>
 #include <cassert>
 #include <vector>
 
-#include "vartrace/copytraits.h"
-#include "vartrace/tracetypes.h"
-#include "vartrace/datatypeid.h"
-#include "vartrace/datatraits.h"
-#include "vartrace/policies.h"
-#include "vartrace/vartrace-impl.h"
+#include <vartrace/copytraits.h>
+#include <vartrace/tracetypes.h>
+#include <vartrace/datatypeid.h>
+#include <vartrace/datatraits.h>
+#include <vartrace/policies.h>
+#include <vartrace/vartrace-impl.h>
 
 namespace vartrace {
 
@@ -55,7 +54,7 @@ template <
 class VarTrace
     : public CP< VarTrace<CP, LP, AP> >,
       public LP< VarTrace<CP, LP, AP> >,
-      public AP, public boost::noncopyable {
+      public AP {
  public:
   void Initialize();
   ~VarTrace();
@@ -63,10 +62,10 @@ class VarTrace
   //! Returns true after memory allocation.
   bool is_initialized() const {return is_initialized_;}
   //! Number of memory blocks used to store trace.
-  unsigned block_count() const {return pimpl_->block_count_;}
+  unsigned block_count() const {return block_count_;}
   //! Approximate size of each block in bytes.
   unsigned block_size() const {
-    return sizeof(AlignmentType)*pimpl_->block_length_;
+    return sizeof(AlignmentType)*block_length_;
   }
   //! Check if the trace object can log data.
   bool can_log() const {return can_log_;}
@@ -132,13 +131,21 @@ class VarTrace
   //! Write message header.
   void CreateHeader(MessageIdType message_id, unsigned data_id,
                     unsigned object_size);
-
   bool is_initialized_; /*!< True after memory allocation. */
   bool is_nested_; /*!< True if trace object is not top level one. */
   bool can_log_; /*!< True if the object can write in its trace */
   //! Stores position of a subtrace to store its size after destruction.
   unsigned subtrace_start_index_;
-  boost::shared_ptr< VarTraceImplementation<AP> > pimpl_;
+  unsigned log2_block_count_; /*!< Log base 2 of number of blocks. */
+  unsigned log2_block_length_; /*!< Log base 2 of block length. */
+  unsigned block_count_; /*!< Total number of blocks, must be power of 2. */
+  unsigned block_length_; /*!< Length of each block in AlignmentType units. */
+  unsigned index_mask_; /*!< Restricts array index to the range 0...2^n. */
+  unsigned current_block_; /*!< Block currently being written into. */
+  unsigned current_index_; /*!< Next array element to write to. */
+  boost::scoped_array<int> block_end_indices_; /*!< Block boundaries. */
+  typename AP::StorageArrayType data_; /*!< Data array. */
+  TimestampFunctionType get_timestamp_; /*!< Pointer to a timestamp function. */
   //! Pointer to the ancestor of a subtrace.
   VarTrace<CP, LP, AP> *ancestor_;
 };
