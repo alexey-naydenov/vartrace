@@ -33,7 +33,7 @@ TimestampType IncrementalTimestamp() {
 unsigned CalculateLog2Count(unsigned trace_size, unsigned block_count) {
   // find most significant bit of block_count that is 1
   unsigned log2_count = 0;
-  while ( (block_count >> log2_count) > 1) log2_count++;
+  while ((block_count >> log2_count) > 1) log2_count++;
   return log2_count;
 }
 

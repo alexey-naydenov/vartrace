@@ -22,9 +22,10 @@
 #ifndef TRUNK_INCLUDE_VARTRACE_VARTRACE_INL_H_
 #define TRUNK_INCLUDE_VARTRACE_VARTRACE_INL_H_
 
-#include <cstring>
-
 #include <vartrace/vartrace-internal.h>
+
+#include <cstring>
+#include <algorithm>
 
 namespace vartrace {
 
@@ -33,8 +34,7 @@ namespace vartrace {
 
 VAR_TRACE_TEMPLATE
 VarTrace<CP, LP, AP>::VarTrace(int log2_count, int log2_length)
-    : is_initialized_(false), is_nested_(false), can_log_(false),
-      pimpl_(new VarTraceImplementation<AP>()) {
+    : is_initialized_(false), is_nested_(false), can_log_(false) {
   // set block  size and count
   log2_block_count_ = log2_count;
   block_count_ = 1<<log2_block_count_;
@@ -48,11 +48,6 @@ VarTrace<CP, LP, AP>::VarTrace(int log2_count, int log2_length)
   // allocate memory
   Initialize();
 }
-
-VAR_TRACE_TEMPLATE
-VarTrace<CP, LP, AP>::VarTrace(VarTrace<CP, LP, AP> *ancestor)
-    : is_initialized_(true), is_nested_(true), can_log_(true),
-      pimpl_(ancestor->pimpl_), ancestor_(ancestor) {}
 
 VAR_TRACE_TEMPLATE
 void VarTrace<CP, LP, AP>::Initialize() {
@@ -79,7 +74,7 @@ void VarTrace<CP, LP, AP>::Initialize() {
 VAR_TRACE_TEMPLATE
 VarTrace<CP, LP, AP>::~VarTrace() {
   if (is_nested_) {
-    ancestor_->SubtraceDestruction();
+    ancestor_->SubtraceDestruction(current_index_);
   }
 }
 
@@ -213,6 +208,7 @@ void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
 VAR_TRACE_TEMPLATE
 unsigned VarTrace<CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
   Lock guard(*this);
+  if (!can_log_) {return 0;}
   // start copying from the end of the next block
   int copy_from = block_end_indices_[NextBlock(current_block_)];
   // if end index of the next block is -1 then the trace was not
@@ -256,6 +252,23 @@ unsigned VarTrace<CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
   return copied_size;
 }
 
+
+VAR_TRACE_TEMPLATE
+VarTrace<CP, LP, AP>::VarTrace(VarTrace<CP, LP, AP> *ancestor)
+    : is_initialized_(true), is_nested_(true), can_log_(true),
+      ancestor_(ancestor), block_end_indices_(ancestor->block_end_indices_) {
+  // copy log buffer information into subtrace
+  log2_block_count_ = ancestor->log2_block_count_;
+  log2_block_length_ = ancestor->log2_block_length_;
+  block_count_ = ancestor->block_count_;
+  block_length_ = ancestor->block_length_;
+  index_mask_ = ancestor->index_mask_;
+  current_block_ = ancestor->current_block_;
+  current_index_ = ancestor->current_index_;
+  data_ = ancestor->data_;
+  get_timestamp_ = ancestor->get_timestamp_;
+}
+
 VAR_TRACE_TEMPLATE typename VarTrace<CP, LP, AP>::Pointer
 VarTrace<CP, LP, AP>::CreateSubtrace(MessageIdType subtrace_id) {
   Lock guard(*this);
@@ -270,8 +283,13 @@ VarTrace<CP, LP, AP>::CreateSubtrace(MessageIdType subtrace_id) {
 }
 
 VAR_TRACE_TEMPLATE
-void VarTrace<CP, LP, AP>::SubtraceDestruction() {
+void VarTrace<CP, LP, AP>::SubtraceDestruction(
+    unsigned subtrace_current_index) {
   Lock guard(*this);
+  // copy updated indices into parent logger
+  current_index_ = subtrace_current_index;
+  current_block_ = current_index_ >> log2_block_length_;
+  // allow logging
   can_log_ = true;
   // calculate written size
   unsigned written_length = 0;

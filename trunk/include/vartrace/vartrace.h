@@ -23,10 +23,7 @@
 #define TRUNK_INCLUDE_VARTRACE_VARTRACE_H_
 
 #include <boost/shared_ptr.hpp>
-
-#include <cstring>
-#include <cassert>
-#include <vector>
+#include <boost/shared_array.hpp>
 
 #include <vartrace/copytraits.h>
 #include <vartrace/tracetypes.h>
@@ -34,6 +31,10 @@
 #include <vartrace/datatraits.h>
 #include <vartrace/policies.h>
 #include <vartrace/vartrace-impl.h>
+
+#include <cstring>
+#include <cassert>
+#include <vector>
 
 namespace vartrace {
 
@@ -77,7 +78,7 @@ class VarTrace
                                         const T *value, unsigned length = 1);
 
   //! Copy trace information into a buffer.
-  /*! 
+  /*! \note Can not be called if there is an open subtrace.
    */
   unsigned DumpInto(void *buffer, unsigned size);
 
@@ -93,13 +94,13 @@ class VarTrace
   typedef typename LP< VarTrace<CP, LP, AP> >::Lock Lock;
   //! Create a new trace with the given number of blocks and block size.
   /*! \note The constructor should not be called directly, use Create
-   *  function provided by creation policy.
+    function provided by creation policy.
    */
   VarTrace(int log2_count, int log2_size);
   //! Subtrace constructor.
   explicit VarTrace(VarTrace<CP, LP, AP> *ancestor);
-  //! Calback for subtrace to indicate its destruction.
-  void SubtraceDestruction();
+  //! Calback to ancestor to indicate the subtrace destruction.
+  void SubtraceDestruction(unsigned subtrace_current_index);
   //! Store object using memcpy.
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
@@ -143,10 +144,10 @@ class VarTrace
   unsigned index_mask_; /*!< Restricts array index to the range 0...2^n. */
   unsigned current_block_; /*!< Block currently being written into. */
   unsigned current_index_; /*!< Next array element to write to. */
-  boost::scoped_array<int> block_end_indices_; /*!< Block boundaries. */
+  boost::shared_array<int> block_end_indices_; /*!< Block boundaries. */
   typename AP::StorageArrayType data_; /*!< Data array. */
   TimestampFunctionType get_timestamp_; /*!< Pointer to a timestamp function. */
-  //! Pointer to the ancestor of a subtrace.
+  //! Pointer to the ancestor if the object is a subtrace.
   VarTrace<CP, LP, AP> *ancestor_;
 };
 }  // vartrace

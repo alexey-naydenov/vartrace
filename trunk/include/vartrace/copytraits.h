@@ -14,11 +14,18 @@
    
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 /*! \file copytraits.h 
-  Describe copy mechanizm for different types. 
-*/
+
+  Describe copy mechanizm for different types. Vartrace::Log()
+  template function calls appropriate overloaded Vartrace::DoLog()
+  function that does actual copying. The kind of logging function is
+  chosen based on type trait. If the template structure #CopyTraits is
+  not specialized for a type then objects of that type are copied
+  through memory copy. Logging of simple types are sped up by using
+  assignment.
+ */
 
 #ifndef TRUNK_INCLUDE_VARTRACE_COPYTRAITS_H_
 #define TRUNK_INCLUDE_VARTRACE_COPYTRAITS_H_
@@ -44,7 +51,6 @@ template<typename T> struct CopyTraits {
     typedef SizeofCopyTag CopyCategory;
 };
 
-
 template<> struct CopyTraits<char> {
   typedef AssignmentCopyTag CopyCategory;
 };
@@ -64,22 +70,22 @@ template<> struct CopyTraits<unsigned> {
   typedef AssignmentCopyTag CopyCategory;
 };
 template<> struct CopyTraits<long> {
-  typedef MultipleAssignmentsCopyTag CopyCategory;
+  typedef SizeofCopyTag CopyCategory;
 };
 template<> struct CopyTraits<unsigned long> {
-  typedef MultipleAssignmentsCopyTag CopyCategory;
+  typedef SizeofCopyTag CopyCategory;
 };
 template<> struct CopyTraits<long long> {
-  typedef MultipleAssignmentsCopyTag CopyCategory;
+  typedef SizeofCopyTag CopyCategory;
 };
 template<> struct CopyTraits<unsigned long long> {
-  typedef MultipleAssignmentsCopyTag CopyCategory;
+  typedef SizeofCopyTag CopyCategory;
 };
 template<> struct CopyTraits<float> {
-  typedef MultipleAssignmentsCopyTag CopyCategory;
+  typedef SizeofCopyTag CopyCategory;
 };
 template<> struct CopyTraits<double> {
-  typedef MultipleAssignmentsCopyTag CopyCategory;
+  typedef SizeofCopyTag CopyCategory;
 };
 }  // vartrace
 

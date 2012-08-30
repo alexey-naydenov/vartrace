@@ -1,9 +1,8 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8)
 
 project (vartrace)
 
-set (CMAKE_CXX_FLAGS "-g -Wall")
-set (CMAKE_CXX_LINK_FLAGS "-Wl")
+set (CMAKE_CXX_FLAGS_DEBUG "-g -Wall")
 
 set (vartrace_VERSION_MAJOR 0)
 set (vartrace_VERSION_MINOR 1)
@@ -15,6 +14,7 @@ configure_file (
 
 include_directories ("${PROJECT_BINARY_DIR}")
 
+set (GTEST_ROOT "${PROJECT_SOURCE_DIR}/gtest_build")
 enable_testing ()
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})

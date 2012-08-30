@@ -26,10 +26,10 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 
-#include <vector>
-
 #include <vartrace/tracetypes.h>
 #include <vartrace/vartrace-internal.h>
+
+#include <vector>
 
 namespace vartrace {
 
