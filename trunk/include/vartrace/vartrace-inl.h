@@ -120,7 +120,7 @@ void VarTrace<LL, CP, LP, AP>::CreateHeader(MessageIdType message_id,
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
-void VarTrace<LL, CP, LP, AP>::Log(LowestLogLevel log_level,
+void VarTrace<LL, CP, LP, AP>::Log(HiddenLogLevel log_level,
                                    MessageIdType message_id, const T &value) {
 }
 
@@ -132,8 +132,15 @@ void VarTrace<LL, CP, LP, AP>::Log(LL log_level,
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
-void VarTrace<LL, CP, LP, AP>::LogPointer(MessageIdType message_id,
-                                      const T *value, unsigned length) {
+void VarTrace<LL, CP, LP, AP>::LogPointer(HiddenLogLevel log_level,
+                                          MessageIdType message_id,
+                                          const T *value, unsigned length) {
+}
+
+VAR_TRACE_TEMPLATE template <typename T>
+void VarTrace<LL, CP, LP, AP>::LogPointer(LL log_level,
+                                          MessageIdType message_id,
+                                          const T *value, unsigned length) {
   DoLog(message_id, value, typename CopyTraits<T>::CopyCategory(),
         DataTypeTraits<T>::kDataTypeId, length*DataTypeTraits<T>::kTypeSize);
 }
@@ -206,7 +213,8 @@ void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                  unsigned data_id, unsigned object_size) {
   Lock guard(*this);
   if (!can_log_) {return;}
-  typename VarTrace<LL, CP, LP, AP>::Pointer subtrace = CreateSubtrace(message_id);
+  typename VarTrace<LL, CP, LP, AP>::Pointer subtrace =
+      CreateSubtrace(message_id);
   for (size_t i = 0; i < object_size/sizeof(T); ++i) {
     value[i].LogItself(subtrace);
   }
@@ -286,7 +294,8 @@ VarTrace<LL, CP, LP, AP>::CreateSubtrace(MessageIdType subtrace_id) {
   // block logging and subtrace creation and return pointer to subtrace object
   can_log_ = false;
   subtrace_start_index_ = current_index_;
-  return typename VarTrace<LL, CP, LP, AP>::Pointer(new VarTrace<LL, CP, LP, AP>(this));
+  return typename VarTrace<LL, CP, LP, AP>::Pointer(
+      new VarTrace<LL, CP, LP, AP>(this));
 }
 
 VAR_TRACE_TEMPLATE

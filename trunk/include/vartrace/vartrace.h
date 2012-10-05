@@ -30,6 +30,7 @@
 #include <vartrace/datatypeid.h>
 #include <vartrace/datatraits.h>
 #include <vartrace/policies.h>
+#include <vartrace/log_level.h>
 #include <vartrace/vartrace-impl.h>
 
 #include <cstring>
@@ -44,20 +45,11 @@ template <typename T> unsigned aligned_size() {
   return CEIL_DIV(sizeof(T), sizeof(AlignmentType));
 }
 
-struct LowestLogLevel {
-};
-
-struct InfoLogLevel : public LowestLogLevel {
-};
-
-struct ErrorLogLevel : public InfoLogLevel {
-};
-
 /*! Class for variable trace objects. */
 // size of a block must be bigger then sizeof of biggest type + 8
 // logging array or class must be smaller then block size
 template <
-  class LL = InfoLogLevel,
+  class LL = User5LogLevel,
   template <class> class CP = SharedPtrCreator, // creation policy
   template <class> class LP = SingleThreaded, // locking policy
   class AP = SharedArrayAllocator // storage allocation policy
@@ -83,13 +75,17 @@ class VarTrace
   //! Store a variable value in the trace.
   /*! 
    */
-  template <typename T> void Log(LowestLogLevel log_level,
+  template <typename T> void Log(HiddenLogLevel log_level,
                                  MessageIdType message_id, const T &value);
 
   template <typename T> void Log(LL log_level,
                                  MessageIdType message_id, const T &value);
-  
-  template <typename T> void LogPointer(MessageIdType message_id,
+
+  template <typename T> void LogPointer(HiddenLogLevel log_level,
+                                        MessageIdType message_id,
+                                        const T *value, unsigned length = 1);
+
+  template <typename T> void LogPointer(LL log_level, MessageIdType message_id,
                                         const T *value, unsigned length = 1);
 
   //! Copy trace information into a buffer.

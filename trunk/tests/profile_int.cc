@@ -24,7 +24,7 @@
 
 namespace vt = vartrace;
 
-typedef vt::VarTrace<vt::ErrorLogLevel> Trace;
+typedef vt::VarTrace<> Trace;
 
 int main(int argc, char *argv[]) {
   // the number shown by test routine is time in nanoseconds per log operation
@@ -32,12 +32,10 @@ int main(int argc, char *argv[]) {
   int trace_size = 0x1000;
   int block_count = 4;
 
-  vt::InfoLogLevel message_level;
-
   Trace::Pointer trace = Trace::Create(trace_size, block_count);
 
   for (int i = 0; i < log_length; ++i) {
-    trace->Log(message_level, 1, i);
+    trace->Log(vt::kInfoMessage, 1, i);
   }
 
   return 0;
