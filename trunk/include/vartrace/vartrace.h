@@ -44,17 +44,27 @@ template <typename T> unsigned aligned_size() {
   return CEIL_DIV(sizeof(T), sizeof(AlignmentType));
 }
 
+struct LowestLogLevel {
+};
+
+struct InfoLogLevel : public LowestLogLevel {
+};
+
+struct ErrorLogLevel : public InfoLogLevel {
+};
+
 /*! Class for variable trace objects. */
 // size of a block must be bigger then sizeof of biggest type + 8
 // logging array or class must be smaller then block size
 template <
+  class LL = InfoLogLevel,
   template <class> class CP = SharedPtrCreator, // creation policy
   template <class> class LP = SingleThreaded, // locking policy
   class AP = SharedArrayAllocator // storage allocation policy
   >
 class VarTrace
-    : public CP< VarTrace<CP, LP, AP> >,
-      public LP< VarTrace<CP, LP, AP> >,
+    : public CP< VarTrace<LL, CP, LP, AP> >,
+      public LP< VarTrace<LL, CP, LP, AP> >,
       public AP {
  public:
   void Initialize();
@@ -73,7 +83,12 @@ class VarTrace
   //! Store a variable value in the trace.
   /*! 
    */
-  template <typename T> void Log(MessageIdType message_id, const T &value);
+  template <typename T> void Log(LowestLogLevel log_level,
+                                 MessageIdType message_id, const T &value);
+
+  template <typename T> void Log(LL log_level,
+                                 MessageIdType message_id, const T &value);
+  
   template <typename T> void LogPointer(MessageIdType message_id,
                                         const T *value, unsigned length = 1);
 
@@ -82,23 +97,23 @@ class VarTrace
    */
   unsigned DumpInto(void *buffer, unsigned size);
 
-  typename VarTrace<CP, LP, AP>::Pointer
+  typename VarTrace<LL, CP, LP, AP>::Pointer
   CreateSubtrace(MessageIdType subtrace_id);
 
  private:
   //! Disabled default constructor.
   VarTrace();
   // allow creation policy access to constructors
-  friend class CP< VarTrace<CP, LP, AP> >;
+  friend class CP< VarTrace<LL, CP, LP, AP> >;
   //! Conviniece typedef for locking.
-  typedef typename LP< VarTrace<CP, LP, AP> >::Lock Lock;
+  typedef typename LP< VarTrace<LL, CP, LP, AP> >::Lock Lock;
   //! Create a new trace with the given number of blocks and block size.
   /*! \note The constructor should not be called directly, use Create
     function provided by creation policy.
    */
   VarTrace(int log2_count, int log2_size);
   //! Subtrace constructor.
-  explicit VarTrace(VarTrace<CP, LP, AP> *ancestor);
+  explicit VarTrace(VarTrace<LL, CP, LP, AP> *ancestor);
   //! Calback to ancestor to indicate the subtrace destruction.
   void SubtraceDestruction(unsigned subtrace_current_index);
   //! Store object using memcpy.
@@ -148,7 +163,7 @@ class VarTrace
   typename AP::StorageArrayType data_; /*!< Data array. */
   TimestampFunctionType get_timestamp_; /*!< Pointer to a timestamp function. */
   //! Pointer to the ancestor if the object is a subtrace.
-  VarTrace<CP, LP, AP> *ancestor_;
+  VarTrace<LL, CP, LP, AP> *ancestor_;
 };
 }  // vartrace
 

@@ -29,11 +29,12 @@
 
 namespace vartrace {
 
-#define VAR_TRACE_TEMPLATE \
-  template <template <class> class CP, template <class> class LP, class AP>
+#define VAR_TRACE_TEMPLATE                              \
+  template <class LL, template <class> class CP,        \
+            template <class> class LP, class AP>
 
 VAR_TRACE_TEMPLATE
-VarTrace<CP, LP, AP>::VarTrace(int log2_count, int log2_length)
+VarTrace<LL, CP, LP, AP>::VarTrace(int log2_count, int log2_length)
     : is_initialized_(false), is_nested_(false), can_log_(false) {
   // set block  size and count
   log2_block_count_ = log2_count;
@@ -50,7 +51,7 @@ VarTrace<CP, LP, AP>::VarTrace(int log2_count, int log2_length)
 }
 
 VAR_TRACE_TEMPLATE
-void VarTrace<CP, LP, AP>::Initialize() {
+void VarTrace<LL, CP, LP, AP>::Initialize() {
   Lock guard(*this);
   // check for double initialization
   if (is_initialized_) {return;}
@@ -72,24 +73,24 @@ void VarTrace<CP, LP, AP>::Initialize() {
 }
 
 VAR_TRACE_TEMPLATE
-VarTrace<CP, LP, AP>::~VarTrace() {
+VarTrace<LL, CP, LP, AP>::~VarTrace() {
   if (is_nested_) {
     ancestor_->SubtraceDestruction(current_index_);
   }
 }
 
 VAR_TRACE_TEMPLATE
-void VarTrace<CP, LP, AP>::IncrementCurrentIndex() {
+void VarTrace<LL, CP, LP, AP>::IncrementCurrentIndex() {
   current_index_ = (current_index_ + 1) & index_mask_;
 }
 
 VAR_TRACE_TEMPLATE
-int VarTrace<CP, LP, AP>::NextIndex(int index) {
+int VarTrace<LL, CP, LP, AP>::NextIndex(int index) {
   return (index + 1) & index_mask_;
 }
 
 VAR_TRACE_TEMPLATE
-int VarTrace<CP, LP, AP>::PreviousIndex(int index) {
+int VarTrace<LL, CP, LP, AP>::PreviousIndex(int index) {
   // previous to the first block is the last one
   if (index == 0) {
     return block_count_ - 1;
@@ -99,12 +100,12 @@ int VarTrace<CP, LP, AP>::PreviousIndex(int index) {
 }
 
 VAR_TRACE_TEMPLATE
-int VarTrace<CP, LP, AP>::NextBlock(int block_index) {
+int VarTrace<LL, CP, LP, AP>::NextBlock(int block_index) {
   return (block_index + 1) % block_count_;
 }
 
 VAR_TRACE_TEMPLATE
-void VarTrace<CP, LP, AP>::CreateHeader(MessageIdType message_id,
+void VarTrace<LL, CP, LP, AP>::CreateHeader(MessageIdType message_id,
                                         unsigned data_id,
                                         unsigned object_size) {
   // if top level record then add timestamp
@@ -119,20 +120,26 @@ void VarTrace<CP, LP, AP>::CreateHeader(MessageIdType message_id,
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
-void VarTrace<CP, LP, AP>::Log(MessageIdType message_id, const T &value) {
+void VarTrace<LL, CP, LP, AP>::Log(LowestLogLevel log_level,
+                                   MessageIdType message_id, const T &value) {
+}
+
+VAR_TRACE_TEMPLATE template <typename T>
+void VarTrace<LL, CP, LP, AP>::Log(LL log_level,
+                                   MessageIdType message_id, const T &value) {
   DoLog(message_id, &value, typename CopyTraits<T>::CopyCategory(),
         DataTypeTraits<T>::kDataTypeId, DataTypeTraits<T>::kTypeSize);
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
-void VarTrace<CP, LP, AP>::LogPointer(MessageIdType message_id,
+void VarTrace<LL, CP, LP, AP>::LogPointer(MessageIdType message_id,
                                       const T *value, unsigned length) {
   DoLog(message_id, value, typename CopyTraits<T>::CopyCategory(),
         DataTypeTraits<T>::kDataTypeId, length*DataTypeTraits<T>::kTypeSize);
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
-void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
+void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                  const AssignmentCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
   Lock guard(*this);
@@ -145,7 +152,7 @@ void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
-void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
+void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                  const MultipleAssignmentsCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
   Lock guard(*this);
@@ -162,7 +169,7 @@ void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
-void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
+void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                  const SizeofCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
   Lock guard(*this);
@@ -194,19 +201,19 @@ void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
-void VarTrace<CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
+void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                  const SelfCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
   Lock guard(*this);
   if (!can_log_) {return;}
-  typename VarTrace<CP, LP, AP>::Pointer subtrace = CreateSubtrace(message_id);
+  typename VarTrace<LL, CP, LP, AP>::Pointer subtrace = CreateSubtrace(message_id);
   for (size_t i = 0; i < object_size/sizeof(T); ++i) {
     value[i].LogItself(subtrace);
   }
 }
 
 VAR_TRACE_TEMPLATE
-unsigned VarTrace<CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
+unsigned VarTrace<LL, CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
   Lock guard(*this);
   if (!can_log_) {return 0;}
   // start copying from the end of the next block
@@ -254,7 +261,7 @@ unsigned VarTrace<CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
 
 
 VAR_TRACE_TEMPLATE
-VarTrace<CP, LP, AP>::VarTrace(VarTrace<CP, LP, AP> *ancestor)
+VarTrace<LL, CP, LP, AP>::VarTrace(VarTrace<LL, CP, LP, AP> *ancestor)
     : is_initialized_(true), is_nested_(true), can_log_(true),
       ancestor_(ancestor), block_end_indices_(ancestor->block_end_indices_) {
   // copy log buffer information into subtrace
@@ -269,8 +276,8 @@ VarTrace<CP, LP, AP>::VarTrace(VarTrace<CP, LP, AP> *ancestor)
   get_timestamp_ = ancestor->get_timestamp_;
 }
 
-VAR_TRACE_TEMPLATE typename VarTrace<CP, LP, AP>::Pointer
-VarTrace<CP, LP, AP>::CreateSubtrace(MessageIdType subtrace_id) {
+VAR_TRACE_TEMPLATE typename VarTrace<LL, CP, LP, AP>::Pointer
+VarTrace<LL, CP, LP, AP>::CreateSubtrace(MessageIdType subtrace_id) {
   Lock guard(*this);
   // create header for the subtrace, subtrace data id = 0, size = 0 for now
   CreateHeader(subtrace_id, 0, 0);
@@ -279,11 +286,11 @@ VarTrace<CP, LP, AP>::CreateSubtrace(MessageIdType subtrace_id) {
   // block logging and subtrace creation and return pointer to subtrace object
   can_log_ = false;
   subtrace_start_index_ = current_index_;
-  return typename VarTrace<CP, LP, AP>::Pointer(new VarTrace<CP, LP, AP>(this));
+  return typename VarTrace<LL, CP, LP, AP>::Pointer(new VarTrace<LL, CP, LP, AP>(this));
 }
 
 VAR_TRACE_TEMPLATE
-void VarTrace<CP, LP, AP>::SubtraceDestruction(
+void VarTrace<LL, CP, LP, AP>::SubtraceDestruction(
     unsigned subtrace_current_index) {
   Lock guard(*this);
   // copy updated indices into parent logger
