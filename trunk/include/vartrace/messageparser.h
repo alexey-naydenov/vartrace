@@ -25,9 +25,10 @@
 #include <boost/scoped_array.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include <vector>
-
 #include <vartrace/tracetypes.h>
+#include <vartrace/utility.h>
+
+#include <vector>
 
 namespace vartrace {
 

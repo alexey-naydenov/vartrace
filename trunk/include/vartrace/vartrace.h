@@ -27,6 +27,7 @@
 
 #include <vartrace/copytraits.h>
 #include <vartrace/tracetypes.h>
+#include <vartrace/utility.h>
 #include <vartrace/datatypeid.h>
 #include <vartrace/datatraits.h>
 #include <vartrace/policies.h>
