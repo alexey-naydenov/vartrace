@@ -179,6 +179,7 @@ VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                  const SizeofCopyTag &copy_tag,
                                  unsigned data_id, unsigned object_size) {
+  assert(current_index_ < block_count_*block_length_);
   Lock guard(*this);
   if (!can_log_) {return;}
   CreateHeader(message_id, data_id, object_size);
@@ -189,6 +190,7 @@ void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
     std::memcpy(&(data_[current_index_]), value, object_size);
     // increment index
     current_index_ += RoundSize(object_size);
+    current_index_ = current_index_ & index_mask_;
   } else {
     int copied_size = 0;
     // copy till the end of the trace
