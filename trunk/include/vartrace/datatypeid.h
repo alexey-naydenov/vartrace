@@ -51,6 +51,13 @@ struct DataType2Int<T[L]> {
     id = DataType2Int<T>::id
   };
 };
+
+#define REGISTER_VARTRACE_TYPE(Type, type_id)   \
+  namespace vartrace {                          \
+  template<> struct DataType2Int<Type> {        \
+    enum {id = type_id};                        \
+  };                                            \
+  }
 }  // vatrace
 
 #endif  // TRUNK_INCLUDE_VARTRACE_DATATYPEID_H_

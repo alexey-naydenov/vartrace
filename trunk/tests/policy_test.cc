@@ -321,11 +321,7 @@ struct LogTestStructure {
   char anarray[13];
 };
 //! Define data type id for custom structure.
-namespace vartrace {
-template<> struct DataType2Int<LogTestStructure> {
-  enum {id = 40};
-};
-}  // vartrace
+REGISTER_VARTRACE_TYPE(LogTestStructure, 40);
 //! Check simple structure logging.
 TEST_F(PolicyTest, LogCustomStructureTest) {
   int trace_size = 0x100;
