@@ -27,75 +27,75 @@
 #include <vartrace/vartrace.h>
 #include <vartrace/vartrace_c.h>
 
-VT_TraceHandle VT_create(unsigned size)
-{
-    return new vartrace::VarTrace(size);
-}
+// VT_TraceHandle VT_create(unsigned size)
+// {
+//     return new vartrace::VarTrace(size);
+// }
 
-VT_TraceHandle VT_createSubtrace(VT_TraceHandle trace, int message_id)
-{
-    return trace->createSubtrace(message_id);
-}
+// VT_TraceHandle VT_createSubtrace(VT_TraceHandle trace, int message_id)
+// {
+//     return trace->createSubtrace(message_id);
+// }
 
-void VT_destroy(VT_TraceHandle trace) 
-{
-    delete trace;
-}
+// void VT_destroy(VT_TraceHandle trace) 
+// {
+//     delete trace;
+// }
 
-unsigned VT_dump(VT_TraceHandle trace, void *buffer, unsigned size) 
-{
-    return trace->dump(buffer, size);
-}
+// unsigned VT_dump(VT_TraceHandle trace, void *buffer, unsigned size) 
+// {
+//     return trace->dump(buffer, size);
+// }
 
-int VT_isEmpty(VT_TraceHandle trace)
-{
-    return trace->isEmpty();
-}
+// int VT_isEmpty(VT_TraceHandle trace)
+// {
+//     return trace->isEmpty();
+// }
 
-unsigned VT_errorFlags(VT_TraceHandle trace)
-{
-    return trace->errorFlags();
-}
+// unsigned VT_errorFlags(VT_TraceHandle trace)
+// {
+//     return trace->errorFlags();
+// }
 
-void VT_logInt(VT_TraceHandle trace, int message_id, int var)
-{
-    trace->log(message_id, var);
-}
+// void VT_logInt(VT_TraceHandle trace, int message_id, int var)
+// {
+//     trace->log(message_id, var);
+// }
 
-void VT_logUnsigned(VT_TraceHandle trace, unsigned message_id, unsigned var)
-{
-    trace->log(message_id, var);
-}
+// void VT_logUnsigned(VT_TraceHandle trace, unsigned message_id, unsigned var)
+// {
+//     trace->log(message_id, var);
+// }
 
-void VT_logDouble(VT_TraceHandle trace, double message_id, double var)
-{
-    trace->log(message_id, var);
-}
+// void VT_logDouble(VT_TraceHandle trace, double message_id, double var)
+// {
+//     trace->log(message_id, var);
+// }
 
-void VT_logIntArray(VT_TraceHandle trace, int message_id,
-		    int * data, int length)
-{
-    trace->logArray(message_id, data, length);
-}
+// void VT_logIntArray(VT_TraceHandle trace, int message_id,
+// 		    int * data, int length)
+// {
+//     trace->logArray(message_id, data, length);
+// }
 
-void VT_setTimestampFunction(VT_TraceHandle trace,
-			     TimestampFunctionType fnct)
-{
-    trace->setTimestampFunction(fnct);
-}
+// void VT_setTimestampFunction(VT_TraceHandle trace,
+// 			     TimestampFunctionType fnct)
+// {
+//     trace->setTimestampFunction(fnct);
+// }
 
-namespace vartrace {
-template void VarTrace::log<VarTrace>(MessageIdType, const VarTrace&);
-template void VarTrace::doLog<VarTrace>(
-    MessageIdType, const VarTrace *, const SizeofCopyTag&, unsigned, unsigned);
-template void VarTrace::log<int>(MessageIdType, const int&);
-template void VarTrace::doLog<int>(MessageIdType, const int *,
-				   const SizeofCopyTag&, unsigned, unsigned);
-template void VarTrace::log<unsigned>(MessageIdType, const unsigned&);
-template void VarTrace::doLog<unsigned>(
-    MessageIdType, const unsigned *, const SizeofCopyTag&, unsigned, unsigned);
-template void VarTrace::log<double>(MessageIdType, const double&);
-template void VarTrace::doLog<double>(
-    MessageIdType, const double *, const SizeofCopyTag&, unsigned, unsigned);
-template void VarTrace::logArray<int>(MessageIdType, const int *, int);
-}
+// namespace vartrace {
+// template void VarTrace::log<VarTrace>(MessageIdType, const VarTrace&);
+// template void VarTrace::doLog<VarTrace>(
+//     MessageIdType, const VarTrace *, const SizeofCopyTag&, unsigned, unsigned);
+// template void VarTrace::log<int>(MessageIdType, const int&);
+// template void VarTrace::doLog<int>(MessageIdType, const int *,
+// 				   const SizeofCopyTag&, unsigned, unsigned);
+// template void VarTrace::log<unsigned>(MessageIdType, const unsigned&);
+// template void VarTrace::doLog<unsigned>(
+//     MessageIdType, const unsigned *, const SizeofCopyTag&, unsigned, unsigned);
+// template void VarTrace::log<double>(MessageIdType, const double&);
+// template void VarTrace::doLog<double>(
+//     MessageIdType, const double *, const SizeofCopyTag&, unsigned, unsigned);
+// template void VarTrace::logArray<int>(MessageIdType, const int *, int);
+// }

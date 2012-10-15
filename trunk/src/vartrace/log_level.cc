@@ -21,6 +21,7 @@
 
 #include <vartrace/log_level.h>
 
+namespace vartrace {
 HiddenLogLevel kHiddenMessage;
 User5LogLevel kUser5Message;
 User4LogLevel kUser4Message;
@@ -32,3 +33,4 @@ InfoLogLevel kInfoMessage;
 WarningLogLevel kWarningMessage;
 ErrorLogLevel kErrorMessage;
 FatalLogLevel kFatalMessage;
+}  // vartrace

@@ -24,7 +24,7 @@
 
 #include <boost/shared_array.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
+// #include <boost/thread.hpp>
 
 #include <vartrace/tracetypes.h>
 #include <vartrace/vartrace-internal.h>
@@ -45,42 +45,42 @@ template <class T> struct SingleThreaded {
   ~SingleThreaded() {}
 };
 
-//! Class level locking.
-template <class T> struct ClassLevelLockable {
- public:
-  class Lock {
-   public:
-    Lock() {AcquireLock();}
-    explicit Lock(const T &obj) {AcquireLock();}
-    ~Lock() {ReleaseLock();}
-   private:
-    static boost::recursive_mutex mutex_;
-    void AcquireLock() {mutex_.lock();}
-    void ReleaseLock() {mutex_.unlock();}
-  };
- protected:
-  ~ClassLevelLockable() {}
-};
+// //! Class level locking.
+// template <class T> struct ClassLevelLockable {
+//  public:
+//   class Lock {
+//    public:
+//     Lock() {AcquireLock();}
+//     explicit Lock(const T &obj) {AcquireLock();}
+//     ~Lock() {ReleaseLock();}
+//    private:
+//     static boost::recursive_mutex mutex_;
+//     void AcquireLock() {mutex_.lock();}
+//     void ReleaseLock() {mutex_.unlock();}
+//   };
+//  protected:
+//   ~ClassLevelLockable() {}
+// };
 
-template<class T> boost::recursive_mutex ClassLevelLockable<T>::Lock::mutex_;
+// template<class T> boost::recursive_mutex ClassLevelLockable<T>::Lock::mutex_;
 
-//! Class level locking.
-template <class T> struct ObjectLevelLockable {
- public:
-  class Lock {
-   public:
-    explicit Lock(T &obj) {
-      object_ = &obj;
-      object_->mutex_.lock();
-    }
-    ~Lock() {object_->mutex_.unlock();}
-   protected:
-    T *object_;
-  };
- protected:
-  ~ObjectLevelLockable() {}
-  boost::recursive_mutex mutex_;
-};
+// //! Class level locking.
+// template <class T> struct ObjectLevelLockable {
+//  public:
+//   class Lock {
+//    public:
+//     explicit Lock(T &obj) {
+//       object_ = &obj;
+//       object_->mutex_.lock();
+//     }
+//     ~Lock() {object_->mutex_.unlock();}
+//    protected:
+//     T *object_;
+//   };
+//  protected:
+//   ~ObjectLevelLockable() {}
+//   boost::recursive_mutex mutex_;
+// };
 
 static const unsigned kDefaultBlockCount = 8;
 static const unsigned kDefaultTraceSize = 0x1000;
@@ -118,28 +118,28 @@ template <class T> struct NoLockSingletonCreator {
 template<class T> typename NoLockSingletonCreator<T>::Pointer
 NoLockSingletonCreator<T>::instance_;
 
-template <class T> struct LockableSingletonCreator
-    : public ClassLevelLockable< LockableSingletonCreator<T> > {
- public:
-  typedef boost::shared_ptr<T> Pointer;
-  static Pointer Create(int trace_size = kDefaultTraceSize,
-                        int block_count = kDefaultBlockCount) {
-    if (!instance_) {
-      typename ClassLevelLockable< LockableSingletonCreator<T> >::Lock guard();
-      if (!instance_) {
-        instance_.reset(new T(
-            internal::CalculateLog2Count(trace_size, block_count),
-            internal::CalculateLog2Length(trace_size, block_count)));
-      }
-    }
-    return instance_;
-  }
- private:
-  ~LockableSingletonCreator() {}
-  static Pointer instance_;
-};
-template<class T> typename LockableSingletonCreator<T>::Pointer
-LockableSingletonCreator<T>::instance_;
+// template <class T> struct LockableSingletonCreator
+//     : public ClassLevelLockable< LockableSingletonCreator<T> > {
+//  public:
+//   typedef boost::shared_ptr<T> Pointer;
+//   static Pointer Create(int trace_size = kDefaultTraceSize,
+//                         int block_count = kDefaultBlockCount) {
+//     if (!instance_) {
+//       typename ClassLevelLockable< LockableSingletonCreator<T> >::Lock guard();
+//       if (!instance_) {
+//         instance_.reset(new T(
+//             internal::CalculateLog2Count(trace_size, block_count),
+//             internal::CalculateLog2Length(trace_size, block_count)));
+//       }
+//     }
+//     return instance_;
+//   }
+//  private:
+//   ~LockableSingletonCreator() {}
+//   static Pointer instance_;
+// };
+// template<class T> typename LockableSingletonCreator<T>::Pointer
+// LockableSingletonCreator<T>::instance_;
 
 
 //! Policy to allocate log storage through new operator.

@@ -24,6 +24,7 @@
 
 #include <vartrace/vartrace-internal.h>
 
+#include <cstddef>
 #include <cstring>
 #include <algorithm>
 
@@ -165,7 +166,7 @@ void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
   Lock guard(*this);
   if (!can_log_) {return;}
   CreateHeader(message_id, data_id, object_size);
-  for (size_t i = 0; i < RoundSize(sizeof(T)); ++i) {
+  for (std::size_t i = 0; i < RoundSize(sizeof(T)); ++i) {
     data_[current_index_] =
         *(reinterpret_cast<const AlignmentType *>(value)
                               + i);
@@ -217,7 +218,7 @@ void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
   if (!can_log_) {return;}
   typename VarTrace<LL, CP, LP, AP>::Pointer subtrace =
       CreateSubtrace(message_id);
-  for (size_t i = 0; i < object_size/sizeof(T); ++i) {
+  for (std::size_t i = 0; i < object_size/sizeof(T); ++i) {
     value[i].LogItself(subtrace);
   }
 }
@@ -273,7 +274,7 @@ unsigned VarTrace<LL, CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
 VAR_TRACE_TEMPLATE
 VarTrace<LL, CP, LP, AP>::VarTrace(VarTrace<LL, CP, LP, AP> *ancestor)
     : is_initialized_(true), is_nested_(true), can_log_(true),
-      ancestor_(ancestor), block_end_indices_(ancestor->block_end_indices_) {
+      block_end_indices_(ancestor->block_end_indices_), ancestor_(ancestor) {
   // copy log buffer information into subtrace
   log2_block_count_ = ancestor->log2_block_count_;
   log2_block_length_ = ancestor->log2_block_length_;

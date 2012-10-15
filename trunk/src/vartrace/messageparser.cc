@@ -96,13 +96,13 @@ void Message::ParseStream(void *byte_stream, bool is_nested) {
   message_length_ = RoundSize(unparsed_position - start_position);
 }
 
-ParsedVartrace::ParsedVartrace(void *byte_stream, size_t size) {
+ParsedVartrace::ParsedVartrace(void *byte_stream, std::size_t size) {
   ParseStream(byte_stream, size);
 }
 
-void ParsedVartrace::ParseStream(void *byte_stream, size_t size) {
+void ParsedVartrace::ParseStream(void *byte_stream, std::size_t size) {
   uint8_t *unparsed_position = static_cast<uint8_t *>(byte_stream);
-  size_t parsed_size = 0;
+  std::size_t parsed_size = 0;
   while (parsed_size < size) {
     Message::Pointer msg(new Message(unparsed_position, false));
     messages_.push_back(msg);

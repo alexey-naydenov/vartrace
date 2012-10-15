@@ -27,7 +27,7 @@
 
 #include <vartrace/tracetypes.h>
 #include <vartrace/utility.h>
-
+#include <cstddef>
 #include <vector>
 
 namespace vartrace {
@@ -81,13 +81,15 @@ template <typename T> T* Message::pointer() const {
 class ParsedVartrace {
  public:
   typedef boost::shared_ptr<ParsedVartrace> Pointer;
-  ParsedVartrace(void *byte_stream, size_t size);
+  ParsedVartrace(void *byte_stream, std::size_t size);
   ~ParsedVartrace() {}
 
-  Message::Pointer operator[](size_t position) {return messages_[position];}
+  Message::Pointer operator[](std::size_t position) {
+    return messages_[position];
+  }
   const std::vector<Message::Pointer>& messages() const {return messages_;}
  private:
-  void ParseStream(void *byte_stream, size_t size);
+  void ParseStream(void *byte_stream, std::size_t size);
 
   std::vector<Message::Pointer> messages_;
 };
