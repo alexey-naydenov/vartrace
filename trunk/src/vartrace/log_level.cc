@@ -22,15 +22,15 @@
 #include <vartrace/log_level.h>
 
 namespace vartrace {
-HiddenLogLevel kHiddenMessage;
-User5LogLevel kUser5Message;
-User4LogLevel kUser4Message;
-User3LogLevel kUser3Message;
-User2LogLevel kUser2Message;
-User1LogLevel kUser1Message;
-DebugLogLevel kDebugMessage;
-InfoLogLevel kInfoMessage;
-WarningLogLevel kWarningMessage;
-ErrorLogLevel kErrorMessage;
-FatalLogLevel kFatalMessage;
+HiddenLogLevel kHiddenLevel;
+User5LogLevel kUser5Level;
+User4LogLevel kUser4Level;
+User3LogLevel kUser3Level;
+User2LogLevel kUser2Level;
+User1LogLevel kUser1Level;
+DebugLogLevel kDebugLevel;
+InfoLogLevel kInfoLevel;
+WarningLogLevel kWarningLevel;
+ErrorLogLevel kErrorLevel;
+FatalLogLevel kFatalLevel;
 }  // vartrace

@@ -242,7 +242,7 @@ unsigned VarTrace<LL, CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
         *sizeof(AlignmentType) <= size) { // copy all from copy_from till end
       copied_size = (block_length_*block_count_ - copy_from)
           *sizeof(AlignmentType);
-      memcpy(buffer, &(data_[copy_from]), copied_size);
+      std::memcpy(buffer, &(data_[copy_from]), copied_size);
        // try to c opy from index 0 till copy_to
        int leftover_to_copy = 0;
        if (copy_to*sizeof(AlignmentType) <= size - copied_size) {
@@ -251,12 +251,12 @@ unsigned VarTrace<LL, CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
        } else { // only some part form 0 fits
          leftover_to_copy = size - copied_size;
        }
-       memcpy(static_cast<uint8_t *>(buffer) + copied_size,
+       std::memcpy(static_cast<uint8_t *>(buffer) + copied_size,
               &(data_[0]), leftover_to_copy);
        copied_size += leftover_to_copy;
     } else { // copy as much as possible from copy_from till end
       copied_size = size;
-      memcpy(buffer, &(data_[copy_from]), copied_size);
+      std::memcpy(buffer, &(data_[copy_from]), copied_size);
     }
   } else { // no wrapping
     // copy at most size bytes
@@ -265,7 +265,7 @@ unsigned VarTrace<LL, CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
     } else {
       copied_size = size;
     }
-    memcpy(buffer, &(data_[copy_from]), copied_size);
+    std::memcpy(buffer, &(data_[copy_from]), copied_size);
   }
   return copied_size;
 }

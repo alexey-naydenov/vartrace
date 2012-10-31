@@ -36,17 +36,17 @@ struct WarningLogLevel : public InfoLogLevel {};
 struct ErrorLogLevel : public WarningLogLevel {};
 struct FatalLogLevel : public ErrorLogLevel {};
 
-extern HiddenLogLevel kHiddenMessage;
-extern User5LogLevel kUser5Message;
-extern User4LogLevel kUser4Message;
-extern User3LogLevel kUser3Message;
-extern User2LogLevel kUser2Message;
-extern User1LogLevel kUser1Message;
-extern DebugLogLevel kDebugMessage;
-extern InfoLogLevel kInfoMessage;
-extern WarningLogLevel kWarningMessage;
-extern ErrorLogLevel kErrorMessage;
-extern FatalLogLevel kFatalMessage;
+extern HiddenLogLevel kHiddenLevel;
+extern User5LogLevel kUser5Level;
+extern User4LogLevel kUser4Level;
+extern User3LogLevel kUser3Level;
+extern User2LogLevel kUser2Level;
+extern User1LogLevel kUser1Level;
+extern DebugLogLevel kDebugLevel;
+extern InfoLogLevel kInfoLevel;
+extern WarningLogLevel kWarningLevel;
+extern ErrorLogLevel kErrorLevel;
+extern FatalLogLevel kFatalLevel;
 }  // vartrace
 
 #endif  // TRUNK_INCLUDE_VARTRACE_LOG_LEVEL_H_
