@@ -270,6 +270,13 @@ unsigned VarTrace<LL, CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
   return copied_size;
 }
 
+VAR_TRACE_TEMPLATE
+void VarTrace<LL, CP, LP, AP>::SetTimestampFunction(
+    TimestampFunctionType timestamp_function) {
+  assert(timestamp_function != 0);
+  Lock guard(*this);
+  get_timestamp_ = timestamp_function;
+}
 
 VAR_TRACE_TEMPLATE
 VarTrace<LL, CP, LP, AP>::VarTrace(VarTrace<LL, CP, LP, AP> *ancestor)

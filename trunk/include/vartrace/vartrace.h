@@ -97,6 +97,8 @@ class VarTrace
   typename VarTrace<LL, CP, LP, AP>::Pointer
   CreateSubtrace(MessageIdType subtrace_id);
 
+  void SetTimestampFunction(TimestampFunctionType timestamp_function);
+
  private:
   //! Disabled default constructor.
   VarTrace();
