@@ -3,29 +3,35 @@
 C++ library for storing data at runtime. Essentially this library is a
 logger that stores values in binary format along with timestamp in a
 circular buffer. The design is base on
-(policies)[http://en.wikipedia.org/wiki/Policy-based_design] and
+[policies](http://en.wikipedia.org/wiki/Policy-based_design) and
 traits.
 
 ## Testing
 
 The project uses google test suite. To setup testing (testing does
 not work due to addition of log level functionality):
+
 1. Download and unpack `gtest` into some directory:
-```sh
-cd ~/tmp
-wget http://googletest.googlecode.com/files/gtest-1.6.0.zip 
-unzip gtest-1.6.0.zip
-```
+
+    ```sh
+    cd ~/tmp
+    wget http://googletest.googlecode.com/files/gtest-1.6.0.zip 
+    unzip gtest-1.6.0.zip
+    ```
+
 2. In `vartrace` create `gtest_build` folder and build `gtest`:
-```sh
-mkdir gtest_build && cd gtest_build
-cmake ~/tmp/gtest-1.6.0 && make && cd ..
-```
+
+    ```sh
+    mkdir gtest_build && cd gtest_build
+    cmake ~/tmp/gtest-1.6.0 && make && cd ..
+    ```
+
 3. Create `biuld` directory and test:
-```sh
-mkdir build && cd build
-cmake .. && make vartrace
-```
+
+    ```sh
+    mkdir build && cd build
+    cmake .. && make vartrace
+    ```
 
 ## Input data format (outdated)
 
