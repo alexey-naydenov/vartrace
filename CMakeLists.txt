@@ -14,6 +14,11 @@ configure_file (
 
 include_directories ("${PROJECT_BINARY_DIR}")
 
+# boost
+find_package(Boost REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+
+# testing include
 set (GTEST_ROOT "${PROJECT_SOURCE_DIR}/gtest_build")
 enable_testing ()
 find_package(GTest REQUIRED)

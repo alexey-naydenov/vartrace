@@ -4,6 +4,27 @@
   a logger that stores values in binary format along with timestamp in
   a circular buffer. The design is base on [[http://en.wikipedia.org/wiki/Policy-based_design][policies]] and traits.
 
+** Testing
+
+   The project uses google test suite. To setup testing (testing does
+   not work due to addition of log level functionality):
+   1. Download and unpack ~gtest~ into some directory:
+   #+begin_src sh
+     cd ~/tmp
+     wget http://googletest.googlecode.com/files/gtest-1.6.0.zip 
+     unzip gtest-1.6.0.zip
+   #+end_src
+   2. In ~vartrace~ create ~gtest_build~ folder and build ~gtest~:
+   #+begin_src sh
+     mkdir gtest_build && cd gtest_build
+     cmake ~/tmp/gtest-1.6.0 && make && cd ..
+   #+end_src
+   3. Create ~biuld~ directory and test:
+   #+begin_src sh
+     mkdir build && cd build
+     cmake .. && make vartrace
+   #+end_src
+
 ** Input data format (outdated)
      Trace data consists of trace messages each of which has the
      following structure:
