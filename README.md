@@ -38,13 +38,27 @@ not work due to addition of log level functionality):
 Trace data consists of trace messages each of which has the
 following structure:
 
-| Time stamp | Length  | Message type | Data type | Data         |
-| 4 bytes    | 2 bytes | 1 byte       | 1 byte    | Length bytes |
+<table>
+  <tr>
+    <th>Time stamp</th><th>Length</th><th>Message type</th>
+	<th>Data type</th><th>Data</th>
+  </tr>
+  <tr>
+    <th>4 bytes</th><th>2 bytes</th><th>1 byte</th>
+	<th>1 byte</th><th>Length bytes</th>
+  </tr>
+</table>
 
 Data field can itself be a compound structure like:
 
-| Length  | Message type | Data type | Data         |
-| 2 bytes | 1 byte       | 1 byte    | Length bytes |
+<table>
+  <tr>
+    <th>Length</th><th>Message type</th><th>Data type</th><th>Data</th><th>
+  </tr>
+  <tr>
+    <th>2 bytes</th><th>1 byte</th><th>1 byte</th><th>Length bytes</th>
+  </tr>
+</table>
 
 In the most general case a value can be accessed by specifying an
 int array: Message type 1, Message type 2, ..., Message type N,
@@ -60,31 +74,6 @@ words if the time stamp of some message bigger the one of the
 following message then it means that overflow happenned and time
 stamp of the consequent messages should be incremented by the max
 value of the time stamp column.
-
-
-### Description file
-
-### Data types
-
-| Data type value | Type     |    Length | Comments                               |
-|            0x00 | tuple    | undefined | The field is a composition of messages |
-|            0x01 | uint8_t  |         1 |                                        |
-|            0x02 | int8_t   |         1 |                                        |
-|            0x03 | uint16_t |         2 |                                        |
-|            0x04 | int16_t  |         2 |                                        |
-|            0x05 | uint32_t |         4 |                                        |
-|            0x06 | int32_t  |         4 |                                        |
-|            0x07 | uint40_t |         5 |                                        |
-|            0x08 | int40_t  |         5 |                                        |
-|            0x09 | uint64_t |         8 |                                        |
-|            0x0A | int64_t  |         8 |                                        |
-|            0x0B | bool     |         1 |                                        |
-|            0x0C | char     |         1 |                                        |
-|            0x0D | double   |         8 |                                        |
-|            0x0F | float    |         4 |                                        |
-|            0x11 | utf8     |         1 |                                        |
-|            0x13 | utf16    |         2 |                                        |
-    
 
 ### Features
 
