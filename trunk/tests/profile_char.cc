@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 
   char c = 10;
   for (int i = 0; i < log_length; ++i) {
-    trace->Log(vt::kInfoMessage, 1, c);
+    trace->Log(vt::kInfoLevel, 1, c);
   }
 
   return 0;

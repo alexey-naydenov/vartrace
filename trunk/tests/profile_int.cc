@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
   Trace::Pointer trace = Trace::Create(trace_size, block_count);
 
   for (int i = 0; i < log_length; ++i) {
-    trace->Log(vt::kInfoMessage, 1, i);
+    trace->Log(vt::kInfoLevel, 1, i);
   }
 
   return 0;

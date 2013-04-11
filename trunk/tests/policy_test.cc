@@ -29,7 +29,7 @@
 #include <limits>
 
 using vartrace::VarTrace;
-using vartrace::kInfoMessage;
+using vartrace::kInfoLevel;
 using vartrace::Message;
 
 class PolicyTest : public ::testing::Test {
@@ -69,7 +69,7 @@ TEST_F(PolicyTest, LogIntegersTest) {
       new vartrace::AlignmentType[buffer_length]);
   // write 5 times the trace capacity
   for (int i = 0; i < 5*trace_size/message_size; ++i) {
-    trace->Log(kInfoMessage, 2*i, 3*i);
+    trace->Log(kInfoLevel, 2*i, 3*i);
     // dump trace
     int dumped_size = trace->DumpInto(buffer.get(), buffer_size);
     ASSERT_GE(buffer_size, dumped_size);
@@ -110,15 +110,15 @@ TEST_F(PolicyTest, LogDifferentTypesTest) {
       new vartrace::AlignmentType[buffer_length]);
   // log different types
   char c = 1;
-  trace->Log(kInfoMessage, 1, c);
+  trace->Log(kInfoLevel, 1, c);
   short s = 2;
-  trace->Log(kInfoMessage, 2, s);
+  trace->Log(kInfoLevel, 2, s);
   unsigned short us = 3;
-  trace->Log(kInfoMessage, 3, us);
+  trace->Log(kInfoLevel, 3, us);
   int i = 4;
-  trace->Log(kInfoMessage, 4, i);
+  trace->Log(kInfoLevel, 4, i);
   unsigned ui = 5;
-  trace->Log(kInfoMessage, 5, ui);
+  trace->Log(kInfoLevel, 5, ui);
   // check logged dumped values
   trace->DumpInto(buffer.get(), buffer_size);
   // parse dumped data
@@ -168,9 +168,9 @@ TEST_F(PolicyTest, LogIntLimitsTest) {
   int maxint = std::numeric_limits<int>::max();
   unsigned maxuint = std::numeric_limits<unsigned>::max();
   // log values
-  trace->Log(kInfoMessage, 1, minint);
-  trace->Log(kInfoMessage, 2, maxint);
-  trace->Log(kInfoMessage, 3, maxuint);
+  trace->Log(kInfoLevel, 1, minint);
+  trace->Log(kInfoLevel, 2, maxint);
+  trace->Log(kInfoLevel, 3, maxuint);
   // parse trace
   trace->DumpInto(buffer.get(), buffer_size);
   int offset = 0;
@@ -205,14 +205,14 @@ TEST_F(PolicyTest, MultipleAssignmentTest) {
   float f = 0.123456e-22;
   double d = 0.789123e-44;
   // log everything
-  trace->Log(kInfoMessage, 1, lmin);
-  trace->Log(kInfoMessage, 2, lmax);
-  trace->Log(kInfoMessage, 3, ulmax);
-  trace->Log(kInfoMessage, 4, llmin);
-  trace->Log(kInfoMessage, 5, llmax);
-  trace->Log(kInfoMessage, 6, ullmax);
-  trace->Log(kInfoMessage, 7, f);
-  trace->Log(kInfoMessage, 8, d);
+  trace->Log(kInfoLevel, 1, lmin);
+  trace->Log(kInfoLevel, 2, lmax);
+  trace->Log(kInfoLevel, 3, ulmax);
+  trace->Log(kInfoLevel, 4, llmin);
+  trace->Log(kInfoLevel, 5, llmax);
+  trace->Log(kInfoLevel, 6, ullmax);
+  trace->Log(kInfoLevel, 7, f);
+  trace->Log(kInfoLevel, 8, d);
   // parse trace
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
@@ -242,7 +242,7 @@ TEST_F(PolicyTest, LogCharArrayTest) {
       new vartrace::AlignmentType[buffer_length]);
   // create an array and log it
   char anarray[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-  trace->Log(kInfoMessage, 1, anarray);
+  trace->Log(kInfoLevel, 1, anarray);
   // dump trace
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
@@ -267,7 +267,7 @@ TEST_F(PolicyTest, LogMultipleCharArrayTest) {
   // create an array and log it 100 times
   char anarray[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
   for (int i = 0; i < 1000; ++i) {
-    trace->Log(kInfoMessage, i, anarray);
+    trace->Log(kInfoLevel, i, anarray);
     // dump trace
     size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
     vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
@@ -299,7 +299,7 @@ TEST_F(PolicyTest, LogDoubleArrayTest) {
       new vartrace::AlignmentType[buffer_length]);
   // create an array and log it
   double anarray[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-  trace->Log(kInfoMessage, 1, anarray);
+  trace->Log(kInfoLevel, 1, anarray);
   // dump trace
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
@@ -339,7 +339,7 @@ TEST_F(PolicyTest, LogCustomStructureTest) {
     ts.anarray[i] = 2*i;
   }
   // log structure
-  trace->Log(kInfoMessage, 11, ts);
+  trace->Log(kInfoLevel, 11, ts);
   // dump and parse trace
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
@@ -379,11 +379,11 @@ TEST_F(PolicyTest, LogCustomStructureArrayTest) {
     shared_array[i].ivar = i*i;
   }
   // log static array of structures
-  trace->Log(kInfoMessage, 11, static_array);
+  trace->Log(kInfoLevel, 11, static_array);
   // log pointer to a structure, 1 structure stored by default
-  trace->LogPointer(kInfoMessage, 12, shared_array.get());
+  trace->LogPointer(kInfoLevel, 12, shared_array.get());
   // log dynamically allocated array of structures
-  trace->LogPointer(kInfoMessage, 13, shared_array.get(), kArrayLength);
+  trace->LogPointer(kInfoLevel, 13, shared_array.get(), kArrayLength);
   // dump and parse trace
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
@@ -422,11 +422,11 @@ TEST_F(PolicyTest, LogBasicSubtraceTest) {
   {
     VarTrace<>::Pointer strace(trace->CreateSubtrace(1));
     ASSERT_FALSE(trace->can_log()); // parent can not log when subrace is active
-    strace->Log(kInfoMessage, 2, m1);
-    strace->Log(kInfoMessage, 3, m2);
+    strace->Log(kInfoLevel, 2, m1);
+    strace->Log(kInfoLevel, 3, m2);
   }
   ASSERT_TRUE(trace->can_log()); // logging reenabled
-  trace->Log(kInfoMessage, 4, m3);
+  trace->Log(kInfoLevel, 4, m3);
   // dump and parse trace
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   // check resulsts
@@ -451,30 +451,30 @@ TEST_F(PolicyTest, ParsingBasicSubtraceTest) {
   int m3 = 0x9012;
   {
     VarTrace<>::Pointer strace(trace->CreateSubtrace(1));
-    strace->Log(kInfoMessage, 2, m1);
-    strace->Log(kInfoMessage, 3, m2);
+    strace->Log(kInfoLevel, 2, m1);
+    strace->Log(kInfoLevel, 3, m2);
   }
-  trace->Log(kInfoMessage, 4, m3);
+  trace->Log(kInfoLevel, 4, m3);
   // dump and parse trace
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
   // check complex message
-  ASSERT_EQ(false, vt[0]->is_nested());
-  ASSERT_EQ(true, vt[0]->has_children());
+  ASSERT_FALSE(vt[0]->is_nested());
+  ASSERT_TRUE(vt[0]->has_children());
   ASSERT_EQ(0, vt[0]->data_type_id());
   ASSERT_EQ(1, vt[0]->message_type_id());
   ASSERT_EQ(16, vt[0]->data_size());
   // check submessages
-  ASSERT_EQ(true, vt[0]->children()[0]->is_nested());
-  ASSERT_EQ(false, vt[0]->children()[0]->has_children());
+  ASSERT_TRUE(vt[0]->children()[0]->is_nested());
+  ASSERT_FALSE(vt[0]->children()[0]->has_children());
   ASSERT_EQ(vartrace::DataType2Int<int>::id,
             vt[0]->children()[0]->data_type_id());
   ASSERT_EQ(2, vt[0]->children()[0]->message_type_id());
   ASSERT_EQ(4, vt[0]->children()[0]->data_size());
   ASSERT_EQ(8, vt[0]->children()[0]->message_size());
   ASSERT_EQ(m1, vt[0]->children()[0]->value<int>());
-  ASSERT_EQ(true, vt[0]->children()[1]->is_nested());
-  ASSERT_EQ(false, vt[0]->children()[1]->has_children());
+  ASSERT_TRUE(vt[0]->children()[1]->is_nested());
+  ASSERT_FALSE(vt[0]->children()[1]->has_children());
   ASSERT_EQ(vartrace::DataType2Int<int>::id,
             vt[0]->children()[1]->data_type_id());
   ASSERT_EQ(3, vt[0]->children()[1]->message_type_id());
@@ -482,8 +482,8 @@ TEST_F(PolicyTest, ParsingBasicSubtraceTest) {
   ASSERT_EQ(8, vt[0]->children()[1]->message_size());
   ASSERT_EQ(m2, vt[0]->children()[1]->value<int>());
   // check simple message
-  ASSERT_EQ(false, vt[1]->is_nested());
-  ASSERT_EQ(false, vt[1]->has_children());
+  ASSERT_FALSE(vt[1]->is_nested());
+  ASSERT_FALSE(vt[1]->has_children());
   ASSERT_EQ(vartrace::DataType2Int<int>::id, vt[1]->data_type_id());
   ASSERT_EQ(4, vt[1]->message_type_id());
   ASSERT_EQ(4, vt[1]->data_size());
@@ -567,14 +567,14 @@ TEST_F(PolicyTest, DeepSubtraceDoubleTest) {
   strace[0] = trace->CreateSubtrace(1);
   ASSERT_FALSE(trace->can_log());
   d = 0;
-  strace[0]->Log(kInfoMessage, 10, d);
+  strace[0]->Log(kInfoLevel, 10, d);
   // create all other subtraces
   for (int i = 1; i < kMaxDepth; ++i) {
     strace[i] = strace[i-1]->CreateSubtrace(2*i + 1);
     ASSERT_FALSE(strace[i-1]->can_log());
     ASSERT_TRUE(strace[i]->can_log());
     d = i*i*i;
-    strace[i]->Log(kInfoMessage, 10 + i, d);
+    strace[i]->Log(kInfoLevel, 10 + i, d);
   }
   // dump trace with all subtraces open, cannot parse it
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
@@ -585,7 +585,7 @@ TEST_F(PolicyTest, DeepSubtraceDoubleTest) {
   for (int i = kMaxDepth - 1; i >= 0; --i) {
     ASSERT_TRUE(strace[i]->can_log());
     d = 2*i*i*i;
-    strace[i]->Log(kInfoMessage, 100 + i, d);
+    strace[i]->Log(kInfoLevel, 100 + i, d);
     strace[i].reset();
   }
   // dump this stuff
@@ -629,8 +629,8 @@ class SelfLogClass {
   double dont_log_array[10];
 
   void LogItself(VarTrace<>::Pointer trace) const {
-    trace->Log(kInfoMessage, 101, ivar);
-    trace->Log(kInfoMessage, 102, dvar);
+    trace->Log(kInfoLevel, 101, ivar);
+    trace->Log(kInfoLevel, 102, dvar);
   }
 };
 namespace vartrace {
@@ -651,7 +651,7 @@ TEST_F(PolicyTest, SelfLogTest) {
   cls.ivar = 1234;
   cls.dvar = 12e-34;
   // log
-  trace->Log(kInfoMessage, 1, cls);
+  trace->Log(kInfoLevel, 1, cls);
   // dump this stuff
   unsigned dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
@@ -677,7 +677,7 @@ TEST_F(PolicyTest, SelfLogArrayTest) {
     anarray[i].dvar = i*i;
   }
   // log arrays
-  trace->LogPointer(kInfoMessage, 1, anarray.get(), kArrayLength);
+  trace->LogPointer(kInfoLevel, 1, anarray.get(), kArrayLength);
   // dump this stuff
   unsigned dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
@@ -700,8 +700,8 @@ class SelfLogTemplateClass {
 
   template<class LoggerHandle>
   void LogItself(LoggerHandle trace) const {
-    trace->Log(kInfoMessage, 101, ivar);
-    trace->Log(kInfoMessage, 102, dvar);
+    trace->Log(kInfoLevel, 101, ivar);
+    trace->Log(kInfoLevel, 102, dvar);
   }
 };
 namespace vartrace {
@@ -722,7 +722,7 @@ TEST_F(PolicyTest, SelfLogTemplateTest) {
   cls.ivar = 1234;
   cls.dvar = 12e-34;
   // log
-  trace->Log(kInfoMessage, 1, cls);
+  trace->Log(kInfoLevel, 1, cls);
   // dump this stuff
   unsigned dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);

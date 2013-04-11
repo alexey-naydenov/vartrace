@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
       vt::VarTrace<>::Create(trace_size, block_count);
 
   for (double i = 0; i < log_length; ++i) {
-    trace->Log(vt::kInfoMessage, 1, i);
+    trace->Log(vt::kInfoLevel, 1, i);
   }
 
   return 0;
