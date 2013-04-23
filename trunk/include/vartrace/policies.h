@@ -118,6 +118,20 @@ template <class T> struct NoLockSingletonCreator {
 template<class T> typename NoLockSingletonCreator<T>::Pointer
 NoLockSingletonCreator<T>::instance_;
 
+template <class T> struct ValueCreator {
+ public:
+  typedef boost::shared_ptr<T> Pointer;
+  typedef T Variable;
+  static Variable Create(int trace_size = kDefaultTraceSize,
+                         int block_count = kDefaultBlockCount) {
+    return T(internal::CalculateLog2Count(trace_size, block_count),
+             internal::CalculateLog2Length(trace_size, block_count));
+  }
+
+ protected:
+  ~ValueCreator() {}
+};
+
 // template <class T> struct LockableSingletonCreator
 //     : public ClassLevelLockable< LockableSingletonCreator<T> > {
 //  public:
