@@ -18,7 +18,7 @@
 
 /*! \file copytraits.h 
 
-  Describe copy mechanizm for different types. Vartrace::Log()
+  Describe copy mechanism for different types. Vartrace::Log()
   template function calls appropriate overloaded Vartrace::DoLog()
   function that does actual copying. The kind of logging function is
   chosen based on type trait. If the template structure #CopyTraits is

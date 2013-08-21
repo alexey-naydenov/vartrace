@@ -20,10 +20,21 @@ find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # testing include
-set(GTEST_ROOT "${PROJECT_SOURCE_DIR}/gtest_build")
 enable_testing()
-find_package(GTest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
+
+# set(GTEST_ROOT "${PROJECT_SOURCE_DIR}/gtest_build")
+# find_package(GTest REQUIRED)
+# include_directories(${GTEST_INCLUDE_DIRS})
+
+include(ExternalProject)
+
+ExternalProject_Add(
+  gtest
+  SVN_REPOSITORY http://googletest.googlecode.com/svn/trunk/
+  INSTALL_COMMAND "")
+ExternalProject_Get_Property(gtest source_dir)
+message(STATUS ${source_dir})
+include_directories(${source_dir}/include)
 
 add_subdirectory("trunk")
 add_subdirectory("doc")

@@ -1,5 +1,6 @@
 add_executable (vartrace_test policy_test.cc creation_policy_test.cc vartrace_test.cc)
-target_link_libraries (vartrace_test ${GTEST_BOTH_LIBRARIES} pthread)
+add_dependencies(vartrace_test gtest)
+target_link_libraries (vartrace_test pthread)
 target_link_libraries (vartrace_test vartrace)
 add_test (vartrace_test vartrace_test)
 
