@@ -3,7 +3,7 @@ find_program (BROWSER NAMES google-chrome firefox)
 
 # modify doxygen configuration file
 set (DOCUMENTED_CODE ${PROJECT_SOURCE_DIR}/trunk)
-set (DOCUMENTATION_DIR ${PROJECT_BINARY_DIR}/doc)
+set (DOCUMENTATION_DIR ${PROJECT_SOURCE_DIR})
 configure_file (
   "Doxyfile.in"
   "${PROJECT_BINARY_DIR}/Doxyfile"
