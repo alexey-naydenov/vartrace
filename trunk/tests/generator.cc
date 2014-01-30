@@ -20,30 +20,23 @@
   Utility to generate test file for vartools. 
 */
 
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
+#include <cstdlib>
 #include <string>
 #include <iostream>
 
 namespace po = boost::program_options;
-
-po::variables_map parse_commandline(int argc, char *argv[]);
-
-int main(int argc, char *argv[]) {
-  po::variables_map args = parse_commandline(argc, argv);
-  if (args.count("help")) {
-    return 0;
-  }
-
-  return 0;
-}
+namespace fs = boost::filesystem;
 
 po::variables_map parse_commandline(int argc, char *argv[]) {
-  po::options_description desc("Create binary files with sample vartraces.");
+  po::options_description desc("Create binary files with sample vartraces");
   desc.add_options()
       ("help,h", "produce help message")
       ("directory,d", po::value<std::string>()->default_value(""),
-       "output directory, current directory by default");
+       ("output directory (tilde is expanded to home dir),"
+        " current directory by default"));
   po::variables_map args;
   po::store(po::parse_command_line(argc, argv, desc), args);
   po::notify(args);
@@ -51,4 +44,31 @@ po::variables_map parse_commandline(int argc, char *argv[]) {
     std::cout << desc << std::endl;
   }
   return args;
+}
+
+std::string strip(const std::string &path, const std::string &chars=" \t\n\r") {
+  std::size_t first_not_space = path.find_first_not_of(chars);
+  if (first_not_space == std::string::npos) {
+    return std::string();
+  }
+  std::size_t last_not_space = path.find_last_not_of(chars);
+  return path.substr(first_not_space, last_not_space - first_not_space + 1);
+}
+
+std::string expand_tilde(const std::string &path) {
+  std::string expanded_path(strip(path));
+  if (expanded_path.empty() || expanded_path[0] != '~') {
+    return expanded_path;
+  }
+  return expanded_path.replace(0, 1, std::getenv("HOME"));
+}
+
+int main(int argc, char *argv[]) {
+  po::variables_map args = parse_commandline(argc, argv);
+  if (args.count("help")) {
+    return 0;
+  }
+  fs::path output_path(expand_tilde(args["directory"].as<std::string>()));
+
+  return 0;
 }
