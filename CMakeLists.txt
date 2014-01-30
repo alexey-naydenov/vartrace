@@ -16,7 +16,7 @@ configure_file(
 include_directories("${PROJECT_BINARY_DIR}")
 
 # boost
-find_package(Boost REQUIRED)
+find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # testing include
