@@ -1,12 +1,7 @@
 add_executable (vartrace_test policy_test.cc creation_policy_test.cc vartrace_test.cc)
 add_dependencies(vartrace_test gtest)
-target_link_libraries (vartrace_test pthread)
-target_link_libraries (vartrace_test vartrace)
+target_link_libraries(vartrace_test ${GTEST_LIBS} vartrace pthread)
 add_test (vartrace_test vartrace_test)
-
-# add_executable (vartrace_c_test vartrace_c_test.c)
-# target_link_libraries (vartrace_c_test vartrace)
-#add_test (vartrace_c_test vartrace_c_test)
 
 # different profile executables
 add_executable (profile_char profile_char.cc)
