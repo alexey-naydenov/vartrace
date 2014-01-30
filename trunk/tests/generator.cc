@@ -30,11 +30,12 @@
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
+//! Define and parse command line arguments, process help option.
 po::variables_map parse_commandline(int argc, char *argv[]) {
   po::options_description desc("Create binary files with sample vartraces");
   desc.add_options()
       ("help,h", "produce help message")
-      ("directory,d", po::value<std::string>()->default_value(""),
+      ("directory,d", po::value<std::string>()->default_value("."),
        ("output directory (tilde is expanded to home dir),"
         " current directory by default"));
   po::variables_map args;
@@ -46,6 +47,7 @@ po::variables_map parse_commandline(int argc, char *argv[]) {
   return args;
 }
 
+//! Strip string of specified characters.
 std::string strip(const std::string &path, const std::string &chars=" \t\n\r") {
   std::size_t first_not_space = path.find_first_not_of(chars);
   if (first_not_space == std::string::npos) {
@@ -55,6 +57,7 @@ std::string strip(const std::string &path, const std::string &chars=" \t\n\r") {
   return path.substr(first_not_space, last_not_space - first_not_space + 1);
 }
 
+//! Remove spaces and replace tilde with home path.
 std::string expand_tilde(const std::string &path) {
   std::string expanded_path(strip(path));
   if (expanded_path.empty() || expanded_path[0] != '~') {
@@ -63,12 +66,37 @@ std::string expand_tilde(const std::string &path) {
   return expanded_path.replace(0, 1, std::getenv("HOME"));
 }
 
+//! Create path if it does not exist.
+bool create_path(const fs::path &path) {
+  if (path.empty()) {
+    std::cout << "ok" << std::endl;
+    return true;
+  }
+  if (fs::exists(path)) {
+    if (fs::is_directory(path)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  if (!create_path(path.parent_path())) {
+    return false;
+  }
+  return fs::create_directory(path);
+}
+
 int main(int argc, char *argv[]) {
   po::variables_map args = parse_commandline(argc, argv);
   if (args.count("help")) {
     return 0;
   }
   fs::path output_path(expand_tilde(args["directory"].as<std::string>()));
+  if (!create_path(output_path)) {
+    std::cerr << "ERROR: " << output_path.c_str() << " cannot be created"
+              << std::endl;
+    return 1;
+  }
+
 
   return 0;
 }
