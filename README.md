@@ -40,49 +40,46 @@ Goals:
 The project uses Google test suite. To setup testing:
 
 1. Download and unpack `gtest` into some directory:
-
-    ```sh
-    cd ~/tmp
-    wget http://googletest.googlecode.com/files/gtest-1.6.0.zip 
-    unzip gtest-1.6.0.zip
-    ```
+~~~~~~~~~~
+cd ~/tmp
+wget http://googletest.googlecode.com/files/gtest-1.6.0.zip 
+unzip gtest-1.6.0.zip
+~~~~~~~~~~
 
 2. In `vartrace` create `gtest_build` folder and build `gtest`:
-
-    ```sh
-    mkdir gtest_build && cd gtest_build
-    cmake ~/tmp/gtest-1.6.0 && make && cd ..
-    ```
+~~~~~~~~~~
+mkdir gtest_build && cd gtest_build
+cmake ~/tmp/gtest-1.6.0 && make && cd ..
+~~~~~~~~~~
 
 3. Create `build` directory and test:
-
-    ```sh
-    mkdir build && cd build
-    cmake .. && make vartrace_test && make profile
-	ctest
-    ```
+~~~~~~~~~~
+mkdir build && cd build
+cmake .. && make vartrace_test && make profile
+ctest
+~~~~~~~~~~
 
 ## Profiling
 
 Profiling can be done either through gtests of by launching files for
 each data type separately. First compile in release:
 
-```sh
+~~~~~~~~~~
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make vartrace_test && make profile
-```
+~~~~~~~~~~
 
 Then
 
-```sh
+~~~~~~~~~~
 ctest
-```
+~~~~~~~~~~
 
 or
 
-```sh
+~~~~~~~~~~
 time ./trunk/tests/profile_double
-```
+~~~~~~~~~~
 
 ## Input data format (outdated)
 
