@@ -142,7 +142,7 @@ VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<LL, CP, LP, AP>::LogPointer(LL log_level,
                                           MessageIdType message_id,
                                           const T *value, unsigned length) {
-  DoLog(message_id, value, typename CopyTraits<T>::CopyCategory(),
+  DoLog(message_id, value, SizeofCopyTag(),
         DataTypeTraits<T>::kDataTypeId, length*DataTypeTraits<T>::kTypeSize);
 }
 

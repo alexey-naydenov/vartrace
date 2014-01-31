@@ -30,6 +30,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <string>
+#include <vector>
 #include <iostream>
 #include <fstream>
 
@@ -49,6 +50,7 @@ const size_t kDumpBufferSize = kTraceSize;
   ADD(empty)                                     \
   ADD(integer_count_1000)                        \
   ADD(assorted_types)                            \
+  ADD(arrays_10_100_1000)                        \
 
 
 //! Generate empty trace.
@@ -62,6 +64,7 @@ void integer_count_1000(const vt::VarTrace<>::Pointer trace) {
   } // loop i
 }
 
+//! Log min, 0, 123, max in the trace.
 template <typename T>
 uint8_t log_type_samples(const vt::VarTrace<>::Pointer trace, uint8_t id) {
   T value;
@@ -89,6 +92,24 @@ void assorted_types(const vt::VarTrace<>::Pointer trace) {
   id = log_type_samples<uint64_t>(trace, id);
   id = log_type_samples<float>(trace, id);
   id = log_type_samples<double>(trace, id);
+}
+
+//! Log an array of given size that contains counter.
+template <typename T>
+void log_counter_array(const vt::VarTrace<>::Pointer trace, uint8_t id,
+                       size_t length) {
+  std::vector<T> array(length);
+  for (std::size_t i = 0; i != array.size(); ++i) {
+    array[i] = i;
+  } // loop i
+  cout << array.size() << endl;
+  trace->LogPointer(vt::kInfoLevel, id, &array[0], array.size());
+}
+
+void arrays_10_100_1000(const vt::VarTrace<>::Pointer trace) {
+  log_counter_array<int>(trace, 0, 10);
+  log_counter_array<int>(trace, 1, 100);
+  log_counter_array<int>(trace, 2, 1000);
 }
 
 //! Buffer for trace serialization.
