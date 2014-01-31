@@ -23,12 +23,52 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
+#include <vartrace/vartrace.h>
+
+#include <stdint.h>
+
+#include <cassert>
 #include <cstdlib>
 #include <string>
 #include <iostream>
+#include <fstream>
+
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::size_t;
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
+namespace vt = vartrace;
+
+const size_t kTraceSize = 0x10000;
+const size_t kDumpBufferSize = kTraceSize;
+
+#define GENERATORS \
+  ADD(empty)       \
+
+
+void empty(const vt::VarTrace<>::Pointer trace) {
+}
+
+char dump_buffer[kDumpBufferSize];
+
+typedef void (*SampleGenerator)(const vt::VarTrace<>::Pointer);
+
+void end_generator(const vt::VarTrace<>::Pointer trace) {
+  assert(false);
+}
+
+#define ADD(x) 1 +
+size_t kGeneratorsCount = GENERATORS 0;
+#undef ADD
+#define ADD(x) x,
+SampleGenerator kGenerators[] = {GENERATORS end_generator};
+#undef ADD
+#define ADD(x) #x,
+const char *kGeneratorNames[] = {GENERATORS "end_generator"};
+#undef ADD
 
 //! Define and parse command line arguments, process help option.
 po::variables_map parse_commandline(int argc, char *argv[]) {
@@ -42,18 +82,18 @@ po::variables_map parse_commandline(int argc, char *argv[]) {
   po::store(po::parse_command_line(argc, argv, desc), args);
   po::notify(args);
   if (args.count("help")) {
-    std::cout << desc << std::endl;
+    cout << desc << endl;
   }
   return args;
 }
 
 //! Strip string of specified characters.
 std::string strip(const std::string &path, const std::string &chars=" \t\n\r") {
-  std::size_t first_not_space = path.find_first_not_of(chars);
+  size_t first_not_space = path.find_first_not_of(chars);
   if (first_not_space == std::string::npos) {
     return std::string();
   }
-  std::size_t last_not_space = path.find_last_not_of(chars);
+  size_t last_not_space = path.find_last_not_of(chars);
   return path.substr(first_not_space, last_not_space - first_not_space + 1);
 }
 
@@ -69,7 +109,6 @@ std::string expand_tilde(const std::string &path) {
 //! Create path if it does not exist.
 bool create_path(const fs::path &path) {
   if (path.empty()) {
-    std::cout << "ok" << std::endl;
     return true;
   }
   if (fs::exists(path)) {
@@ -85,6 +124,19 @@ bool create_path(const fs::path &path) {
   return fs::create_directory(path);
 }
 
+//! Create trace, use generator to fill it and dump into file at given path.
+bool generate(const std::string &file_path, SampleGenerator sample_generator) {
+  cout << "Generating " << file_path << " ...\n";
+  vt::VarTrace<>::Pointer trace =  vt::VarTrace<>::Create();
+  sample_generator(trace);
+  size_t dumped_size = trace->DumpInto(dump_buffer, kDumpBufferSize);
+  assert(dumped_size <= kDumpBufferSize);
+  std::ofstream outfile(file_path.c_str(), std::ios::trunc | std::ios::binary);
+  outfile.write(dump_buffer, dumped_size);
+  outfile.close();
+  return true;
+}
+
 int main(int argc, char *argv[]) {
   po::variables_map args = parse_commandline(argc, argv);
   if (args.count("help")) {
@@ -92,11 +144,18 @@ int main(int argc, char *argv[]) {
   }
   fs::path output_path(expand_tilde(args["directory"].as<std::string>()));
   if (!create_path(output_path)) {
-    std::cerr << "ERROR: " << output_path.c_str() << " cannot be created"
-              << std::endl;
+    cerr << "ERROR: " << output_path.c_str() << " cannot be created"
+         << endl;
     return 1;
   }
-
-
+  for (size_t i = 0; i != kGeneratorsCount; ++i) {
+    fs::path file_path(output_path);
+    file_path /= kGeneratorNames[i];
+    file_path.replace_extension("bin");
+    if (!generate(file_path.string(), kGenerators[i])) {
+      cerr << "ERROR: generation failed" << endl;
+      return 1;
+    }
+  } // loop i
   return 0;
 }
