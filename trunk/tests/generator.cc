@@ -17,7 +17,7 @@
  */
 
 /*! \file generator.cc 
-  Utility to generate test file for vartools. 
+  Utility to generate test files for vartools. 
 */
 
 #include <boost/filesystem.hpp>
@@ -26,7 +26,7 @@
 #include <vartrace/vartrace.h>
 
 #include <stdint.h>
-
+#include <limits>
 #include <cassert>
 #include <cstdlib>
 #include <string>
@@ -45,28 +45,72 @@ namespace vt = vartrace;
 const size_t kTraceSize = 0x10000;
 const size_t kDumpBufferSize = kTraceSize;
 
-#define GENERATORS \
-  ADD(empty)       \
+#define GENERATORS                               \
+  ADD(empty)                                     \
+  ADD(integer_count_1000)                        \
+  ADD(assorted_types)                            \
 
 
+//! Generate empty trace.
 void empty(const vt::VarTrace<>::Pointer trace) {
 }
 
+//! Generate integer count from 0 to 999, mesage id 1.
+void integer_count_1000(const vt::VarTrace<>::Pointer trace) {
+  for (size_t i = 0; i < 1000; ++i) {
+    trace->Log(vt::kInfoLevel, 1, i);
+  } // loop i
+}
+
+template <typename T>
+uint8_t log_type_samples(const vt::VarTrace<>::Pointer trace, uint8_t id) {
+  T value;
+  value = std::numeric_limits<T>::min();
+  trace->Log(vt::kInfoLevel, id++, value);
+  value = 0;
+  trace->Log(vt::kInfoLevel, id++, value);
+  value = 123;
+  trace->Log(vt::kInfoLevel, id++, value);
+  value = std::numeric_limits<T>::max();
+  trace->Log(vt::kInfoLevel, id++, value);
+  return id;
+}
+
+//! Log different possible types 4 times: min, 0, 123, max (incremental id).
+void assorted_types(const vt::VarTrace<>::Pointer trace) {
+  uint8_t id = 0;
+  id = log_type_samples<int8_t>(trace, id);
+  id = log_type_samples<uint8_t>(trace, id);
+  id = log_type_samples<int16_t>(trace, id);
+  id = log_type_samples<uint16_t>(trace, id);
+  id = log_type_samples<int32_t>(trace, id);
+  id = log_type_samples<uint32_t>(trace, id);
+  id = log_type_samples<int64_t>(trace, id);
+  id = log_type_samples<uint64_t>(trace, id);
+  id = log_type_samples<float>(trace, id);
+  id = log_type_samples<double>(trace, id);
+}
+
+//! Buffer for trace serialization.
 char dump_buffer[kDumpBufferSize];
 
 typedef void (*SampleGenerator)(const vt::VarTrace<>::Pointer);
 
+//! Fake generator, placed last in #kGenerators array.
 void end_generator(const vt::VarTrace<>::Pointer trace) {
   assert(false);
 }
 
 #define ADD(x) 1 +
+//! Number of functions for generating vartrace samples.
 size_t kGeneratorsCount = GENERATORS 0;
 #undef ADD
 #define ADD(x) x,
+//! Array of sample generation functions.
 SampleGenerator kGenerators[] = {GENERATORS end_generator};
 #undef ADD
 #define ADD(x) #x,
+//! Array of names of sample generation functions, used to name files.
 const char *kGeneratorNames[] = {GENERATORS "end_generator"};
 #undef ADD
 
@@ -127,7 +171,7 @@ bool create_path(const fs::path &path) {
 //! Create trace, use generator to fill it and dump into file at given path.
 bool generate(const std::string &file_path, SampleGenerator sample_generator) {
   cout << "Generating " << file_path << " ...\n";
-  vt::VarTrace<>::Pointer trace =  vt::VarTrace<>::Create();
+  vt::VarTrace<>::Pointer trace =  vt::VarTrace<>::Create(kTraceSize);
   sample_generator(trace);
   size_t dumped_size = trace->DumpInto(dump_buffer, kDumpBufferSize);
   assert(dumped_size <= kDumpBufferSize);

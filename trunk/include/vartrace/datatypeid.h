@@ -99,8 +99,9 @@ template <> struct DataType2Int<double> {
   enum {id = 0xd};
 };
 }  // vatrace
-REGISTER_VARTRACE_TYPE(char, 0x1);
-REGISTER_VARTRACE_TYPE(unsigned char, 0x2);
+REGISTER_VARTRACE_TYPE(int8_t, 0x1);
+REGISTER_VARTRACE_TYPE(uint8_t, 0x2);
+REGISTER_VARTRACE_TYPE(char, 0xc);
 
 
 
