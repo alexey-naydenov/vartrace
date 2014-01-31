@@ -60,49 +60,18 @@ struct DataType2Int<T[L]> {
     enum {id = type_id};                                \
   };                                                    \
   }
-
-// template <> struct DataType2Int<char> {
-//   enum {id = 0x1};
-// };
-// template <> struct DataType2Int<unsigned char> {
-//   enum {id = 0x2};
-// };
-template <> struct DataType2Int<short> {
-  enum {id = 0x3};
-};
-template <> struct DataType2Int<unsigned short> {
-  enum {id = 0x4};
-};
-template <> struct DataType2Int<int> {
-  enum {id = 0x5};
-};
-template <> struct DataType2Int<unsigned int> {
-  enum {id = 0x6};
-};
-template <> struct DataType2Int<long> {
-  enum {id = 0x7};
-};
-template <> struct DataType2Int<unsigned long> {
-  enum {id = 0x8};
-};
-template <> struct DataType2Int<long long> {
-  enum {id = 0x9};
-};
-template <> struct DataType2Int<unsigned long long> {
-  enum {id = 0xa};
-};
-
-template <> struct DataType2Int<float> {
-  enum {id = 0xf};
-};
-template <> struct DataType2Int<double> {
-  enum {id = 0xd};
-};
 }  // vatrace
+
 REGISTER_VARTRACE_TYPE(int8_t, 0x1);
 REGISTER_VARTRACE_TYPE(uint8_t, 0x2);
+REGISTER_VARTRACE_TYPE(int16_t, 0x3);
+REGISTER_VARTRACE_TYPE(uint16_t, 0x4);
+REGISTER_VARTRACE_TYPE(int32_t, 0x5);
+REGISTER_VARTRACE_TYPE(uint32_t, 0x6);
+REGISTER_VARTRACE_TYPE(int64_t, 0x7);
+REGISTER_VARTRACE_TYPE(uint64_t, 0x8);
+REGISTER_VARTRACE_TYPE(float, 0xf);
+REGISTER_VARTRACE_TYPE(double, 0xd);
 REGISTER_VARTRACE_TYPE(char, 0xc);
-
-
 
 #endif  // TRUNK_INCLUDE_VARTRACE_DATATYPEID_H_
