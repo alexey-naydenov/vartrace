@@ -1,4 +1,4 @@
-/* messageparser.cpp
+/* messageparser.cc
  *
  * Copyright (C) 2010 Alexey Naydenov
  *
@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/*! \file messageparser.cpp 
+/*! \file messageparser.cc
  * Definitions for MessageParser class. 
  */
 

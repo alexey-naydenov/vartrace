@@ -47,6 +47,8 @@ struct DataType2Int<T[L]> {
     id = DataType2Int<T>::id
   };
 };
+}  // namespace vatrace
+
 //! Macros that simplifies registering new types for logging.
 /*! In order to store a user type in a trace one has to declare in some
   header before logging:
@@ -54,24 +56,23 @@ struct DataType2Int<T[L]> {
   REGISTER_VARTRACE_TYPE(UserType, 0xXX);
   \endcode
  */
-#define REGISTER_VARTRACE_TYPE(Type, type_id)           \
+#define VARTRACE_SET_TYPEID(Type, type_id)              \
   namespace vartrace {                                  \
   template<> struct DataType2Int<Type> {                \
     enum {id = type_id};                                \
   };                                                    \
   }
-}  // vatrace
 
-REGISTER_VARTRACE_TYPE(int8_t, 0x1);
-REGISTER_VARTRACE_TYPE(uint8_t, 0x2);
-REGISTER_VARTRACE_TYPE(int16_t, 0x3);
-REGISTER_VARTRACE_TYPE(uint16_t, 0x4);
-REGISTER_VARTRACE_TYPE(int32_t, 0x5);
-REGISTER_VARTRACE_TYPE(uint32_t, 0x6);
-REGISTER_VARTRACE_TYPE(int64_t, 0x7);
-REGISTER_VARTRACE_TYPE(uint64_t, 0x8);
-REGISTER_VARTRACE_TYPE(float, 0xf);
-REGISTER_VARTRACE_TYPE(double, 0xd);
-REGISTER_VARTRACE_TYPE(char, 0xc);
+VARTRACE_SET_TYPEID(int8_t, 0x1);
+VARTRACE_SET_TYPEID(uint8_t, 0x2);
+VARTRACE_SET_TYPEID(int16_t, 0x3);
+VARTRACE_SET_TYPEID(uint16_t, 0x4);
+VARTRACE_SET_TYPEID(int32_t, 0x5);
+VARTRACE_SET_TYPEID(uint32_t, 0x6);
+VARTRACE_SET_TYPEID(int64_t, 0x7);
+VARTRACE_SET_TYPEID(uint64_t, 0x8);
+VARTRACE_SET_TYPEID(float, 0xf);
+VARTRACE_SET_TYPEID(double, 0xd);
+VARTRACE_SET_TYPEID(char, 0xc);
 
 #endif  // TRUNK_INCLUDE_VARTRACE_DATATYPEID_H_

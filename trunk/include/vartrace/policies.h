@@ -24,10 +24,10 @@
 
 #include <boost/shared_array.hpp>
 #include <boost/shared_ptr.hpp>
-// #include <boost/thread.hpp>
 
 #include <vartrace/tracetypes.h>
-#include <vartrace/vartrace-internal.h>
+#include <vartrace/utility.h>
+#include <vartrace/creation_policies.h>
 
 #include <vector>
 
@@ -81,56 +81,6 @@ template <class T> struct SingleThreaded {
 //   ~ObjectLevelLockable() {}
 //   boost::recursive_mutex mutex_;
 // };
-
-static const unsigned kDefaultBlockCount = 8;
-static const unsigned kDefaultTraceSize = 0x1000;
-static const unsigned kMinBlockCount = 4;
-
-template <class T> struct SharedPtrCreator {
- public:
-  typedef boost::shared_ptr<T> Pointer;
-  static Pointer Create(int trace_size = kDefaultTraceSize,
-                        int block_count = kDefaultBlockCount) {
-    return Pointer(new T(
-        internal::CalculateLog2Count(trace_size, block_count),
-        internal::CalculateLog2Length(trace_size, block_count)));
-  }
- protected:
-  ~SharedPtrCreator() {}
-};
-
-template <class T> struct NoLockSingletonCreator {
- public:
-  typedef boost::shared_ptr<T> Pointer;
-  static Pointer Create(int trace_size = kDefaultTraceSize,
-                        int block_count = kDefaultBlockCount) {
-    if (!instance_) {
-      instance_.reset(new T(
-          internal::CalculateLog2Count(trace_size, block_count),
-          internal::CalculateLog2Length(trace_size, block_count)));
-    }
-    return instance_;
-  }
- private:
-  ~NoLockSingletonCreator() {}
-  static Pointer instance_;
-};
-template<class T> typename NoLockSingletonCreator<T>::Pointer
-NoLockSingletonCreator<T>::instance_;
-
-template <class T> struct ValueCreator {
- public:
-  typedef boost::shared_ptr<T> Pointer;
-  typedef T Variable;
-  static Variable Create(int trace_size = kDefaultTraceSize,
-                         int block_count = kDefaultBlockCount) {
-    return T(internal::CalculateLog2Count(trace_size, block_count),
-             internal::CalculateLog2Length(trace_size, block_count));
-  }
-
- protected:
-  ~ValueCreator() {}
-};
 
 // template <class T> struct LockableSingletonCreator
 //     : public ClassLevelLockable< LockableSingletonCreator<T> > {

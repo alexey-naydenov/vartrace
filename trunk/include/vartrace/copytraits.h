@@ -18,10 +18,10 @@
 
 /*! \file copytraits.h 
 
-  Describe copy mechanism for different types. Vartrace::Log()
-  template function calls appropriate overloaded Vartrace::DoLog()
+  Describe copy mechanism for different types. VarTrace::Log()
+  template function calls appropriate overloaded VarTrace::DoLog()
   function that does actual copying. The kind of logging function is
-  chosen based on type trait. If the template structure #CopyTraits is
+  chosen based on type trait. If the template structure CopyTraits is
   not specialized for a type then objects of that type are copied
   through memory copy. Logging of simple types are sped up by using
   assignment.
@@ -43,51 +43,32 @@ struct SelfCopyTag : public SizeofCopyTag {};
 //! Object can be copied through an assignment.
 struct AssignmentCopyTag : public SizeofCopyTag {};
 
-//! Object can be copied through multiple assignments.
-struct MultipleAssignmentsCopyTag : public SizeofCopyTag {};
-
 //! Default behaviour for adding an object into a trace.
 template<typename T> struct CopyTraits {
     typedef SizeofCopyTag CopyCategory;
 };
 
-template<> struct CopyTraits<char> {
-  typedef AssignmentCopyTag CopyCategory;
-};
-template<> struct CopyTraits<unsigned char> {
-  typedef AssignmentCopyTag CopyCategory;
-};
-template<> struct CopyTraits<short> {
-  typedef AssignmentCopyTag CopyCategory;
-};
-template<> struct CopyTraits<unsigned short> {
-  typedef AssignmentCopyTag CopyCategory;
-};
-template<> struct CopyTraits<int> {
-  typedef AssignmentCopyTag CopyCategory;
-};
-template<> struct CopyTraits<unsigned> {
-  typedef AssignmentCopyTag CopyCategory;
-};
-template<> struct CopyTraits<long> {
-  typedef SizeofCopyTag CopyCategory;
-};
-template<> struct CopyTraits<unsigned long> {
-  typedef SizeofCopyTag CopyCategory;
-};
-template<> struct CopyTraits<long long> {
-  typedef SizeofCopyTag CopyCategory;
-};
-template<> struct CopyTraits<unsigned long long> {
-  typedef SizeofCopyTag CopyCategory;
-};
-template<> struct CopyTraits<float> {
-  typedef SizeofCopyTag CopyCategory;
-};
-template<> struct CopyTraits<double> {
-  typedef SizeofCopyTag CopyCategory;
-};
+//! Set type to be copied through assignment (small integer types).
+#define VARTRACE_SET_ASSIGNMENTCOPY(Type)                         \
+  template<> struct CopyTraits<Type> {                            \
+    typedef AssignmentCopyTag CopyCategory;                       \
+  }
+
+VARTRACE_SET_ASSIGNMENTCOPY(int8_t);
+VARTRACE_SET_ASSIGNMENTCOPY(uint8_t);
+VARTRACE_SET_ASSIGNMENTCOPY(int16_t);
+VARTRACE_SET_ASSIGNMENTCOPY(uint16_t);
+VARTRACE_SET_ASSIGNMENTCOPY(int32_t);
+VARTRACE_SET_ASSIGNMENTCOPY(uint32_t);
 }  // vartrace
+
+//! Macro for setting self logging policy for custom types.
+#define VARTRACE_SET_SELFLOGGING(Type)                   \
+  namespace vartrace {                                  \
+  template<> struct CopyTraits<Type> {                  \
+    typedef SelfCopyTag CopyCategory;                   \
+  };                                                    \
+  }
 
 #endif  // TRUNK_INCLUDE_VARTRACE_COPYTRAITS_H_
 

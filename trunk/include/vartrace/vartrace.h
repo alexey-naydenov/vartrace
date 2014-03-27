@@ -29,22 +29,14 @@
 #include <vartrace/tracetypes.h>
 #include <vartrace/utility.h>
 #include <vartrace/datatypeid.h>
-#include <vartrace/datatraits.h>
 #include <vartrace/policies.h>
 #include <vartrace/log_level.h>
-#include <vartrace/vartrace-impl.h>
 
 #include <cstring>
 #include <cassert>
 #include <vector>
 
 namespace vartrace {
-
-/*! Calculates the number of AlingmentType elements required to store
- *  an object. */
-template <typename T> unsigned aligned_size() {
-  return CEIL_DIV(sizeof(T), sizeof(AlignmentType));
-}
 
 /*! Class for variable trace objects. */
 // size of a block must be bigger then sizeof of biggest type + 8
@@ -60,32 +52,40 @@ class VarTrace
       public LP< VarTrace<LL, CP, LP, AP> >,
       public AP {
  public:
+  typedef VarTrace * Pointer;
+
+  VarTrace();
+  //! Create a new trace with the given number of blocks and block size.
+  /*! \note The constructor should not be called directly, use Create
+    function provided by creation policy.
+   */
+  VarTrace(std::size_t trace_size, std::size_t block_count);
   void Initialize();
   ~VarTrace();
 
   //! Returns true after memory allocation.
-  bool is_initialized() const {return is_initialized_;}
+  bool is_initialized() const { return is_initialized_; }
+  //! Check if is in subtrace mode.
+  bool is_subtrace() const { return is_top_level_ == 0; }
   //! Number of memory blocks used to store trace.
-  unsigned block_count() const {return block_count_;}
+  unsigned block_count() const { return block_count_; }
   //! Approximate size of each block in bytes.
   unsigned block_size() const {
     return sizeof(AlignmentType)*block_length_;
   }
-  //! Check if the trace object can log data.
-  bool can_log() const {return can_log_;}
+
   //! Store a variable value in the trace.
-  /*! 
-   */
   template <typename T> void Log(HiddenLogLevel log_level,
                                  MessageIdType message_id, const T &value);
 
   template <typename T> void Log(LL log_level,
                                  MessageIdType message_id, const T &value);
 
+  //! Empty log pointer specialization for suppressed log levels.
   template <typename T> void LogPointer(HiddenLogLevel log_level,
                                         MessageIdType message_id,
                                         const T *value, unsigned length = 1);
-
+  //! Log an array of values.
   template <typename T> void LogPointer(LL log_level, MessageIdType message_id,
                                         const T *value, unsigned length = 1);
 
@@ -94,75 +94,72 @@ class VarTrace
    */
   unsigned DumpInto(void *buffer, unsigned size);
 
-  typename VarTrace<LL, CP, LP, AP>::Pointer
-  CreateSubtrace(MessageIdType subtrace_id);
+  void BeginSubtrace(MessageIdType subtrace_id);
+  void EndSubtrace();
 
   void SetTimestampFunction(TimestampFunctionType timestamp_function);
 
  private:
-  //! Disabled default constructor.
-  VarTrace();
-  // allow creation policy access to constructors
   friend class CP< VarTrace<LL, CP, LP, AP> >;
   //! Conviniece typedef for locking.
   typedef typename LP< VarTrace<LL, CP, LP, AP> >::Lock Lock;
-  //! Create a new trace with the given number of blocks and block size.
-  /*! \note The constructor should not be called directly, use Create
-    function provided by creation policy.
-   */
-  VarTrace(int log2_count, int log2_size);
-  //! Subtrace constructor.
-  explicit VarTrace(VarTrace<LL, CP, LP, AP> *ancestor);
-  //! Calback to ancestor to indicate the subtrace destruction.
-  void SubtraceDestruction(unsigned subtrace_current_index);
+
+  //! Helper for LogPointer for types that can log themselves.
+  template <typename T> void LogPointerHelper(
+      MessageIdType message_id, const T *value,
+      const SelfCopyTag &copy_tag, unsigned length);
+  //! Helper for LogPointer for types copied through memcpy.
+  template <typename T> void LogPointerHelper(
+      MessageIdType message_id, const T *value,
+      const SizeofCopyTag &copy_tag, unsigned length);
   //! Store object using memcpy.
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
-      unsigned data_id, unsigned object_size);
+      DataIdType data_id, unsigned length);
   //! Store a variable using assignment.
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value,
-      const AssignmentCopyTag &copy_tag, unsigned data_id,
-      unsigned object_size);
-  //! Store a variable using multiple assignment.
-  template <typename T> void DoLog(
-      MessageIdType message_id, const T *value,
-      const MultipleAssignmentsCopyTag &copy_tag, unsigned data_id,
-      unsigned object_size);
+      const AssignmentCopyTag &copy_tag, DataIdType data_id,
+      unsigned length);
   //! Class stores itself in a subtrace.
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value,
-      const SelfCopyTag &copy_tag, unsigned data_id,
-      unsigned object_size);
+      const SelfCopyTag &copy_tag, DataIdType data_id,
+      unsigned length);
 
+  //! Update current block number and its end using current index.
+  inline void UpdateBlock() {
+    unsigned current_block = current_index_ >> log2_block_length_;
+    message_end_indices_[current_block] = current_index_;
+  }
+  //! Form description word at given position.
+  inline void FormDescription(MessageIdType message_id, DataIdType data_id,
+                              unsigned object_size, unsigned position) {
+    data_[position] = object_size + (message_id << kMessageIdShift)
+        + (data_id << kDataIdShift);
+  }
   //! Increment position for the next write.
   void IncrementCurrentIndex();
   //! Next wrapped around index.
   int NextIndex(int index);
-  //! Previous wrapped index.
-  int PreviousIndex(int index);
   //! Next block index.
   int NextBlock(int block_index);
   //! Write message header.
-  void CreateHeader(MessageIdType message_id, unsigned data_id,
+  void CreateHeader(MessageIdType message_id, DataIdType data_id,
                     unsigned object_size);
-  bool is_initialized_; /*!< True after memory allocation. */
-  bool is_nested_; /*!< True if trace object is not top level one. */
-  bool can_log_; /*!< True if the object can write in its trace */
-  //! Stores position of a subtrace to store its size after destruction.
-  unsigned subtrace_start_index_;
-  unsigned log2_block_count_; /*!< Log base 2 of number of blocks. */
-  unsigned log2_block_length_; /*!< Log base 2 of block length. */
+  bool is_initialized_; //!< Set to true after memory allocation.
+  unsigned is_top_level_;  //!< Set to 0 in the subtrace mode, 1 otherwise.
+  std::vector<unsigned> subtrace_header_positions_;
+  unsigned log2_block_length_; //!< Log2 of block length.
   unsigned block_count_; /*!< Total number of blocks, must be power of 2. */
   unsigned block_length_; /*!< Length of each block in AlignmentType units. */
+  unsigned trace_length_; //! Length of the trace.
   unsigned index_mask_; /*!< Restricts array index to the range 0...2^n. */
-  unsigned current_block_; /*!< Block currently being written into. */
   unsigned current_index_; /*!< Next array element to write to. */
-  boost::shared_array<int> block_end_indices_; /*!< Block boundaries. */
+  int *message_end_indices_; //!< Message boundaries.
   typename AP::StorageArrayType data_; /*!< Data array. */
-  TimestampFunctionType get_timestamp_; /*!< Pointer to a timestamp function. */
-  //! Pointer to the ancestor if the object is a subtrace.
-  VarTrace<LL, CP, LP, AP> *ancestor_;
+  TimestampFunctionType get_timestamp_; /*!< Current timestamp function. */
+  TimestampFunctionType real_timestamp_; /*!< Actual temestamp function. */
 };
 }  // vartrace
 

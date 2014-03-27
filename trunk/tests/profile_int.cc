@@ -22,9 +22,8 @@
 
 #include <vartrace/vartrace.h>
 
-namespace vt = vartrace;
-
-typedef vt::VarTrace<> Trace;
+using vartrace::VarTrace;
+using vartrace::kInfoLevel;
 
 int main(int argc, char *argv[]) {
   // the number shown by test routine is time in nanoseconds per log operation
@@ -32,10 +31,10 @@ int main(int argc, char *argv[]) {
   int trace_size = 0x1000;
   int block_count = 4;
 
-  Trace::Pointer trace = Trace::Create(trace_size, block_count);
+  VarTrace<>::Handle trace = VarTrace<>::Create(trace_size, block_count);
 
   for (int i = 0; i < log_length; ++i) {
-    trace->Log(vt::kInfoLevel, 1, i);
+    trace->Log(kInfoLevel, 1, i);
   }
 
   return 0;
