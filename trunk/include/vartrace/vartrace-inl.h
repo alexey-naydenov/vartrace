@@ -26,6 +26,8 @@
 #include <cstring>
 #include <algorithm>
 
+#include <iostream>
+
 namespace vartrace {
 
 namespace internal {
@@ -119,8 +121,7 @@ void VarTrace<LL, CP, LP, AP>::Log(HiddenLogLevel log_level,
 VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<LL, CP, LP, AP>::Log(LL log_level,
                                    MessageIdType message_id, const T &value) {
-  DoLog(message_id, &value, typename CopyTraits<T>::CopyCategory(),
-        DataType2Int<T>::id, 1);
+  DoLog(message_id, &value, typename CopyTraits<T>::CopyCategory(), 1);
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
@@ -141,22 +142,22 @@ VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<LL, CP, LP, AP>::LogPointerHelper(
     MessageIdType message_id, const T *value, const SelfCopyTag &copy_tag,
     unsigned length) {
-  DoLog(message_id, value, copy_tag, DataType2Int<T>::id, length);
+  DoLog(message_id, value, copy_tag, length);
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<LL, CP, LP, AP>::LogPointerHelper(
     MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
     unsigned length) {
-  DoLog(message_id, value, SizeofCopyTag(), DataType2Int<T>::id, length);
+  DoLog(message_id, value, SizeofCopyTag(), length);
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                      const AssignmentCopyTag &copy_tag,
-                                     DataIdType data_id, unsigned length) {
+                                     unsigned length) {
   Lock guard(*this);
-  CreateHeader(message_id, data_id, sizeof(T));
+  CreateHeader(message_id,  DataType2Int<T>::id, sizeof(T));
   data_[current_index_] = *value;
   IncrementCurrentIndex();
   UpdateBlock();
@@ -164,12 +165,67 @@ void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
 
 VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
+                                     const ContainerCopyTag &copy_tag,
+                                     unsigned length) {
+  Lock guard(*this);
+  std::cout << "============== ok\n";
+  std::size_t data_size = sizeof(T::value_type)*value->size();
+  CreateHeader(message_id, DataType2Int<typename T::value_type>::id, data_size);
+  std::size_t split_index = value->size();
+  std::size_t size_till_wrap = (trace_length_ - current_index_)
+      *sizeof(AlignmentType);
+  if (data_size > size_till_wrap) {
+    split_index = (data_size - size_till_wrap)/sizeof(T::value_type);
+  }
+  // copy as many whole elements as possible up to trace end
+  std::size_t copy_index = 0;
+  typename T::const_iterator it = value->cbegin();
+  uint8_t *write_ptr = &data_[current_index_];
+  for (; copy_index < split_index; ++copy_index, ++it) {
+    std::memcpy(write_ptr, &*it, sizeof(T::value_type));
+    write_ptr += sizeof(T::value_type);
+  }
+  current_index_ += RoundSize(copy_index*sizeof(T::value_type));
+  current_index_ = current_index_ & index_mask_;
+  if (copy_index == value->size()) {
+    UpdateBlock();
+    return;
+  }
+  // copy elements after wrap point
+  current_index_ = 0;
+  // copy split element if exists
+  std::size_t remaining_size =
+      reinterpret_cast<uint8_t *>((data_ + trace_length_)) - write_ptr;
+  if (remaining_size > 0) {
+    uint8_t split_object = reinterpret_cast<uint8_t>(&*it);
+    std::memcpy(write_ptr, split_object, remaining_size);
+    write_ptr = reinterpret_cast<uint8_t *>(data_);
+    split_object += remaining_size;
+    std::memcpy(write_ptr, split_object,
+                sizeof(T::value_type) - remaining_size);
+    write_ptr += sizeof(T::value_type) - remaining_size;
+    ++it;
+    ++copy_index;
+    IncrementCurrentIndex();
+  }
+  // copy rest of elements to the beginning of the trace
+  current_index_ += RoundSize((value->size() - copy_index)
+                              *sizeof(T::value_type));
+  for (; it !=  value->cend(); ++it) {
+    std::memcpy(write_ptr, &*it, sizeof(T::value_type));
+    write_ptr += sizeof(T::value_type);
+  }
+  UpdateBlock();
+}
+
+VAR_TRACE_TEMPLATE template <typename T>
+void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                      const SizeofCopyTag &copy_tag,
-                                     DataIdType data_id, unsigned length) {
+                                     unsigned length) {
   assert(current_index_ < trace_length_);
   Lock guard(*this);
   unsigned object_size = length*sizeof(T);
-  CreateHeader(message_id, data_id, object_size);
+  CreateHeader(message_id,  DataType2Int<T>::id, object_size);
   // check if data fits in space left in trace
   if ((trace_length_ - current_index_)
       *sizeof(AlignmentType) > object_size) {
@@ -198,7 +254,7 @@ void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
 VAR_TRACE_TEMPLATE template <typename T>
 void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                      const SelfCopyTag &copy_tag,
-                                     DataIdType data_id, unsigned length) {
+                                     unsigned length) {
   Lock guard(*this);
   BeginSubtrace(message_id);
   for (std::size_t i = 0; i < length; ++i) {

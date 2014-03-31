@@ -115,17 +115,19 @@ class VarTrace
   //! Store object using memcpy.
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
-      DataIdType data_id, unsigned length);
+      unsigned length);
+  //! Store container like object.
+  template <typename T> void DoLog(
+      MessageIdType message_id, const T *value,
+      const ContainerCopyTag &copy_tag, unsigned length);
   //! Store a variable using assignment.
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value,
-      const AssignmentCopyTag &copy_tag, DataIdType data_id,
-      unsigned length);
+      const AssignmentCopyTag &copy_tag, unsigned length);
   //! Class stores itself in a subtrace.
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value,
-      const SelfCopyTag &copy_tag, DataIdType data_id,
-      unsigned length);
+      const SelfCopyTag &copy_tag, unsigned length);
 
   //! Update current block number and its end using current index.
   inline void UpdateBlock() {

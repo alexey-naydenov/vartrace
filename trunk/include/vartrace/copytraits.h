@@ -30,6 +30,9 @@
 #ifndef TRUNK_INCLUDE_VARTRACE_COPYTRAITS_H_
 #define TRUNK_INCLUDE_VARTRACE_COPYTRAITS_H_
 
+#include <vector>
+#include <string>
+
 #include <vartrace/tracetypes.h>
 #include <vartrace/datatypeid.h>
 
@@ -43,8 +46,14 @@ struct SelfCopyTag : public SizeofCopyTag {};
 //! Object can be copied through an assignment.
 struct AssignmentCopyTag : public SizeofCopyTag {};
 
+//! Copy switch for containers.
+struct ContainerCopyTag : public SizeofCopyTag {};
+
+//! Copy switch for std strings.
+struct StdStringCopyTag : public SizeofCopyTag {};
+
 //! Default behaviour for adding an object into a trace.
-template<typename T> struct CopyTraits {
+template<typename T, typename U = void> struct CopyTraits {
     typedef SizeofCopyTag CopyCategory;
 };
 
@@ -60,6 +69,10 @@ VARTRACE_SET_ASSIGNMENTCOPY(int16_t);
 VARTRACE_SET_ASSIGNMENTCOPY(uint16_t);
 VARTRACE_SET_ASSIGNMENTCOPY(int32_t);
 VARTRACE_SET_ASSIGNMENTCOPY(uint32_t);
+
+template<typename T> struct CopyTraits<T, typename T::value_type> {
+  typedef ContainerCopyTag CopyCategory;
+};
 }  // vartrace
 
 //! Macro for setting self logging policy for custom types.

@@ -32,23 +32,62 @@ using std::endl;
 using vartrace::VarTrace;
 using vartrace::kInfoLevel;
 
-#define MEASURE_TYPE(type) do {                                         \
+#define MEASURE_TYPE(type, count) do {                                  \
     type val{};                                                         \
-    cout << "\t" << std::setw(10) << #type << " "                       \
-        << LogTimeToString(val, trace) << endl;                         \
+    cout << std::setw(20) << #type << " "                               \
+         << LogTimeToString(val, count, trace) << endl;                 \
   } while (false)
+
+class SelfLogging {
+ public:
+  int ivar1;
+  int ivar2;
+  int ivar3;
+
+  void LogItself(VarTrace<>::Pointer trace) const {
+    trace->Log(kInfoLevel, 101, ivar1);
+  }
+};
+
+struct CharArray8 {
+  char cs[8];
+};
+
+struct CharArray16 {
+  char cs[16];
+};
+
+struct CharArray32 {
+  char cs[32];
+};
+
+struct CharArray64 {
+  char cs[64];
+};
+
+VARTRACE_SET_SELFLOGGING(SelfLogging);
 
 int main(int argc, char *argv[]) {
   int trace_size = 0x1000;
   int block_count = 4;
+  std::size_t repetition_count = 1<<30;
 
   VarTrace<>::Handle trace = VarTrace<>::Create(trace_size, block_count);
 
   cout << "Logging times:" << endl;
-  MEASURE_TYPE(int8_t);
-  MEASURE_TYPE(int32_t);
-  MEASURE_TYPE(int64_t);
-  MEASURE_TYPE(double);
+
+  MEASURE_TYPE(int8_t, repetition_count);
+  MEASURE_TYPE(int32_t, repetition_count);
+  MEASURE_TYPE(int64_t, repetition_count);
+  MEASURE_TYPE(float, repetition_count);
+  MEASURE_TYPE(double, repetition_count);
+  cout << endl;
+  MEASURE_TYPE(CharArray8, repetition_count);
+  MEASURE_TYPE(CharArray16, repetition_count);
+  MEASURE_TYPE(CharArray32, repetition_count);
+  MEASURE_TYPE(CharArray64, repetition_count);
+  cout << endl;
+  MEASURE_TYPE(SelfLogging, repetition_count);
 
   return 0;
 }
