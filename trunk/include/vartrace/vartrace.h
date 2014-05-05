@@ -45,22 +45,21 @@ namespace vartrace {
 template <
   class LL = User5LogLevel,
   template <class> class CP = SharedPtrCreator, // creation policy
-  template <class> class LP = SingleThreaded, // locking policy
-  class AP = SharedArrayAllocator // storage allocation policy
+  template <class> class LP = SingleThreaded // locking policy
   >
 class VarTrace
-    : public CP< VarTrace<LL, CP, LP, AP> >,
-      public LP< VarTrace<LL, CP, LP, AP> >,
-      public AP {
+    : public CP< VarTrace<LL, CP, LP> >,
+      public LP< VarTrace<LL, CP, LP> > {
  public:
-  typedef VarTrace * Pointer;
+  typedef VarTrace *Pointer;
 
   VarTrace();
   //! Create a new trace with the given number of blocks and block size.
   /*! \note The constructor should not be called directly, use Create
     function provided by creation policy.
    */
-  VarTrace(std::size_t trace_size, std::size_t block_count);
+  VarTrace(std::size_t trace_size, std::size_t block_count,
+           AlignmentType *storage = NULL);
   void Initialize();
   ~VarTrace();
 
@@ -107,9 +106,9 @@ class VarTrace
   void SetTimestampFunction(TimestampFunctionType timestamp_function);
 
  private:
-  friend class CP< VarTrace<LL, CP, LP, AP> >;
+  friend class CP< VarTrace<LL, CP, LP> >;
   //! Conviniece typedef for locking.
-  typedef typename LP< VarTrace<LL, CP, LP, AP> >::Lock Lock;
+  typedef typename LP< VarTrace<LL, CP, LP> >::Lock Lock;
 
   //! Store object using memcpy.
   template <typename T> void DoLog(
@@ -155,6 +154,7 @@ class VarTrace
                            unsigned object_size);
   bool is_initialized_; //!< Set to true after memory allocation.
   unsigned is_top_level_;  //!< Set to 0 in the subtrace mode, 1 otherwise.
+  bool is_memory_managed_; //!< Is memory allocated or provided.
   std::vector<unsigned> subtrace_header_positions_;
   unsigned log2_block_length_; //!< Log2 of block length.
   unsigned block_count_; /*!< Total number of blocks, must be power of 2. */
@@ -163,7 +163,7 @@ class VarTrace
   unsigned index_mask_; /*!< Restricts array index to the range 0...2^n. */
   unsigned current_index_; /*!< Next array element to write to. */
   int *message_end_indices_; //!< Message boundaries.
-  typename AP::StorageArrayType data_; /*!< Data array. */
+  AlignmentType *data_; /*!< Data array. */
   TimestampFunctionType get_timestamp_; /*!< Current timestamp function. */
   TimestampFunctionType real_timestamp_; /*!< Actual temestamp function. */
 };

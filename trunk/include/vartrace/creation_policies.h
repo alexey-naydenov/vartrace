@@ -34,8 +34,9 @@ template <class T> struct SharedPtrCreator {
  public:
   typedef boost::shared_ptr<T> Handle;
   static Handle Create(std::size_t trace_size = internal::kDefaultTraceSize,
-                       std::size_t block_count = internal::kDefaultBlockCount) {
-    return Handle(new T(trace_size, block_count));
+                       std::size_t block_count = internal::kDefaultBlockCount,
+                       AlignmentType *storage = NULL) {
+    return Handle(new T(trace_size, block_count, storage));
   }
  protected:
   ~SharedPtrCreator() {}
@@ -45,9 +46,10 @@ template <class T> struct SingletonCreator {
  public:
   typedef boost::shared_ptr<T> Handle;
   static Handle Create(std::size_t trace_size = internal::kDefaultTraceSize,
-                       std::size_t block_count = internal::kDefaultBlockCount) {
+                       std::size_t block_count = internal::kDefaultBlockCount,
+                       AlignmentType *storage = NULL) {
     if (!instance_) {
-      instance_.reset(new T(trace_size, block_count));
+      instance_.reset(new T(trace_size, block_count, storage));
     }
     return instance_;
   }
@@ -62,8 +64,9 @@ template <class T> struct ValueCreator {
  public:
   typedef T Handle;
   static Handle Create(std::size_t trace_size = internal::kDefaultTraceSize,
-                       std::size_t block_count = internal::kDefaultBlockCount) {
-    return T(trace_size, block_count);
+                       std::size_t block_count = internal::kDefaultBlockCount,
+                       AlignmentType *storage = NULL) {
+    return T(trace_size, block_count, storage);
   }
 
  protected:
