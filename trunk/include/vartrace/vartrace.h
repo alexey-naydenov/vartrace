@@ -121,6 +121,15 @@ class VarTrace
       MessageIdType message_id, const T *value,
       const SelfCopyTag &copy_tag, unsigned length);
 
+  //! Store array using memcpy.
+  template <typename T> void DoLogArray(
+      MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
+      unsigned length);
+  //! Store array using self copy.
+  template <typename T> void DoLogArray(
+      MessageIdType message_id, const T *value, const SelfCopyTag &copy_tag,
+      unsigned length);
+
   //! Update current block number and its end using current index.
   inline void UpdateBlock() {
     unsigned current_block = current_index_ >> log2_block_length_;

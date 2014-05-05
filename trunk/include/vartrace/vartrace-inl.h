@@ -137,14 +137,28 @@ VAR_TRACE_TEMPLATE_T
 void VarTrace<LL, CP, LP, AP>::Log(LL log_level,
                                    MessageIdType message_id,
                                    const T *value, unsigned length) {
-  DoLog(message_id, value, typename CopyTraits<T>::CopyCategory(), length);
+  DoLogArray(message_id, value, typename CopyTraits<T>::CopyCategory(), length);
 }
 
 VAR_TRACE_TEMPLATE_T
 void VarTrace<LL, CP, LP, AP>::Log(LL log_level, MessageIdType message_id,
                                    const std::vector<T> &value) {
-  DoLog(message_id, &value[0], typename CopyTraits<T>::CopyCategory(),
-        value.size());
+  DoLogArray(message_id, &value[0], typename CopyTraits<T>::CopyCategory(),
+             value.size());
+}
+
+VAR_TRACE_TEMPLATE_T
+void VarTrace<LL, CP, LP, AP>::DoLogArray(
+    MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
+    unsigned length) {
+  DoLog(message_id, value, copy_tag, length);
+}
+
+VAR_TRACE_TEMPLATE_T
+void VarTrace<LL, CP, LP, AP>::DoLogArray(
+    MessageIdType message_id, const T *value, const SelfCopyTag &copy_tag,
+    unsigned length) {
+  DoLog(message_id, value, copy_tag, length);
 }
 
 VAR_TRACE_TEMPLATE_T
