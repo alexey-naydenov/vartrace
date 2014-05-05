@@ -35,7 +35,6 @@
 #include <cstring>
 #include <cassert>
 #include <vector>
-#include <iostream>
 
 namespace vartrace {
 
