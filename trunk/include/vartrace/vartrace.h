@@ -112,10 +112,6 @@ class VarTrace
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
       unsigned length);
-  //! Store container like object.
-  template <typename T> void DoLog(
-      MessageIdType message_id, const T *value,
-      const ContainerCopyTag &copy_tag, unsigned length);
   //! Store a variable using assignment.
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value,

@@ -160,60 +160,6 @@ void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
 
 VAR_TRACE_TEMPLATE_T
 void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
-                                     const ContainerCopyTag &copy_tag,
-                                     unsigned length) {
-  Lock guard(*this);
-  std::size_t data_size = sizeof(T::value_type)*value->size();
-  CreateHeader(message_id, DataType2Int<typename T::value_type>::id, data_size);
-  std::size_t split_index = value->size();
-  std::size_t size_till_wrap = (trace_length_ - current_index_)
-      *sizeof(AlignmentType);
-  if (data_size > size_till_wrap) {
-    split_index = (data_size - size_till_wrap)/sizeof(T::value_type);
-  }
-  // copy as many whole elements as possible up to trace end
-  std::size_t copy_index = 0;
-  typename T::const_iterator it = value->cbegin();
-  uint8_t *write_ptr = &data_[current_index_];
-  for (; copy_index < split_index; ++copy_index, ++it) {
-    std::memcpy(write_ptr, &*it, sizeof(T::value_type));
-    write_ptr += sizeof(T::value_type);
-  }
-  current_index_ += RoundSize(copy_index*sizeof(T::value_type));
-  current_index_ = current_index_ & index_mask_;
-  if (copy_index == value->size()) {
-    UpdateBlock();
-    return;
-  }
-  // copy elements after wrap point
-  current_index_ = 0;
-  // copy split element if exists
-  std::size_t remaining_size =
-      reinterpret_cast<uint8_t *>((data_ + trace_length_)) - write_ptr;
-  if (remaining_size > 0) {
-    uint8_t split_object = reinterpret_cast<uint8_t>(&*it);
-    std::memcpy(write_ptr, split_object, remaining_size);
-    write_ptr = reinterpret_cast<uint8_t *>(data_);
-    split_object += remaining_size;
-    std::memcpy(write_ptr, split_object,
-                sizeof(T::value_type) - remaining_size);
-    write_ptr += sizeof(T::value_type) - remaining_size;
-    ++it;
-    ++copy_index;
-    IncrementCurrentIndex();
-  }
-  // copy rest of elements to the beginning of the trace
-  current_index_ += RoundSize((value->size() - copy_index)
-                              *sizeof(T::value_type));
-  for (; it !=  value->cend(); ++it) {
-    std::memcpy(write_ptr, &*it, sizeof(T::value_type));
-    write_ptr += sizeof(T::value_type);
-  }
-  UpdateBlock();
-}
-
-VAR_TRACE_TEMPLATE_T
-void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                      const SizeofCopyTag &copy_tag,
                                      unsigned length) {
   assert(current_index_ < trace_length_);
