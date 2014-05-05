@@ -37,10 +37,20 @@ TEST_F(ContainerTestSuite, SimplestCasesTest) {
   VarTrace<>::Handle trace = VarTrace<>::Create();
   std::vector<int> v(10);
   trace->Log(kInfoLevel, 1, v);
+  int buffer_size = 0x1000;
+  boost::shared_array<uint8_t> buffer(new uint8_t[buffer_size]);
+  unsigned dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
+  ASSERT_EQ(v.size()*sizeof(int), vt[0]->data_size());
 }
 
 TEST_F(ContainerTestSuite, StdStringTest) {
   VarTrace<>::Handle trace = VarTrace<>::Create();
   std::string s("test string");
   trace->Log(kInfoLevel, 1, s);
+  int buffer_size = 0x1000;
+  boost::shared_array<uint8_t> buffer(new uint8_t[buffer_size]);
+  unsigned dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
+  ASSERT_EQ(s.size(), vt[0]->data_size());
 }

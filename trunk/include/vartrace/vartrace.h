@@ -34,6 +34,7 @@
 
 #include <cstring>
 #include <cassert>
+#include <string>
 #include <vector>
 
 namespace vartrace {
@@ -92,6 +93,8 @@ class VarTrace
 
   template <typename T>
   void Log(LL log_level, MessageIdType message_id, const std::vector<T> &value);
+
+  void Log(LL log_level, MessageIdType message_id, const std::string &value);
 
   //! Copy trace information into a buffer.
   /*! \note Can not be called if there is an open subtrace.

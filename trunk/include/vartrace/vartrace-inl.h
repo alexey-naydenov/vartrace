@@ -26,6 +26,7 @@
 #include <cstring>
 #include <algorithm>
 #include <vector>
+#include <string>
 
 namespace vartrace {
 
@@ -145,6 +146,12 @@ void VarTrace<LL, CP, LP, AP>::Log(LL log_level, MessageIdType message_id,
                                    const std::vector<T> &value) {
   DoLogArray(message_id, &value[0], typename CopyTraits<T>::CopyCategory(),
              value.size());
+}
+
+VAR_TRACE_TEMPLATE
+void VarTrace<LL, CP, LP, AP>::Log(LL log_level, MessageIdType message_id,
+                                   const std::string &value) {
+  DoLogArray(message_id, value.c_str(), SizeofCopyTag(), value.size());
 }
 
 VAR_TRACE_TEMPLATE_T
