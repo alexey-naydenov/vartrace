@@ -35,7 +35,7 @@ using vartrace::kInfoLevel;
 #define MEASURE_TYPE(type, count) do {                                  \
     type val{};                                                         \
     cout << std::setw(20) << #type << " "                               \
-         << LogTimeToString(val, count, trace) << endl;                 \
+         << LogTimeToString(val, count, &trace) << endl;                 \
   } while (false)
 
 class SelfLogging {
@@ -44,7 +44,7 @@ class SelfLogging {
   int ivar2;
   int ivar3;
 
-  void LogItself(VarTrace<>::Pointer trace) const {
+  void LogItself(VarTrace<> *trace) const {
     trace->Log(kInfoLevel, 101, ivar1);
   }
 };
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
   int block_count = 4;
   std::size_t repetition_count = 1<<30;
 
-  VarTrace<>::Handle trace = VarTrace<>::Create(trace_size, block_count);
+  VarTrace<> trace = VarTrace<>(trace_size, block_count);
 
   cout << "Logging times:" << endl;
 

@@ -22,9 +22,6 @@
 #ifndef TRUNK_INCLUDE_VARTRACE_VARTRACE_H_
 #define TRUNK_INCLUDE_VARTRACE_VARTRACE_H_
 
-#include <boost/shared_ptr.hpp>
-#include <boost/shared_array.hpp>
-
 #include <vartrace/copytraits.h>
 #include <vartrace/tracetypes.h>
 #include <vartrace/utility.h>
@@ -39,26 +36,28 @@
 
 namespace vartrace {
 
+namespace internal {
+const unsigned kDefaultBlockCount = 8;
+const unsigned kDefaultTraceSize = 0x1000;
+const unsigned kMinBlockCount = 4;
+} // namespace internal
+
 /*! Class for variable trace objects. */
 // size of a block must be bigger then sizeof of biggest type + 8
 // logging array or class must be smaller then block size
 template <
-  class LL = User5LogLevel,
-  template <class> class CP = SharedPtrCreator, // creation policy
+  class LL = User5LogLevel, // log level selection
   template <class> class LP = SingleThreaded // locking policy
   >
 class VarTrace
-    : public CP< VarTrace<LL, CP, LP> >,
-      public LP< VarTrace<LL, CP, LP> > {
+    : public LP< VarTrace<LL, LP> > {
  public:
-  typedef VarTrace *Pointer;
-
-  VarTrace();
   //! Create a new trace with the given number of blocks and block size.
   /*! \note The constructor should not be called directly, use Create
     function provided by creation policy.
    */
-  VarTrace(std::size_t trace_size, std::size_t block_count,
+  VarTrace(std::size_t trace_size = internal::kDefaultTraceSize,
+           std::size_t block_count = internal::kDefaultBlockCount,
            AlignmentType *storage = NULL);
   void Initialize();
   ~VarTrace();
@@ -106,9 +105,8 @@ class VarTrace
   void SetTimestampFunction(TimestampFunctionType timestamp_function);
 
  private:
-  friend class CP< VarTrace<LL, CP, LP> >;
   //! Conviniece typedef for locking.
-  typedef typename LP< VarTrace<LL, CP, LP> >::Lock Lock;
+  typedef typename LP< VarTrace<LL, LP> >::Lock Lock;
 
   //! Store object using memcpy.
   template <typename T> void DoLog(

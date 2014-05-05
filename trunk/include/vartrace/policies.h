@@ -27,7 +27,6 @@
 
 #include <vartrace/tracetypes.h>
 #include <vartrace/utility.h>
-#include <vartrace/creation_policies.h>
 
 #include <vector>
 

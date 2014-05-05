@@ -64,7 +64,7 @@ std::string DurationToString(const Duration &duration, std::size_t count) {
 }
 
 template <class L, typename D>
-std::string LogTimeToString(const D &object, std::size_t count, L logger) {
+std::string LogTimeToString(const D &object, std::size_t count, L *logger) {
   auto begin = std::chrono::high_resolution_clock::now();
   for (std::size_t i = 0; i < count; ++i) {
     logger->Log(vartrace::kInfoLevel, 1, object);

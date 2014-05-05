@@ -23,6 +23,8 @@
 #ifndef TRUNK_INCLUDE_VARTRACE_UTILITY_H_
 #define TRUNK_INCLUDE_VARTRACE_UTILITY_H_
 
+#include <cassert>
+
 #include <vartrace/tracetypes.h>
 
 namespace vartrace {
