@@ -17,6 +17,8 @@
 
 //!  \brief Self logging object tests.
 
+#include <boost/shared_ptr.hpp>
+
 #include <gtest/gtest.h>
 
 #include <vartrace/vartrace.h>
@@ -33,9 +35,7 @@ using vartrace::Message;
 
 class SelfLoggingTestSuite : public ::testing::Test {
  public:
-  VarTrace<>::Handle trace;
-  VarTrace<>::Handle trace2;
-  VarTrace<>::Handle trace3;
+  boost::shared_ptr<VarTrace<> > trace;
 };
 
 namespace test {
@@ -45,7 +45,7 @@ class SelfLogClass {
   double dvar;
   double dont_log_array[10];
 
-  void LogItself(VarTrace<>::Pointer trace) const {
+  void LogItself(VarTrace<> *trace) const {
     trace->Log(kInfoLevel, 101, ivar);
     trace->Log(kInfoLevel, 102, dvar);
   }
@@ -59,7 +59,7 @@ TEST_F(SelfLoggingTestSuite, SelfLogTest) {
   std::size_t buffer_size = 0x1000;
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_size]);
-  trace = VarTrace<>::Create();
+  trace = boost::shared_ptr<VarTrace<> >(new VarTrace<>());
   // create and populate some objects
   test::SelfLogClass cls;
   cls.ivar = 1234;
@@ -79,7 +79,7 @@ TEST_F(SelfLoggingTestSuite, SelfLogTest) {
 //! Check logging of an array of self logging classes.
 TEST_F(SelfLoggingTestSuite, SelfLogArrayTest) {
   int buffer_size = 0x1000;
-  trace = VarTrace<>::Create();
+  trace = boost::shared_ptr<VarTrace<> >(new VarTrace<>());
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_size]);
   // create and populate some objects
@@ -128,7 +128,7 @@ TEST_F(SelfLoggingTestSuite, SelfLogTemplateTest) {
   int trace_size = 0x1000;
   int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
   int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
+  trace = boost::shared_ptr<VarTrace<> >(new VarTrace<>(trace_size));
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // create and populate some objects

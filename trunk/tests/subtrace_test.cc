@@ -17,6 +17,8 @@
 
 //!  \brief Subtrace handling tests.
 
+#include <boost/shared_ptr.hpp>
+
 #include <gtest/gtest.h>
 
 #include <vartrace/vartrace.h>
@@ -30,7 +32,7 @@ class SubtraceTestSuite : public ::testing::Test {
 };
 
 TEST_F(SubtraceTestSuite, BeginEndTest) {
-  VarTrace<>::Handle trace = VarTrace<>::Create();
+  boost::shared_ptr<VarTrace<> > trace(new VarTrace<>());
   trace->BeginSubtrace(1);
   trace->EndSubtrace();
 }
@@ -38,7 +40,7 @@ TEST_F(SubtraceTestSuite, BeginEndTest) {
 // //! Check subtrace storage explicitly.
 TEST_F(SubtraceTestSuite, LogBasicSubtraceTest) {
   int buffer_size = 0x100;
-  VarTrace<>::Handle trace = VarTrace<>::Create(buffer_size);
+  boost::shared_ptr<VarTrace<> > trace(new VarTrace<>());
   boost::shared_array<uint32_t> buffer(new uint32_t[buffer_size]);
   // create subtrace
   int m1 = 0x1234;
@@ -68,7 +70,7 @@ TEST_F(SubtraceTestSuite, ParsingBasicSubtraceTest) {
   int trace_size = 0x100;
   int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
   int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  VarTrace<>::Handle trace = VarTrace<>::Create(trace_size);
+  boost::shared_ptr<VarTrace<> > trace(new VarTrace<>(trace_size));
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // create subtrace
@@ -122,7 +124,7 @@ TEST_F(SubtraceTestSuite, DeepSubtraceTest) {
   int trace_size = 0x100;
   int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
   int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  VarTrace<>::Handle trace = VarTrace<>::Create(trace_size);
+  boost::shared_ptr<VarTrace<> > trace(new VarTrace<>(trace_size));
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // variables to hold subtrace data
@@ -177,7 +179,7 @@ TEST_F(SubtraceTestSuite, DeepSubtraceDoubleTest) {
   int trace_size = 0x800;
   int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
   int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  VarTrace<>::Handle trace = VarTrace<>::Create(trace_size);
+  boost::shared_ptr<VarTrace<> > trace(new VarTrace<>(trace_size));
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // variables to hold subtrace data
