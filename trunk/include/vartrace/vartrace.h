@@ -82,12 +82,12 @@ class VarTrace
                                  MessageIdType message_id, const T &value);
 
   //! Empty log pointer specialization for suppressed log levels.
-  template <typename T> void LogPointer(HiddenLogLevel log_level,
-                                        MessageIdType message_id,
-                                        const T *value, unsigned length = 1);
+  template <typename T> void Log(HiddenLogLevel log_level,
+                                 MessageIdType message_id,
+                                 const T *value, unsigned length);
   //! Log an array of values.
-  template <typename T> void LogPointer(LL log_level, MessageIdType message_id,
-                                        const T *value, unsigned length = 1);
+  template <typename T> void Log(LL log_level, MessageIdType message_id,
+                                 const T *value, unsigned length);
 
   //! Copy trace information into a buffer.
   /*! \note Can not be called if there is an open subtrace.
@@ -104,14 +104,6 @@ class VarTrace
   //! Conviniece typedef for locking.
   typedef typename LP< VarTrace<LL, CP, LP, AP> >::Lock Lock;
 
-  //! Helper for LogPointer for types that can log themselves.
-  template <typename T> void LogPointerHelper(
-      MessageIdType message_id, const T *value,
-      const SelfCopyTag &copy_tag, unsigned length);
-  //! Helper for LogPointer for types copied through memcpy.
-  template <typename T> void LogPointerHelper(
-      MessageIdType message_id, const T *value,
-      const SizeofCopyTag &copy_tag, unsigned length);
   //! Store object using memcpy.
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,

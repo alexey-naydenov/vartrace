@@ -103,7 +103,7 @@ void log_counter_array(const vt::VarTrace<>::Pointer trace, uint8_t id,
     array[i] = i;
   } // loop i
   cout << array.size() << endl;
-  trace->LogPointer(vt::kInfoLevel, id, &array[0], array.size());
+  trace->Log(vt::kInfoLevel, id, &array[0], array.size());
 }
 
 void arrays_10_100_1000(const vt::VarTrace<>::Pointer trace) {

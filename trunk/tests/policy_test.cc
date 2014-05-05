@@ -352,9 +352,9 @@ TEST_F(PolicyTest, LogCustomStructureArrayTest) {
   // log static array of structures
   trace->Log(kInfoLevel, 11, static_array);
   // log pointer to a structure, 1 structure stored by default
-  trace->LogPointer(kInfoLevel, 12, shared_array.get());
+  trace->Log(kInfoLevel, 12, shared_array.get(), 1);
   // log dynamically allocated array of structures
-  trace->LogPointer(kInfoLevel, 13, shared_array.get(), kArrayLength);
+  trace->Log(kInfoLevel, 13, shared_array.get(), kArrayLength);
   // dump and parse trace
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);

@@ -91,7 +91,7 @@ TEST_F(SelfLoggingTestSuite, SelfLogArrayTest) {
     anarray[i].dvar = i*i;
   }
   // log arrays
-  trace->LogPointer(kInfoLevel, 1, anarray.get(), kArrayLength);
+  trace->Log(kInfoLevel, 1, anarray.get(), kArrayLength);
   // dump this stuff
   unsigned dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);

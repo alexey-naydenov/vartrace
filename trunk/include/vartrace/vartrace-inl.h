@@ -125,31 +125,16 @@ void VarTrace<LL, CP, LP, AP>::Log(LL log_level,
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
-void VarTrace<LL, CP, LP, AP>::LogPointer(HiddenLogLevel log_level,
+void VarTrace<LL, CP, LP, AP>::Log(HiddenLogLevel log_level,
                                           MessageIdType message_id,
                                           const T *value, unsigned length) {
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
-void VarTrace<LL, CP, LP, AP>::LogPointer(LL log_level,
+void VarTrace<LL, CP, LP, AP>::Log(LL log_level,
                                           MessageIdType message_id,
                                           const T *value, unsigned length) {
-  LogPointerHelper(message_id, value, typename CopyTraits<T>::CopyCategory(),
-                   length);
-}
-
-VAR_TRACE_TEMPLATE template <typename T>
-void VarTrace<LL, CP, LP, AP>::LogPointerHelper(
-    MessageIdType message_id, const T *value, const SelfCopyTag &copy_tag,
-    unsigned length) {
-  DoLog(message_id, value, copy_tag, length);
-}
-
-VAR_TRACE_TEMPLATE template <typename T>
-void VarTrace<LL, CP, LP, AP>::LogPointerHelper(
-    MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
-    unsigned length) {
-  DoLog(message_id, value, SizeofCopyTag(), length);
+  DoLog(message_id, value, typename CopyTraits<T>::CopyCategory(), length);
 }
 
 VAR_TRACE_TEMPLATE template <typename T>
