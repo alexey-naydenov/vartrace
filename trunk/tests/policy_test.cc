@@ -16,7 +16,7 @@
 */
 
 /*! \file policy_test.cc 
-  Test policy for vartrace class.. 
+  Test policy for vartrace class.
 */
 
 #include <gtest/gtest.h>
@@ -25,7 +25,6 @@
 #include <vartrace/vartrace.h>
 #include <vartrace/messageparser.h>
 
-#include <cstdio>
 #include <limits>
 
 using vartrace::VarTrace;
@@ -34,28 +33,10 @@ using vartrace::Message;
 
 class PolicyTest : public ::testing::Test {
  public:
-  VarTrace<>::Pointer trace;
-  VarTrace<>::Pointer trace2;
-  VarTrace<>::Pointer trace3;
+  VarTrace<>::Handle trace;
+  VarTrace<>::Handle trace2;
+  VarTrace<>::Handle trace3;
 };
-
-//! NewCreator should create different objects (compiler test).
-TEST_F(PolicyTest, NewCreatorTest) {
-  int trace_size = 0x1000;
-  int block_count = 4;
-  trace = VarTrace<>::Create();
-  trace2 = VarTrace<>::Create(trace_size, block_count);
-  ASSERT_TRUE(trace);
-  ASSERT_TRUE(trace2);
-  ASSERT_NE(trace.get(), trace2.get());
-  ASSERT_TRUE(trace->is_initialized());
-  ASSERT_TRUE(trace2->is_initialized());
-  ASSERT_EQ(trace->block_count(), vartrace::kDefaultBlockCount);
-  ASSERT_EQ(trace2->block_count(), block_count);
-  ASSERT_EQ(vartrace::kDefaultTraceSize/vartrace::kDefaultBlockCount,
-            trace->block_size());
-  ASSERT_EQ(trace_size/block_count, trace2->block_size());
-}
 
 //! Test logging of many integers.
 TEST_F(PolicyTest, LogIntegersTest) {
@@ -84,7 +65,7 @@ TEST_F(PolicyTest, LogIntegersTest) {
     }
     // check all dumped messaged
     for (int j = 0; j < dumped_size/message_size; ++j) {
-      // timestamp is the message couter
+      // timestamp is the message counter
       int message_counter = buffer[j*message_length];
       // check size of the message
       ASSERT_EQ(sizeof(i), buffer[j*message_length + 1] & 0xffff);
@@ -111,9 +92,9 @@ TEST_F(PolicyTest, LogDifferentTypesTest) {
   // log different types
   char c = 1;
   trace->Log(kInfoLevel, 1, c);
-  short s = 2;
+  int16_t s = 2;
   trace->Log(kInfoLevel, 2, s);
-  unsigned short us = 3;
+  uint16_t us = 3;
   trace->Log(kInfoLevel, 3, us);
   int i = 4;
   trace->Log(kInfoLevel, 4, i);
@@ -133,13 +114,13 @@ TEST_F(PolicyTest, LogDifferentTypesTest) {
   Message smsg(&buffer[offset]);
   offset += smsg.message_size()/sizeof(vartrace::AlignmentType);
   ASSERT_EQ(2, smsg.message_type_id());
-  ASSERT_EQ(vartrace::DataType2Int<short>::id, smsg.data_type_id());
+  ASSERT_EQ(vartrace::DataType2Int<int16_t>::id, smsg.data_type_id());
   ASSERT_EQ(sizeof(s), smsg.data_size());
   // check unsigned short message
   Message usmsg(&buffer[offset]);
   offset += usmsg.message_size()/sizeof(vartrace::AlignmentType);
   ASSERT_EQ(3, usmsg.message_type_id());
-  ASSERT_EQ(vartrace::DataType2Int<unsigned short>::id, usmsg.data_type_id());
+  ASSERT_EQ(vartrace::DataType2Int<uint16_t>::id, usmsg.data_type_id());
   ASSERT_EQ(sizeof(us), usmsg.data_size());
   // check int message
   Message imsg(&buffer[offset]);
@@ -196,21 +177,15 @@ TEST_F(PolicyTest, MultipleAssignmentTest) {
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // initialize some long variables
-  long lmin = std::numeric_limits<long>::min();
-  long lmax = std::numeric_limits<long>::max();
-  unsigned long ulmax = std::numeric_limits<unsigned long>::max();
-  long long llmin = std::numeric_limits<long long>::min();
-  long long llmax = std::numeric_limits<long long>::max();
-  unsigned long long ullmax = std::numeric_limits<unsigned long long>::max();
+  int64_t lmin = std::numeric_limits<int64_t>::min();
+  int64_t lmax = std::numeric_limits<int64_t>::max();
+  uint64_t ulmax = std::numeric_limits<uint64_t>::max();
   float f = 0.123456e-22;
   double d = 0.789123e-44;
   // log everything
   trace->Log(kInfoLevel, 1, lmin);
   trace->Log(kInfoLevel, 2, lmax);
   trace->Log(kInfoLevel, 3, ulmax);
-  trace->Log(kInfoLevel, 4, llmin);
-  trace->Log(kInfoLevel, 5, llmax);
-  trace->Log(kInfoLevel, 6, ullmax);
   trace->Log(kInfoLevel, 7, f);
   trace->Log(kInfoLevel, 8, d);
   // parse trace
@@ -218,18 +193,14 @@ TEST_F(PolicyTest, MultipleAssignmentTest) {
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
   // check stored size
   ASSERT_EQ(sizeof(lmin), vt[0]->data_size());
-  ASSERT_EQ(sizeof(llmin), vt[3]->data_size());
-  ASSERT_EQ(sizeof(f), vt[6]->data_size());
-  ASSERT_EQ(sizeof(d), vt[7]->data_size());
+  ASSERT_EQ(sizeof(f), vt[3]->data_size());
+  ASSERT_EQ(sizeof(d), vt[4]->data_size());
   // check values
-  ASSERT_EQ(lmin, vt[0]->value<long>());
-  ASSERT_EQ(lmax, vt[1]->value<long>());
-  ASSERT_EQ(ulmax, vt[2]->value<unsigned long>());
-  ASSERT_EQ(llmin, vt[3]->value<long long>());
-  ASSERT_EQ(llmax, vt[4]->value<long long>());
-  ASSERT_EQ(ullmax, vt[5]->value<unsigned long long>());
-  ASSERT_EQ(f, vt[6]->value<float>());
-  ASSERT_EQ(d, vt[7]->value<double>());
+  ASSERT_EQ(lmin, vt[0]->value<int64_t>());
+  ASSERT_EQ(lmax, vt[1]->value<int64_t>());
+  ASSERT_EQ(ulmax, vt[2]->value<uint64_t>());
+  ASSERT_EQ(f, vt[3]->value<float>());
+  ASSERT_EQ(d, vt[4]->value<double>());
 }
 
 //! Check char array logging.
@@ -321,7 +292,7 @@ struct LogTestStructure {
   char anarray[13];
 };
 //! Define data type id for custom structure.
-REGISTER_VARTRACE_TYPE(LogTestStructure, 40);
+VARTRACE_SET_TYPEID(LogTestStructure, 40);
 //! Check simple structure logging.
 TEST_F(PolicyTest, LogCustomStructureTest) {
   int trace_size = 0x100;
@@ -344,7 +315,7 @@ TEST_F(PolicyTest, LogCustomStructureTest) {
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
   // check message parameters
-  ASSERT_EQ(vartrace::DataTypeTraits<LogTestStructure>::kDataTypeId,
+  ASSERT_EQ(vartrace::DataType2Int<LogTestStructure>::id,
             vt[0]->data_type_id());
   ASSERT_EQ(40, vt[0]->data_type_id());
   ASSERT_EQ(11, vt[0]->message_type_id());
@@ -381,14 +352,14 @@ TEST_F(PolicyTest, LogCustomStructureArrayTest) {
   // log static array of structures
   trace->Log(kInfoLevel, 11, static_array);
   // log pointer to a structure, 1 structure stored by default
-  trace->LogPointer(kInfoLevel, 12, shared_array.get());
+  trace->Log(kInfoLevel, 12, shared_array.get(), 1);
   // log dynamically allocated array of structures
-  trace->LogPointer(kInfoLevel, 13, shared_array.get(), kArrayLength);
+  trace->Log(kInfoLevel, 13, shared_array.get(), kArrayLength);
   // dump and parse trace
   size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
   // check static array message parameters
-  ASSERT_EQ(vartrace::DataTypeTraits<LogTestStructure>::kDataTypeId,
+  ASSERT_EQ(vartrace::DataType2Int<LogTestStructure>::id,
             vt[0]->data_type_id());
   ASSERT_EQ(sizeof(static_array), vt[0]->data_size());
   ASSERT_EQ(sizeof(LogTestStructure), vt[1]->data_size());
@@ -407,328 +378,4 @@ TEST_F(PolicyTest, LogCustomStructureArrayTest) {
   }
 }
 
-//! Check basic subtrace functionality.
-TEST_F(PolicyTest, LogBasicSubtraceTest) {
-  int trace_size = 0x100;
-  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
-  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
-  boost::shared_array<vartrace::AlignmentType> buffer(
-      new vartrace::AlignmentType[buffer_length]);
-  // create subtrace
-  int m1 = 0x1234;
-  int m2 = 0x5678;
-  int m3 = 0x9012;
-  {
-    VarTrace<>::Pointer strace(trace->CreateSubtrace(1));
-    ASSERT_FALSE(trace->can_log()); // parent can not log when subrace is active
-    strace->Log(kInfoLevel, 2, m1);
-    strace->Log(kInfoLevel, 3, m2);
-  }
-  ASSERT_TRUE(trace->can_log()); // logging reenabled
-  trace->Log(kInfoLevel, 4, m3);
-  // dump and parse trace
-  size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
-  // check resulsts
-  ASSERT_EQ(36, dumped_size);
-  ASSERT_EQ((1<<16) | 16, buffer[1]); // subtrace header
-  ASSERT_EQ(m1, buffer[3]); // first value
-  ASSERT_EQ(m2, buffer[5]); // second value
-  ASSERT_EQ(m3, buffer[8]); // third value
-}
-
-//! Check basic subtrace parsing.
-TEST_F(PolicyTest, ParsingBasicSubtraceTest) {
-  int trace_size = 0x100;
-  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
-  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
-  boost::shared_array<vartrace::AlignmentType> buffer(
-      new vartrace::AlignmentType[buffer_length]);
-  // create subtrace
-  int m1 = 0x1234;
-  int m2 = 0x5678;
-  int m3 = 0x9012;
-  {
-    VarTrace<>::Pointer strace(trace->CreateSubtrace(1));
-    strace->Log(kInfoLevel, 2, m1);
-    strace->Log(kInfoLevel, 3, m2);
-  }
-  trace->Log(kInfoLevel, 4, m3);
-  // dump and parse trace
-  size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
-  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
-  // check complex message
-  ASSERT_FALSE(vt[0]->is_nested());
-  ASSERT_TRUE(vt[0]->has_children());
-  ASSERT_EQ(0, vt[0]->data_type_id());
-  ASSERT_EQ(1, vt[0]->message_type_id());
-  ASSERT_EQ(16, vt[0]->data_size());
-  // check submessages
-  ASSERT_TRUE(vt[0]->children()[0]->is_nested());
-  ASSERT_FALSE(vt[0]->children()[0]->has_children());
-  ASSERT_EQ(vartrace::DataType2Int<int>::id,
-            vt[0]->children()[0]->data_type_id());
-  ASSERT_EQ(2, vt[0]->children()[0]->message_type_id());
-  ASSERT_EQ(4, vt[0]->children()[0]->data_size());
-  ASSERT_EQ(8, vt[0]->children()[0]->message_size());
-  ASSERT_EQ(m1, vt[0]->children()[0]->value<int>());
-  ASSERT_TRUE(vt[0]->children()[1]->is_nested());
-  ASSERT_FALSE(vt[0]->children()[1]->has_children());
-  ASSERT_EQ(vartrace::DataType2Int<int>::id,
-            vt[0]->children()[1]->data_type_id());
-  ASSERT_EQ(3, vt[0]->children()[1]->message_type_id());
-  ASSERT_EQ(4, vt[0]->children()[1]->data_size());
-  ASSERT_EQ(8, vt[0]->children()[1]->message_size());
-  ASSERT_EQ(m2, vt[0]->children()[1]->value<int>());
-  // check simple message
-  ASSERT_FALSE(vt[1]->is_nested());
-  ASSERT_FALSE(vt[1]->has_children());
-  ASSERT_EQ(vartrace::DataType2Int<int>::id, vt[1]->data_type_id());
-  ASSERT_EQ(4, vt[1]->message_type_id());
-  ASSERT_EQ(4, vt[1]->data_size());
-  ASSERT_EQ(m3, vt[1]->value<int>());
-}
-
-//! Check writing many nested subtraces.
-TEST_F(PolicyTest, DeepSubtraceTest) {
-  int trace_size = 0x100;
-  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
-  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
-  boost::shared_array<vartrace::AlignmentType> buffer(
-      new vartrace::AlignmentType[buffer_length]);
-  // variables to hold subtrace data
-  // size of the toplevel messge must be less then 3/4 of the trace size
-  const int kMaxDepth = 45;
-  VarTrace<>::Pointer strace[kMaxDepth];
-  // create toplevel message
-  strace[0] = trace->CreateSubtrace(1);
-  ASSERT_FALSE(trace->can_log());
-  // create all other subtraces
-  for (int i = 1; i < kMaxDepth; ++i) {
-    strace[i] = strace[i-1]->CreateSubtrace(2*i + 1);
-    ASSERT_FALSE(strace[i-1]->can_log());
-    ASSERT_TRUE(strace[i]->can_log());
-  }
-  // dump trace with all subtraces open, cannot parse it
-  size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
-  // check dumped with open subtraces
-  // ASSERT_EQ(vartrace::kHeaderSize + (kMaxDepth - 1)*vartrace::kNestedHeaderSize,
-  //           dumped_size);
-  // destroy subtrace starting from the deepest one
-  for (int i = kMaxDepth - 1; i >= 0; --i) {
-    ASSERT_TRUE(strace[i]->can_log());
-    strace[i].reset();
-  }
-  // dump this stuff
-  dumped_size = trace->DumpInto(buffer.get(), buffer_size);
-  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
-  // check dumped with closed subtraces
-  ASSERT_EQ(vartrace::kHeaderSize + (kMaxDepth - 1)*vartrace::kNestedHeaderSize,
-            dumped_size);
-  // check top level subtrace header
-  vartrace::Message::Pointer msg = vt[0];
-  ASSERT_FALSE(msg->is_nested());
-  ASSERT_TRUE(msg->has_children());
-  ASSERT_EQ(0, msg->data_type_id());
-  ASSERT_EQ(1, msg->message_type_id());
-  ASSERT_EQ((kMaxDepth - 1)*vartrace::kNestedHeaderSize, msg->data_size());
-  // check all other headers
-  for (int i = 1; i < kMaxDepth; ++i) {
-    msg = msg->children()[0];
-    ASSERT_TRUE(msg->is_nested());
-    if (i < kMaxDepth - 1) {
-      ASSERT_TRUE(msg->has_children());
-    } else {
-      ASSERT_FALSE(msg->has_children());
-    }
-    ASSERT_EQ(0, msg->data_type_id());
-    ASSERT_EQ(2*i + 1, msg->message_type_id());
-    ASSERT_EQ((kMaxDepth - i - 1)*vartrace::kNestedHeaderSize,
-              msg->data_size());
-  }
-}
-
-//! Check writing multiple nested subtraces with some data.
-TEST_F(PolicyTest, DeepSubtraceDoubleTest) {
-  int trace_size = 0x800;
-  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
-  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
-  boost::shared_array<vartrace::AlignmentType> buffer(
-      new vartrace::AlignmentType[buffer_length]);
-  // variables to hold subtrace data
-  // size of the toplevel messge must be less then 3/4 of the trace size
-  const int kMaxDepth = 40;
-  VarTrace<>::Pointer strace[kMaxDepth];
-  double d;
-  // create toplevel message
-  strace[0] = trace->CreateSubtrace(1);
-  ASSERT_FALSE(trace->can_log());
-  d = 0;
-  strace[0]->Log(kInfoLevel, 10, d);
-  // create all other subtraces
-  for (int i = 1; i < kMaxDepth; ++i) {
-    strace[i] = strace[i-1]->CreateSubtrace(2*i + 1);
-    ASSERT_FALSE(strace[i-1]->can_log());
-    ASSERT_TRUE(strace[i]->can_log());
-    d = i*i*i;
-    strace[i]->Log(kInfoLevel, 10 + i, d);
-  }
-  // dump trace with all subtraces open, cannot parse it
-  size_t dumped_size = trace->DumpInto(buffer.get(), buffer_size);
-  // check dumped with open subtraces and double data
-  // ASSERT_EQ(vartrace::kHeaderSize + (kMaxDepth - 1)*vartrace::kNestedHeaderSize
-  //           + kMaxDepth*12, dumped_size);
-  // destroy subtrace starting from the deepest one
-  for (int i = kMaxDepth - 1; i >= 0; --i) {
-    ASSERT_TRUE(strace[i]->can_log());
-    d = 2*i*i*i;
-    strace[i]->Log(kInfoLevel, 100 + i, d);
-    strace[i].reset();
-  }
-  // dump this stuff
-  dumped_size = trace->DumpInto(buffer.get(), buffer_size);
-  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
-  // check dumped with closed subtraces and two doubles per trace level
-  ASSERT_EQ(vartrace::kHeaderSize + (kMaxDepth - 1)*vartrace::kNestedHeaderSize
-            + 2*kMaxDepth*12, dumped_size);
-  // check top level subtrace header
-  vartrace::Message::Pointer msg = vt[0];
-  ASSERT_TRUE(msg->has_children());
-  ASSERT_EQ(0, msg->data_type_id());
-  ASSERT_EQ(1, msg->message_type_id());
-  ASSERT_EQ((kMaxDepth - 1)*vartrace::kNestedHeaderSize + 2*kMaxDepth*12,
-            msg->data_size());
-  // check all other headers
-  for (int i = 1; i < kMaxDepth; ++i) {
-    // get to the next level of nesting
-    msg = msg->children()[1];
-    // check messages with doubles
-    ASSERT_EQ(10 + i, (msg->children()[0])->message_type_id());
-    ASSERT_EQ(i*i*i, (msg->children()[0])->value<double>());
-    if (i < kMaxDepth - 1) {
-      ASSERT_EQ(100 + i, (msg->children()[2])->message_type_id());
-      ASSERT_EQ(2*i*i*i, (msg->children()[2])->value<double>());
-    } else {
-      ASSERT_EQ(100 + i, (msg->children()[1])->message_type_id());
-      ASSERT_EQ(2*i*i*i, (msg->children()[1])->value<double>());
-    }
-    // check next nested subtrace parameters
-    ASSERT_EQ(2*i + 1, msg->message_type_id());
-    ASSERT_EQ((kMaxDepth - i - 1)*vartrace::kNestedHeaderSize +
-              2*(kMaxDepth - i)*12, msg->data_size());
-  }
-}
-
-class SelfLogClass {
- public:
-  int ivar;
-  double dvar;
-  double dont_log_array[10];
-
-  void LogItself(VarTrace<>::Pointer trace) const {
-    trace->Log(kInfoLevel, 101, ivar);
-    trace->Log(kInfoLevel, 102, dvar);
-  }
-};
-namespace vartrace {
-template<> struct CopyTraits<SelfLogClass> {
-  typedef SelfCopyTag CopyCategory;
-};
-}  // namespace vartrace
-//! Check self logging class.
-TEST_F(PolicyTest, SelfLogTest) {
-  int trace_size = 0x1000;
-  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
-  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
-  boost::shared_array<vartrace::AlignmentType> buffer(
-      new vartrace::AlignmentType[buffer_length]);
-  // create and populate some objects
-  SelfLogClass cls;
-  cls.ivar = 1234;
-  cls.dvar = 12e-34;
-  // log
-  trace->Log(kInfoLevel, 1, cls);
-  // dump this stuff
-  unsigned dumped_size = trace->DumpInto(buffer.get(), buffer_size);
-  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
-  // check results
-  ASSERT_EQ(2*vartrace::kNestedHeaderSize + 3*4, vt[0]->data_size());
-  ASSERT_EQ(0, vt[0]->data_type_id());
-  ASSERT_EQ(1, vt[0]->message_type_id());
-}
-
-//! Check logging of an array of self logging classes.
-TEST_F(PolicyTest, SelfLogArrayTest) {
-  int trace_size = 0x1000;
-  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
-  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
-  boost::shared_array<vartrace::AlignmentType> buffer(
-      new vartrace::AlignmentType[buffer_length]);
-  // create and populate some objects
-  const unsigned kArrayLength = 7;
-  boost::shared_array<SelfLogClass> anarray(new SelfLogClass[kArrayLength]);
-  for (unsigned i = 0; i < kArrayLength; ++i) {
-    anarray[i].ivar = i;
-    anarray[i].dvar = i*i;
-  }
-  // log arrays
-  trace->LogPointer(kInfoLevel, 1, anarray.get(), kArrayLength);
-  // dump this stuff
-  unsigned dumped_size = trace->DumpInto(buffer.get(), buffer_size);
-  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
-  // check results
-  ASSERT_EQ(kArrayLength*(2*vartrace::kNestedHeaderSize + 3*4),
-            vt[0]->data_size());
-  for (unsigned i = 0; i < kArrayLength; ++i) {
-    ASSERT_EQ(101, vt[0]->children()[2*i]->message_type_id());
-    ASSERT_EQ(i, vt[0]->children()[2*i]->value<int>());
-    ASSERT_EQ(102, vt[0]->children()[2*i + 1]->message_type_id());
-    ASSERT_EQ(i*i, vt[0]->children()[2*i + 1]->value<double>());
-  }
-}
-
-class SelfLogTemplateClass {
- public:
-  int ivar;
-  double dvar;
-  double dont_log_array[10];
-
-  template<class LoggerHandle>
-  void LogItself(LoggerHandle trace) const {
-    trace->Log(kInfoLevel, 101, ivar);
-    trace->Log(kInfoLevel, 102, dvar);
-  }
-};
-namespace vartrace {
-template<> struct CopyTraits<SelfLogTemplateClass> {
-  typedef SelfCopyTag CopyCategory;
-};
-}  // namespace vartrace
-//! Check self logging template class.
-TEST_F(PolicyTest, SelfLogTemplateTest) {
-  int trace_size = 0x1000;
-  int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
-  int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
-  boost::shared_array<vartrace::AlignmentType> buffer(
-      new vartrace::AlignmentType[buffer_length]);
-  // create and populate some objects
-  SelfLogTemplateClass cls;
-  cls.ivar = 1234;
-  cls.dvar = 12e-34;
-  // log
-  trace->Log(kInfoLevel, 1, cls);
-  // dump this stuff
-  unsigned dumped_size = trace->DumpInto(buffer.get(), buffer_size);
-  vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
-  // check results
-  ASSERT_EQ(2*vartrace::kNestedHeaderSize + 3*4, vt[0]->data_size());
-  ASSERT_EQ(0, vt[0]->data_type_id());
-  ASSERT_EQ(1, vt[0]->message_type_id());
-}
 

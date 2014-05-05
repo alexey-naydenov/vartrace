@@ -1,4 +1,4 @@
-/* vartrace.cc
+/* utility.cc
    Copyright (C) 2011 Alexey Naydenov <alexey.naydenovREMOVETHIS@gmail.com>
    
    This program is free software: you can redistribute it and/or modify
@@ -15,10 +15,22 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*! \file vartrace.cc 
-  Empty functions. 
+/*! \file utility.cc 
+  Implementation of utility functions. 
 */
 
-#include <vartrace/vartrace.h>
+#include <vartrace/utility.h>
 
+namespace vartrace {
+namespace {
+TimestampType incremental_timestamp = 0;
+}  // unnamed namespace
 
+TimestampType IncrementalTimestamp() {
+  return incremental_timestamp++;
+}
+
+TimestampType ZeroTimestamp() {
+  return 0;
+}
+}  // namespace vartrace
