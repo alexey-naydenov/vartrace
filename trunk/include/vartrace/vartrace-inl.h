@@ -25,8 +25,7 @@
 #include <cstddef>
 #include <cstring>
 #include <algorithm>
-
-#include <iostream>
+#include <vector>
 
 namespace vartrace {
 
@@ -37,6 +36,10 @@ const unsigned kInitialSubtraceDepth = 8;
 #define VAR_TRACE_TEMPLATE                              \
   template <class LL, template <class> class CP,        \
             template <class> class LP, class AP>
+
+#define VAR_TRACE_TEMPLATE_T                            \
+  template <class LL, template <class> class CP,        \
+            template <class> class LP, class AP> template <typename T>
 
 VAR_TRACE_TEMPLATE
 VarTrace<LL, CP, LP, AP>::VarTrace()
@@ -113,31 +116,38 @@ void VarTrace<LL, CP, LP, AP>::CreateHeader(MessageIdType message_id,
   IncrementCurrentIndex();
 }
 
-VAR_TRACE_TEMPLATE template <typename T>
+VAR_TRACE_TEMPLATE_T
 void VarTrace<LL, CP, LP, AP>::Log(HiddenLogLevel log_level,
                                    MessageIdType message_id, const T &value) {
 }
 
-VAR_TRACE_TEMPLATE template <typename T>
+VAR_TRACE_TEMPLATE_T
 void VarTrace<LL, CP, LP, AP>::Log(LL log_level,
                                    MessageIdType message_id, const T &value) {
   DoLog(message_id, &value, typename CopyTraits<T>::CopyCategory(), 1);
 }
 
-VAR_TRACE_TEMPLATE template <typename T>
+VAR_TRACE_TEMPLATE_T
 void VarTrace<LL, CP, LP, AP>::Log(HiddenLogLevel log_level,
-                                          MessageIdType message_id,
-                                          const T *value, unsigned length) {
+                                   MessageIdType message_id,
+                                   const T *value, unsigned length) {
 }
 
-VAR_TRACE_TEMPLATE template <typename T>
+VAR_TRACE_TEMPLATE_T
 void VarTrace<LL, CP, LP, AP>::Log(LL log_level,
-                                          MessageIdType message_id,
-                                          const T *value, unsigned length) {
+                                   MessageIdType message_id,
+                                   const T *value, unsigned length) {
   DoLog(message_id, value, typename CopyTraits<T>::CopyCategory(), length);
 }
 
-VAR_TRACE_TEMPLATE template <typename T>
+VAR_TRACE_TEMPLATE_T
+void VarTrace<LL, CP, LP, AP>::Log(LL log_level, MessageIdType message_id,
+                                   const std::vector<T> &value) {
+  DoLog(message_id, &value[0], typename CopyTraits<T>::CopyCategory(),
+        value.size());
+}
+
+VAR_TRACE_TEMPLATE_T
 void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                      const AssignmentCopyTag &copy_tag,
                                      unsigned length) {
@@ -148,12 +158,11 @@ void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
   UpdateBlock();
 }
 
-VAR_TRACE_TEMPLATE template <typename T>
+VAR_TRACE_TEMPLATE_T
 void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                      const ContainerCopyTag &copy_tag,
                                      unsigned length) {
   Lock guard(*this);
-  std::cout << "============== ok\n";
   std::size_t data_size = sizeof(T::value_type)*value->size();
   CreateHeader(message_id, DataType2Int<typename T::value_type>::id, data_size);
   std::size_t split_index = value->size();
@@ -203,7 +212,7 @@ void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
   UpdateBlock();
 }
 
-VAR_TRACE_TEMPLATE template <typename T>
+VAR_TRACE_TEMPLATE_T
 void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                      const SizeofCopyTag &copy_tag,
                                      unsigned length) {
@@ -236,7 +245,7 @@ void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
   UpdateBlock();
 }
 
-VAR_TRACE_TEMPLATE template <typename T>
+VAR_TRACE_TEMPLATE_T
 void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
                                      const SelfCopyTag &copy_tag,
                                      unsigned length) {
