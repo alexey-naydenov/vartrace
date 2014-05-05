@@ -142,14 +142,14 @@ class VarTrace
         + (data_id << kDataIdShift);
   }
   //! Increment position for the next write.
-  void IncrementCurrentIndex();
+  inline void IncrementCurrentIndex();
   //! Next wrapped around index.
-  int NextIndex(int index);
+  inline int NextIndex(int index);
   //! Next block index.
-  int NextBlock(int block_index);
+  inline int NextBlock(int block_index);
   //! Write message header.
-  void CreateHeader(MessageIdType message_id, DataIdType data_id,
-                    unsigned object_size);
+  inline void CreateHeader(MessageIdType message_id, DataIdType data_id,
+                           unsigned object_size);
   bool is_initialized_; //!< Set to true after memory allocation.
   unsigned is_top_level_;  //!< Set to 0 in the subtrace mode, 1 otherwise.
   std::vector<unsigned> subtrace_header_positions_;
