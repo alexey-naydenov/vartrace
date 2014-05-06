@@ -44,8 +44,11 @@ const unsigned kNestedHeaderLength = CEIL_DIV(kNestedHeaderSize,
 //! Length of a header with a timestamp.
 const unsigned kHeaderLength = CEIL_DIV(kHeaderSize, sizeof(AlignmentType));
 
+//! Constant to get rid of magic numbers.
 const unsigned kBitsPerByte = 8;
+//! Position of message id inside header.
 const unsigned kMessageIdShift = kBitsPerByte*sizeof(LengthType);
+//! Position of data id inside header.
 const unsigned kDataIdShift = kBitsPerByte*(sizeof(MessageIdType)
                                             + sizeof(LengthType));
 

@@ -37,9 +37,12 @@
 namespace vartrace {
 
 namespace internal {
+//! Default number of used blocks.
 const unsigned kDefaultBlockCount = 8;
-const unsigned kDefaultTraceSize = 0x1000;
+//! Minimum allowed number of blocks.
 const unsigned kMinBlockCount = 4;
+//! Trace size by default.
+const unsigned kDefaultTraceSize = 0x1000;
 } // namespace internal
 
 /*! Class for variable trace objects. */
@@ -53,13 +56,12 @@ class VarTrace
     : public LP< VarTrace<LL, LP> > {
  public:
   //! Create a new trace with the given number of blocks and block size.
-  /*! \note The constructor should not be called directly, use Create
-    function provided by creation policy.
+  /*! Last parameter can be used to specify preallocated storage space.
    */
   VarTrace(std::size_t trace_size = internal::kDefaultTraceSize,
            std::size_t block_count = internal::kDefaultBlockCount,
            void *storage = NULL);
-  void Initialize();
+  //! Free memory.
   ~VarTrace();
 
   //! Returns true after memory allocation.
@@ -68,64 +70,67 @@ class VarTrace
   bool is_subtrace() const { return is_top_level_ == 0; }
   //! Number of memory blocks used to store trace.
   unsigned block_count() const { return block_count_; }
-  //! Approximate size of each block in bytes.
+  //! Size of each block in bytes.
   unsigned block_size() const {
     return sizeof(AlignmentType)*block_length_;
   }
 
-  //! Store a variable value in the trace.
+  //! Empty Log overload used for messages below log level.
   template <typename T>
   void Log(HiddenLogLevel log_level, MessageIdType message_id, const T &value);
-
+  //! Logging function used for objects, PODs and arrays.
   template <typename T>
   void Log(LL log_level, MessageIdType message_id, const T &value);
-
-  //! Empty log pointer specialization for suppressed log levels.
+  //! Empty array Log overload for suppressed log levels.
   template <typename T>
   void Log(HiddenLogLevel log_level, MessageIdType message_id, const T *value,
            unsigned length);
-  //! Log an array of values.
+  //! Array logging function.
   template <typename T>
   void Log(LL log_level, MessageIdType message_id, const T *value,
            unsigned length);
-
+  //! Log overload for vector.
   template <typename T>
   void Log(LL log_level, MessageIdType message_id, const std::vector<T> &value);
-
+  //! Log overload for std::string.
   void Log(LL log_level, MessageIdType message_id, const std::string &value);
 
   //! Copy trace information into a buffer.
   /*! \note Can not be called if there is an open subtrace.
    */
   unsigned DumpInto(void *buffer, unsigned size);
-
+  //! Start subtrace.
   void BeginSubtrace(MessageIdType subtrace_id);
+  //! End subtrace.
   void EndSubtrace();
-
+  //! Assign timestamp function.
   void SetTimestampFunction(TimestampFunctionType timestamp_function);
 
  private:
   //! Conviniece typedef for locking.
   typedef typename LP< VarTrace<LL, LP> >::Lock Lock;
 
-  //! Store object using memcpy.
+  //! Initialize memory and counters.
+  void Initialize();
+
+  //! Overloading of actual logging function that uses memcpy.
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
       unsigned length);
-  //! Store a variable using assignment.
+  //! Overloading of logging function that copies through assignment.
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value,
       const AssignmentCopyTag &copy_tag, unsigned length);
-  //! Class stores itself in a subtrace.
+  //! Overloading of logging function that calls class method for logging.
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value,
       const SelfCopyTag &copy_tag, unsigned length);
 
-  //! Store array using memcpy.
+  //! Force array copy through memcpy for types that copied through assignment.
   template <typename T> void DoLogArray(
       MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
       unsigned length);
-  //! Store array using self copy.
+  //! Store self logging array.
   template <typename T> void DoLogArray(
       MessageIdType message_id, const T *value, const SelfCopyTag &copy_tag,
       unsigned length);
