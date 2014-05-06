@@ -24,6 +24,8 @@
 #define TRUNK_INCLUDE_VARTRACE_UTILITY_H_
 
 #include <cassert>
+#include <cstdlib>
+#include <utility>
 
 #include <vartrace/tracetypes.h>
 
@@ -55,6 +57,16 @@ TimestampType ZeroTimestamp();
 //! Round size to AlignmentType boundary.
 inline unsigned RoundSize(unsigned size) {
   return CEIL_DIV(size, sizeof(AlignmentType));
+}
+
+//! Return pointer >= then given aligned to AlignemntType boundary and shift.
+inline std::pair<AlignmentType *, std::size_t> AlignPointer(void *ptr) {
+  std::size_t addr = reinterpret_cast<std::size_t>(ptr);
+  std::size_t mask = sizeof(AlignmentType) - 1;
+  std::size_t aligned_addr = (addr & (~mask))
+      + sizeof(AlignmentType)*((addr & mask) > 0);
+  return std::make_pair(reinterpret_cast<AlignmentType *>(aligned_addr),
+                        aligned_addr - addr);
 }
 
 //! Fill an integer with ones from MSB to 0.

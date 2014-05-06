@@ -31,11 +31,14 @@
 namespace vartrace {
 
 namespace internal {
+//! The initially reserved space for nested subtrace headers indices.
 const unsigned kInitialSubtraceDepth = 8;
 }  // namespace internal
 
+//! Macros to simplify member function definition.
 #define VAR_TRACE_TEMPLATE template <class LL, template <class> class LP>
 
+//! Macros to simplify Log function definition.
 #define VAR_TRACE_TEMPLATE_T                                            \
   template <class LL, template <class> class LP> template <typename T>
 
@@ -111,7 +114,6 @@ void VarTrace<LL, LP>::CreateHeader(MessageIdType message_id,
   // if not top level then timestamp will be overwritten
   data_[current_index_] = (get_timestamp_)();
   current_index_ = (current_index_ + is_top_level_) & index_mask_;
-  // write object size, message and data ids
   FormDescription(message_id, data_id, object_size, current_index_);
   IncrementCurrentIndex();
 }

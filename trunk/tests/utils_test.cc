@@ -27,6 +27,8 @@ using vartrace::CeilPower2;
 using vartrace::FloorPower2;
 using vartrace::CeilLog2;
 using vartrace::FloorLog2;
+using vartrace::AlignmentType;
+using vartrace::AlignPointer;
 
 class UtilsTestSuite : public ::testing::Test {
 };
@@ -78,4 +80,28 @@ TEST_F(UtilsTestSuite, FloorLog2Test) {
   ASSERT_EQ(FloorLog2(5), 2);
   ASSERT_EQ(FloorLog2(0x80000000u), 31);
   ASSERT_EQ(FloorLog2(0x7FFFFFFFu), 30);
+}
+
+TEST_F(UtilsTestSuite, AlignPointerTest) {
+  ASSERT_EQ(reinterpret_cast<AlignmentType *>(0),
+            AlignPointer(reinterpret_cast<void *>(0)).first);
+  ASSERT_EQ(reinterpret_cast<AlignmentType *>(0) + 1,
+            AlignPointer(reinterpret_cast<void *>(1)).first);
+  ASSERT_EQ(reinterpret_cast<AlignmentType *>(0) + 1,
+            AlignPointer(reinterpret_cast<void *>(
+                sizeof(AlignmentType))).first);
+  ASSERT_EQ(reinterpret_cast<AlignmentType *>(0) + 111,
+            AlignPointer(reinterpret_cast<void *>(
+                111*sizeof(AlignmentType))).first);
+  ASSERT_EQ(0, AlignPointer(reinterpret_cast<void *>(
+      111*sizeof(AlignmentType))).second);
+  for (unsigned i = 1; i < sizeof(AlignmentType); ++i) {
+    ASSERT_EQ(
+        reinterpret_cast<AlignmentType *>(0) + 11 + 1,
+        AlignPointer(reinterpret_cast<void *>(
+            11*sizeof(AlignmentType) + i)).first);
+    ASSERT_EQ(sizeof(AlignmentType) - i,
+              AlignPointer(reinterpret_cast<void *>(
+                  11*sizeof(AlignmentType) + i)).second);
+  }
 }
