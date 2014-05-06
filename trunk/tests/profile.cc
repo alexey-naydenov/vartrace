@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*! \file profile_int.cc 
-  Log many integers to measure library performance. 
+/*! \file profile.cc 
+  Measure logging time of PODs, arrays and self logging classes.
 */
 
 #include <iostream>
@@ -38,29 +38,30 @@ using vartrace::kInfoLevel;
          << LogTimeToString(val, count, &trace) << endl;                \
   } while (false)
 
+//! Class for measure logging time of self logging class.
 class SelfLogging {
  public:
-  int ivar1;
-  int ivar2;
-  int ivar3;
-
+  int ivar1; //!< Variable that is logged.
+  int ivar2; //!< Unused variable.
+  int ivar3; //!< Unused variable.
+  //! Function that stores class in a log.
   void LogItself(VarTrace<> *trace) const {
     trace->Log(kInfoLevel, 101, ivar1);
   }
 };
-
+//! Structure for measuring logging time of 8 chars.
 struct CharArray8 {
   char cs[8];
 };
-
+//! Structure for measuring logging time of 16 chars.
 struct CharArray16 {
   char cs[16];
 };
-
+//! Structure for measuring logging time of 32 chars.
 struct CharArray32 {
   char cs[32];
 };
-
+//! Structure for measuring logging time of 64 chars.
 struct CharArray64 {
   char cs[64];
 };

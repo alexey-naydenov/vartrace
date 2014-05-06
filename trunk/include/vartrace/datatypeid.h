@@ -63,16 +63,27 @@ struct DataType2Int<T[L]> {
   };                                                    \
   }
 
+//! Specialize DataType2Int to assign data id to int8_t.
 VARTRACE_SET_TYPEID(int8_t, 0x1);
+//! Specialize DataType2Int to assign data id to uint8_t.
 VARTRACE_SET_TYPEID(uint8_t, 0x2);
+//! Specialize DataType2Int to assign data id to int16_t.
 VARTRACE_SET_TYPEID(int16_t, 0x3);
+//! Specialize DataType2Int to assign data id to uint16_t.
 VARTRACE_SET_TYPEID(uint16_t, 0x4);
+//! Specialize DataType2Int to assign data id to int32_t.
 VARTRACE_SET_TYPEID(int32_t, 0x5);
+//! Specialize DataType2Int to assign data id to uint32_t.
 VARTRACE_SET_TYPEID(uint32_t, 0x6);
+//! Specialize DataType2Int to assign data id to int64_t.
 VARTRACE_SET_TYPEID(int64_t, 0x7);
+//! Specialize DataType2Int to assign data id to uint64_t.
 VARTRACE_SET_TYPEID(uint64_t, 0x8);
+//! Specialize DataType2Int to assign data id to float.
 VARTRACE_SET_TYPEID(float, 0xf);
+//! Specialize DataType2Int to assign data id to double.
 VARTRACE_SET_TYPEID(double, 0xd);
+//! Specialize DataType2Int to assign data id to char.
 VARTRACE_SET_TYPEID(char, 0xc);
 
 #endif  // TRUNK_INCLUDE_VARTRACE_DATATYPEID_H_
