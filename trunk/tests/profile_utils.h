@@ -23,6 +23,7 @@
 #include <cmath>
 #include <string>
 #include <vector>
+#include <utility>
 #include <chrono>
 #include <sstream>
 #include <iostream>
@@ -31,9 +32,11 @@
 #include <vartrace/vartrace.h>
 
 typedef std::pair<std::string, double> NameNsRatio;
-std::vector<NameNsRatio> kNameToRatio{
+
+std::vector<NameNsRatio> kNameToRatio {
   NameNsRatio{"s", 1e9}, NameNsRatio{"ms", 1e6},
   NameNsRatio{"us", 1e3}, NameNsRatio{"ns", 1}};
+
 std::string kSeparator{" "};
 
 template <class Duration>

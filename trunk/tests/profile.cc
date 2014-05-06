@@ -35,7 +35,7 @@ using vartrace::kInfoLevel;
 #define MEASURE_TYPE(type, count) do {                                  \
     type val{};                                                         \
     cout << std::setw(20) << #type << " "                               \
-         << LogTimeToString(val, count, &trace) << endl;                 \
+         << LogTimeToString(val, count, &trace) << endl;                \
   } while (false)
 
 class SelfLogging {

@@ -1,6 +1,6 @@
 include_directories (".")
 
-set (test_srcs policy_test.cc utils_test.cc subtrace_test.cc
+set (test_srcs types_test.cc utils_test.cc subtrace_test.cc
   selflog_test.cc containers_test.cc)
 add_executable(vartrace_test ${test_srcs} vartrace_test.cc)
 target_link_libraries(vartrace_test ${GTEST_LIB} vartrace pthread)
