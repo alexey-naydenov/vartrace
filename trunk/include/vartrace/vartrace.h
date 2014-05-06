@@ -45,6 +45,22 @@ const unsigned kMinBlockCount = 4;
 const unsigned kDefaultTraceSize = 0x1000;
 } // namespace internal
 
+//! Guard that starts subtrace on create and closes on destroy.
+template <class T> class SubtraceGuard {
+ public:
+  //! Begin subtrace and store trace pointer.
+  SubtraceGuard(T *trace, MessageIdType subtrace_id) : trace_(trace) {
+    trace_->BeginSubtrace(subtrace_id);
+  }
+  //! End subtrace.
+  ~SubtraceGuard() {
+    trace_->EndSubtrace();
+  }
+ private:
+  //! Pointer to trace in which subtrace was created.
+  T *trace_;
+};
+
 /*! Class for variable trace objects. */
 // size of a block must be bigger then sizeof of biggest type + 8
 // logging array or class must be smaller then block size
@@ -103,6 +119,7 @@ class VarTrace
   void BeginSubtrace(MessageIdType subtrace_id);
   //! End subtrace.
   void EndSubtrace();
+
   //! Assign timestamp function.
   void SetTimestampFunction(TimestampFunctionType timestamp_function);
 

@@ -25,6 +25,7 @@
 #include <vartrace/messageparser.h>
 
 using vartrace::VarTrace;
+using vartrace::SubtraceGuard;
 using vartrace::kInfoLevel;
 
 //! Subtrace test suite, empty.
@@ -35,8 +36,16 @@ class SubtraceTestSuite : public ::testing::Test {
 //! Simple test that starts and ends subtrace.
 TEST_F(SubtraceTestSuite, BeginEndTest) {
   boost::shared_ptr<VarTrace<> > trace(new VarTrace<>());
+  ASSERT_FALSE(trace->is_subtrace());
   trace->BeginSubtrace(1);
+  ASSERT_TRUE(trace->is_subtrace());
   trace->EndSubtrace();
+  ASSERT_FALSE(trace->is_subtrace());
+  {
+    SubtraceGuard<VarTrace<> > guard(trace.get(), 2);
+    ASSERT_TRUE(trace->is_subtrace());
+  }
+  ASSERT_FALSE(trace->is_subtrace());
 }
 
 //! Explicitly check how subtrace is stored.
