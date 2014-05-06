@@ -43,9 +43,12 @@ namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 namespace vt = vartrace;
 
+//! Trace size used to generate sample log.
 const size_t kTraceSize = 0x10000;
+//! Buffer size to serialize sample log.
 const size_t kDumpBufferSize = kTraceSize;
 
+//! X-macros that list generators used to create sample log.
 #define GENERATORS                               \
   ADD(empty)                                     \
   ADD(integer_count_1000)                        \
@@ -54,11 +57,11 @@ const size_t kDumpBufferSize = kTraceSize;
 
 
 //! Generate empty trace.
-void empty(const vt::VarTrace<>::Pointer trace) {
+void empty(vt::VarTrace<> *trace) {
 }
 
 //! Generate integer count from 0 to 999, mesage id 1.
-void integer_count_1000(const vt::VarTrace<>::Pointer trace) {
+void integer_count_1000(vt::VarTrace<> *trace) {
   for (size_t i = 0; i < 1000; ++i) {
     trace->Log(vt::kInfoLevel, 1, i);
   } // loop i
@@ -66,7 +69,7 @@ void integer_count_1000(const vt::VarTrace<>::Pointer trace) {
 
 //! Log min, 0, 123, max in the trace.
 template <typename T>
-uint8_t log_type_samples(const vt::VarTrace<>::Pointer trace, uint8_t id) {
+uint8_t log_type_samples(vt::VarTrace<> *trace, uint8_t id) {
   T value;
   value = std::numeric_limits<T>::min();
   trace->Log(vt::kInfoLevel, id++, value);
@@ -80,7 +83,7 @@ uint8_t log_type_samples(const vt::VarTrace<>::Pointer trace, uint8_t id) {
 }
 
 //! Log different possible types 4 times: min, 0, 123, max (incremental id).
-void assorted_types(const vt::VarTrace<>::Pointer trace) {
+void assorted_types(vt::VarTrace<> *trace) {
   uint8_t id = 0;
   id = log_type_samples<int8_t>(trace, id);
   id = log_type_samples<uint8_t>(trace, id);
@@ -96,8 +99,7 @@ void assorted_types(const vt::VarTrace<>::Pointer trace) {
 
 //! Log an array of given size that contains counter.
 template <typename T>
-void log_counter_array(const vt::VarTrace<>::Pointer trace, uint8_t id,
-                       size_t length) {
+void log_counter_array(vt::VarTrace<> *trace, uint8_t id, size_t length) {
   std::vector<T> array(length);
   for (std::size_t i = 0; i != array.size(); ++i) {
     array[i] = i;
@@ -106,7 +108,8 @@ void log_counter_array(const vt::VarTrace<>::Pointer trace, uint8_t id,
   trace->Log(vt::kInfoLevel, id, &array[0], array.size());
 }
 
-void arrays_10_100_1000(const vt::VarTrace<>::Pointer trace) {
+//! Log a few arrays of different sizes.
+void arrays_10_100_1000(vt::VarTrace<> *trace) {
   log_counter_array<int>(trace, 0, 10);
   log_counter_array<int>(trace, 1, 100);
   log_counter_array<int>(trace, 2, 1000);
@@ -115,10 +118,10 @@ void arrays_10_100_1000(const vt::VarTrace<>::Pointer trace) {
 //! Buffer for trace serialization.
 char dump_buffer[kDumpBufferSize];
 
-typedef void (*SampleGenerator)(const vt::VarTrace<>::Pointer);
+typedef void (*SampleGenerator)(vt::VarTrace<> *);
 
 //! Fake generator, placed last in #kGenerators array.
-void end_generator(const vt::VarTrace<>::Pointer trace) {
+void end_generator(vt::VarTrace<> *trace) {
   assert(false);
 }
 
@@ -192,9 +195,9 @@ bool create_path(const fs::path &path) {
 //! Create trace, use generator to fill it and dump into file at given path.
 bool generate(const std::string &file_path, SampleGenerator sample_generator) {
   cout << "Generating " << file_path << " ...\n";
-  vt::VarTrace<>::Pointer trace =  vt::VarTrace<>::Create(kTraceSize);
-  sample_generator(trace);
-  size_t dumped_size = trace->DumpInto(dump_buffer, kDumpBufferSize);
+  vt::VarTrace<> trace =  vt::VarTrace<>(kTraceSize);
+  sample_generator(&trace);
+  size_t dumped_size = trace.DumpInto(dump_buffer, kDumpBufferSize);
   assert(dumped_size <= kDumpBufferSize);
   std::ofstream outfile(file_path.c_str(), std::ios::trunc | std::ios::binary);
   outfile.write(dump_buffer, dumped_size);
