@@ -27,9 +27,8 @@
 namespace vartrace {
 
 namespace internal {
+//! Default timestamp function that returns counter.
 TimestampType IncrementalTimestamp();
-unsigned CalculateLog2Count(unsigned trace_size, unsigned block_count);
-unsigned CalculateLog2Length(unsigned trace_size, unsigned block_count);
 }  // namespace internal
 
 }  // namespace vartrace

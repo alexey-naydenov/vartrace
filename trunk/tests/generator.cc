@@ -118,6 +118,7 @@ void arrays_10_100_1000(vt::VarTrace<> *trace) {
 //! Buffer for trace serialization.
 char dump_buffer[kDumpBufferSize];
 
+//! Typedef for sample generator functions.
 typedef void (*SampleGenerator)(vt::VarTrace<> *);
 
 //! Fake generator, placed last in #kGenerators array.
@@ -125,14 +126,17 @@ void end_generator(vt::VarTrace<> *trace) {
   assert(false);
 }
 
+//! ADD(x) definition to calculate the number of generators.
 #define ADD(x) 1 +
 //! Number of functions for generating vartrace samples.
 size_t kGeneratorsCount = GENERATORS 0;
 #undef ADD
+//! ADD(x) definition to create array of pointers to generator functions.
 #define ADD(x) x,
 //! Array of sample generation functions.
 SampleGenerator kGenerators[] = {GENERATORS end_generator};
 #undef ADD
+//! ADD(x) definition to create array of generator functions names.
 #define ADD(x) #x,
 //! Array of names of sample generation functions, used to name files.
 const char *kGeneratorNames[] = {GENERATORS "end_generator"};
@@ -205,6 +209,8 @@ bool generate(const std::string &file_path, SampleGenerator sample_generator) {
   return true;
 }
 
+
+//! Create files with sample traces.
 int main(int argc, char *argv[]) {
   po::variables_map args = parse_commandline(argc, argv);
   if (args.count("help")) {

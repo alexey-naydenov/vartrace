@@ -27,17 +27,19 @@
 using vartrace::VarTrace;
 using vartrace::kInfoLevel;
 
+//! Subtrace test suite, empty.
 class SubtraceTestSuite : public ::testing::Test {
  public:
 };
 
+//! Simple test that starts and ends subtrace.
 TEST_F(SubtraceTestSuite, BeginEndTest) {
   boost::shared_ptr<VarTrace<> > trace(new VarTrace<>());
   trace->BeginSubtrace(1);
   trace->EndSubtrace();
 }
 
-// //! Check subtrace storage explicitly.
+//! Explicitly check how subtrace is stored.
 TEST_F(SubtraceTestSuite, LogBasicSubtraceTest) {
   int buffer_size = 0x100;
   boost::shared_ptr<VarTrace<> > trace(new VarTrace<>());

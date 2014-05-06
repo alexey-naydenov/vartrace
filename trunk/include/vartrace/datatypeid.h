@@ -32,12 +32,14 @@
 #ifndef TRUNK_INCLUDE_VARTRACE_DATATYPEID_H_
 #define TRUNK_INCLUDE_VARTRACE_DATATYPEID_H_
 
+#include <vartrace/type_codes.h>
+
 namespace vartrace {
 
 //! Type id assigned by default to unknown variables.
 template <typename T, unsigned L = 1> struct DataType2Int {
   enum {
-    id = 0xff
+    id = kTypeIdUnknown
   };
 };
 //! Type to id mapping for static arrays.
@@ -53,7 +55,7 @@ struct DataType2Int<T[L]> {
 /*! In order to store a user type in a trace one has to declare in some
   header before logging:
   \code
-  REGISTER_VARTRACE_TYPE(UserType, 0xXX);
+  VARTRACE_SET_TYPEID(UserType, 0xXX);
   \endcode
  */
 #define VARTRACE_SET_TYPEID(Type, type_id)              \
@@ -64,26 +66,26 @@ struct DataType2Int<T[L]> {
   }
 
 //! Specialize DataType2Int to assign data id to int8_t.
-VARTRACE_SET_TYPEID(int8_t, 0x1);
+VARTRACE_SET_TYPEID(int8_t, kTypeIdInt8);
 //! Specialize DataType2Int to assign data id to uint8_t.
-VARTRACE_SET_TYPEID(uint8_t, 0x2);
+VARTRACE_SET_TYPEID(uint8_t, kTypeIdUint8);
 //! Specialize DataType2Int to assign data id to int16_t.
-VARTRACE_SET_TYPEID(int16_t, 0x3);
+VARTRACE_SET_TYPEID(int16_t, kTypeIdInt16);
 //! Specialize DataType2Int to assign data id to uint16_t.
-VARTRACE_SET_TYPEID(uint16_t, 0x4);
+VARTRACE_SET_TYPEID(uint16_t, kTypeIdUint16);
 //! Specialize DataType2Int to assign data id to int32_t.
-VARTRACE_SET_TYPEID(int32_t, 0x5);
+VARTRACE_SET_TYPEID(int32_t, kTypeIdInt32);
 //! Specialize DataType2Int to assign data id to uint32_t.
-VARTRACE_SET_TYPEID(uint32_t, 0x6);
+VARTRACE_SET_TYPEID(uint32_t, kTypeIdUint32);
 //! Specialize DataType2Int to assign data id to int64_t.
-VARTRACE_SET_TYPEID(int64_t, 0x7);
+VARTRACE_SET_TYPEID(int64_t, kTypeIdInt64);
 //! Specialize DataType2Int to assign data id to uint64_t.
-VARTRACE_SET_TYPEID(uint64_t, 0x8);
+VARTRACE_SET_TYPEID(uint64_t, kTypeIdUint64);
 //! Specialize DataType2Int to assign data id to float.
-VARTRACE_SET_TYPEID(float, 0xf);
+VARTRACE_SET_TYPEID(float, kTypeIdFloat);
 //! Specialize DataType2Int to assign data id to double.
-VARTRACE_SET_TYPEID(double, 0xd);
+VARTRACE_SET_TYPEID(double, kTypeIdDouble);
 //! Specialize DataType2Int to assign data id to char.
-VARTRACE_SET_TYPEID(char, 0xc);
+VARTRACE_SET_TYPEID(char, kTypeIdChar);
 
 #endif  // TRUNK_INCLUDE_VARTRACE_DATATYPEID_H_

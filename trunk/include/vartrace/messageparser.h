@@ -32,37 +32,56 @@
 
 namespace vartrace {
 
-//! Holds information about a message.
+//! Class for parsing and storing VarTrace messages.
 class Message {
  public:
+  //! Convenience typedef.
   typedef boost::shared_ptr<Message> Pointer;
+
+  //! Read message from buffer and return pointer to it.
   static Pointer Parse(void *byte_stream, bool is_nested = false);
+
+  //! Default constructor.
   Message();
+  //! Construct message from stream.
   Message(void *byte_stream, bool is_nested = false);
+  //! Empty destructor.
   ~Message() {}
+
+  //! True if message is nested.
   bool is_nested() const {return is_nested_;}
+  //! True if message contains other messages.
   bool has_children() const {return has_children_;}
+  //! Return timestamp.
   unsigned timestamp() const {return timestamp_;}
+  //! Return data type id.
   int data_type_id() const {return data_type_id_;}
+  //! Return message type id.
   int message_type_id() const {return message_type_id_;}
+  //! Return size of data in message.
   int data_size() const {return data_size_;}
+  //! Return size of message with header and padding.
   int message_size() const {return sizeof(AlignmentType)*message_length_;}
+  //! Interpret data as value of given type.
   template <typename T> T value() const;
+  //! Interpret data as pointer to given type.
   template <typename T> T* pointer() const;
+  //! Return vector of pointers to children.
   const std::vector<Pointer>& children() const {return children_;}
 
  private:
+  //! Function that does actual stream parsing.
   void ParseStream(void *byte_stream, bool is_nested = false);
 
-  bool is_nested_;
-  bool has_children_;
-  TimestampType timestamp_;
-  DataIdType data_type_id_;
-  MessageIdType message_type_id_;
-  LengthType data_size_;
-  int message_length_;
-  boost::scoped_array<AlignmentType> data_;
-  std::vector<Pointer> children_;
+  bool is_nested_; //!< True if message is nested.
+  bool has_children_; //!< True if message contains other messages.
+  TimestampType timestamp_; //!< Message timestamp.
+  DataIdType data_type_id_; //!< Data type id.
+  MessageIdType message_type_id_; //!< Message type id
+  LengthType data_size_; //!< Size of data.
+  int message_length_; //!< Total message length, data and header.
+  boost::scoped_array<AlignmentType> data_; //!< Message data.
+  std::vector<Pointer> children_; //!< Pointers to children.
 };
 
 template <typename T> T Message::value() const {
@@ -77,21 +96,26 @@ template <typename T> T* Message::pointer() const {
   return ptr;
 }
 
-//! Contains whole trace.
+//! Container for the whole trace, vector of messages.
 class ParsedVartrace {
  public:
+  //! Convenience typedef for pointer to a vartrace.
   typedef boost::shared_ptr<ParsedVartrace> Pointer;
+  //! Parse trace from byte array.
   ParsedVartrace(void *byte_stream, std::size_t size);
+  //! Empty destructor.
   ~ParsedVartrace() {}
-
+  //! Access top level message.
   Message::Pointer operator[](std::size_t position) {
     return messages_[position];
   }
+  //! Return vector of top level messages.
   const std::vector<Message::Pointer>& messages() const {return messages_;}
  private:
+  //! Actual byte array parser.
   void ParseStream(void *byte_stream, std::size_t size);
 
-  std::vector<Message::Pointer> messages_;
+  std::vector<Message::Pointer> messages_; //!< Top level messages.
 };
 } /* vartrace */
 

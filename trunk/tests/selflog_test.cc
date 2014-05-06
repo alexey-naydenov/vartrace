@@ -33,18 +33,21 @@ using vartrace::VarTrace;
 using vartrace::kInfoLevel;
 using vartrace::Message;
 
+//! Self logging test suite.
 class SelfLoggingTestSuite : public ::testing::Test {
  public:
+  //! Pointer used in all tests.
   boost::shared_ptr<VarTrace<> > trace;
 };
 
 namespace test {
+//! Class used to check self logging.
 class SelfLogClass {
  public:
-  int ivar;
-  double dvar;
-  double dont_log_array[10];
-
+  int ivar; //!< Integer member that is stored in log.
+  double dvar; //!< Double member that is stored in log.
+  double dont_log_array[10]; //!< Unused array.
+  //! Self logging function.
   void LogItself(VarTrace<> *trace) const {
     trace->Log(kInfoLevel, 101, ivar);
     trace->Log(kInfoLevel, 102, dvar);
@@ -52,9 +55,10 @@ class SelfLogClass {
 };
 }  // namespace test
 
+//! Register SelfLogClass as self logging.
 VARTRACE_SET_SELFLOGGING(test::SelfLogClass);
 
-//! Check self logging class.
+//! Simple self logging test.
 TEST_F(SelfLoggingTestSuite, SelfLogTest) {
   std::size_t buffer_size = 0x1000;
   boost::shared_array<vartrace::AlignmentType> buffer(
@@ -108,12 +112,14 @@ TEST_F(SelfLoggingTestSuite, SelfLogArrayTest) {
   }
 }
 
+//! Self logging test class that uses template function.
 class SelfLogTemplateClass {
  public:
-  int ivar;
-  double dvar;
-  double dont_log_array[10];
+  int ivar; //!< Integer member that is stored in log.
+  double dvar; //!< Double member that is stored in log.
+  double dont_log_array[10]; //!< Unused array.
 
+  //! Template logging member function.
   template<class LoggerPointer>
   void LogItself(LoggerPointer trace) const {
     trace->Log(kInfoLevel, 101, ivar);
@@ -121,6 +127,7 @@ class SelfLogTemplateClass {
   }
 };
 
+//! Register SelfLogTemplateClass as self logging.
 VARTRACE_SET_SELFLOGGING(SelfLogTemplateClass);
 
 //! Check self logging template class.

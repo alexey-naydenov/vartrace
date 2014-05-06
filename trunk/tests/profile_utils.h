@@ -33,12 +33,15 @@
 
 typedef std::pair<std::string, double> NameNsRatio;
 
+//! Vector with suffix <-> duration in nanoseconds pairs.
 std::vector<NameNsRatio> kNameToRatio {
   NameNsRatio{"s", 1e9}, NameNsRatio{"ms", 1e6},
   NameNsRatio{"us", 1e3}, NameNsRatio{"ns", 1}};
 
+//! Separator used in printing.
 std::string kSeparator{" "};
 
+//! Convert duration into a readable string.
 template <class Duration>
 std::string DurationToString(const Duration &duration, std::size_t count) {
   std::ostringstream repr;
@@ -66,6 +69,7 @@ std::string DurationToString(const Duration &duration, std::size_t count) {
   return repr.str();
 }
 
+//! Measure logging time of an object and return a readable string.
 template <class L, typename D>
 std::string LogTimeToString(const D &object, std::size_t count, L *logger) {
   auto begin = std::chrono::high_resolution_clock::now();

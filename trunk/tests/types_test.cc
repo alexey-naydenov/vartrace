@@ -35,6 +35,7 @@ using vartrace::Message;
 //! Test class for pods and array logging testing.
 class TypesTest : public ::testing::Test {
  public:
+  //! Trace pointer used in all tests.
   boost::shared_ptr<VarTrace<> > trace;
 };
 
@@ -286,10 +287,10 @@ TEST_F(TypesTest, LogDoubleArrayTest) {
 
 //! Structure for testing custom type logging.
 struct LogTestStructure {
-  char cvar;
-  int ivar;
-  double dvar;
-  char anarray[13];
+  char cvar; //!< Variable for sizeof copy testing.
+  int ivar; //!< Variable for sizeof copy testing.
+  double dvar; //!< Variable for sizeof copy testing.
+  char anarray[13]; //!< Variable for sizeof copy testing.
 };
 
 //! Define data type id for custom structure.

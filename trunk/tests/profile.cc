@@ -32,6 +32,7 @@ using std::endl;
 using vartrace::VarTrace;
 using vartrace::kInfoLevel;
 
+//! Macro that create test logging time of a type and prints to cout.
 #define MEASURE_TYPE(type, count) do {                                  \
     type val{};                                                         \
     cout << std::setw(20) << #type << " "                               \
@@ -51,23 +52,28 @@ class SelfLogging {
 };
 //! Structure for measuring logging time of 8 chars.
 struct CharArray8 {
+  //! Profile data array.
   char cs[8];
 };
 //! Structure for measuring logging time of 16 chars.
 struct CharArray16 {
+  //! Profile data array.
   char cs[16];
 };
 //! Structure for measuring logging time of 32 chars.
 struct CharArray32 {
+  //! Profile data array.
   char cs[32];
 };
 //! Structure for measuring logging time of 64 chars.
 struct CharArray64 {
+  //! Profile data array.
   char cs[64];
 };
-
+//! Register SelfLogging as self logging class.
 VARTRACE_SET_SELFLOGGING(SelfLogging);
 
+//! Measure and print logging time of PODs, arrays and self logging objects.
 int main(int argc, char *argv[]) {
   int trace_size = 0x1000;
   int block_count = 4;
