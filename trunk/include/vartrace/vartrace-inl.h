@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <utility>
 
 namespace vartrace {
 
@@ -45,10 +46,13 @@ const unsigned kInitialSubtraceDepth = 8;
 VAR_TRACE_TEMPLATE
 VarTrace<LL, LP>::VarTrace(std::size_t trace_size,
                            std::size_t block_count,
-                           AlignmentType *storage)
+                           void *storage)
     : is_initialized_(false), is_top_level_(1),
-      is_memory_managed_(storage == NULL), current_index_(0), data_(storage),
+      is_memory_managed_(storage == NULL), current_index_(0),
       get_timestamp_(IncrementalTimestamp), real_timestamp_(get_timestamp_) {
+  std::pair<AlignmentType *, std::size_t> aligned = AlignPointer(storage);
+  data_ = aligned.first;
+  trace_size -= aligned.second;
   block_count_ = FloorPower2(block_count);
   block_length_ = FloorPower2(trace_size/sizeof(AlignmentType)/block_count_);
   log2_block_length_ = CeilLog2(block_length_);

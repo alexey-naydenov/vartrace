@@ -58,7 +58,7 @@ class VarTrace
    */
   VarTrace(std::size_t trace_size = internal::kDefaultTraceSize,
            std::size_t block_count = internal::kDefaultBlockCount,
-           AlignmentType *storage = NULL);
+           void *storage = NULL);
   void Initialize();
   ~VarTrace();
 
