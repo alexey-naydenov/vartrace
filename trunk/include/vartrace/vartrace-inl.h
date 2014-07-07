@@ -102,12 +102,12 @@ void VarTrace<LL, LP>::IncrementCurrentIndex() {
 }
 
 VAR_TRACE_TEMPLATE
-int VarTrace<LL, LP>::NextIndex(int index) {
+uint_fast32_t VarTrace<LL, LP>::NextIndex(uint_fast32_t index) {
   return (index + 1) & index_mask_;
 }
 
 VAR_TRACE_TEMPLATE
-int VarTrace<LL, LP>::NextBlock(int block_index) {
+uint_fast32_t VarTrace<LL, LP>::NextBlock(uint_fast32_t  block_index) {
   return (block_index + 1) % block_count_;
 }
 

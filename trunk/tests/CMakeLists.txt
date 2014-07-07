@@ -10,6 +10,9 @@ add_executable(profile profile.cc)
 target_link_libraries(profile vartrace)
 add_test(profile profile)
 
+add_executable(profile_int profile_int.cc)
+target_link_libraries(profile_int vartrace)
+
 # program that creates logs for testing vartools
 add_executable(generator generator.cc)
 target_link_libraries(generator vartrace ${Boost_LIBRARIES} stdc++)

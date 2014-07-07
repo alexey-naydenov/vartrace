@@ -166,23 +166,23 @@ class VarTrace
   //! Increment position for the next write.
   inline void IncrementCurrentIndex();
   //! Next wrapped around index.
-  inline int NextIndex(int index);
+  inline uint_fast32_t NextIndex(uint_fast32_t index);
   //! Next block index.
-  inline int NextBlock(int block_index);
+  inline uint_fast32_t  NextBlock(uint_fast32_t block_index);
   //! Write message header.
   inline void CreateHeader(MessageIdType message_id, DataIdType data_id,
                            unsigned object_size);
   bool is_initialized_; //!< Set to true after memory allocation.
-  unsigned is_top_level_;  //!< Set to 0 in the subtrace mode, 1 otherwise.
+  uint_fast8_t is_top_level_;  //!< Set to 0 in the subtrace mode, 1 otherwise.
   bool is_memory_managed_; //!< Is memory allocated or provided.
   //! Last header positions inside each trace block.
   std::vector<unsigned> subtrace_header_positions_;
-  unsigned log2_block_length_; //!< Log2 of block length.
-  unsigned block_count_; //!< Total number of blocks, must be power of 2.
-  unsigned block_length_; //!< Length of each block in AlignmentType units.
-  unsigned trace_length_; //!< Length of the trace.
-  unsigned index_mask_; //!< Restricts array index to the range 0...2^n.
-  unsigned current_index_; //!< Next array element to write to.
+  uint_fast16_t log2_block_length_; //!< Log2 of block length.
+  uint_fast16_t block_count_; //!< Total number of blocks, must be power of 2.
+  uint_fast32_t block_length_; //!< Length of each block in AlignmentType units.
+  uint_fast32_t trace_length_; //!< Length of the trace.
+  uint_fast32_t index_mask_; //!< Restricts array index to the range 0...2^n.
+  uint_fast32_t current_index_; //!< Next array element to write to.
   int *message_end_indices_; //!< Message boundaries.
   AlignmentType *data_; //!< Data array.
   TimestampFunctionType get_timestamp_; //!< Current timestamp function.
