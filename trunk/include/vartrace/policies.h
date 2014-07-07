@@ -27,7 +27,6 @@
 
 #include <vartrace/tracetypes.h>
 #include <vartrace/utility.h>
-#include <vartrace/creation_policies.h>
 
 #include <vector>
 
@@ -36,9 +35,12 @@ namespace vartrace {
 //! No locking policy.
 template <class T> struct SingleThreaded {
  public:
+  //! Actual lock for single threaded policy.
   class Lock {
    public:
+    //! Default lock constructor, empty.
     Lock() {}
+    //! Lock for particular object, empty.
     explicit Lock(const T &obj) {}
   };
  protected:
@@ -105,19 +107,6 @@ template <class T> struct SingleThreaded {
 // template<class T> typename LockableSingletonCreator<T>::Pointer
 // LockableSingletonCreator<T>::instance_;
 
-
-//! Policy to allocate log storage through new operator.
-struct SharedArrayAllocator {
- public:
-  //! Type for storing trace data.
-  typedef boost::shared_array<AlignmentType> StorageArrayType;
-  //! Create new shared array of type AlingmentType.
-  static StorageArrayType Allocate(int length) {
-    return StorageArrayType(new AlignmentType[length]);
-  }
- protected:
-  ~SharedArrayAllocator() {}
-};
 }  // namespace vartrace
 
 #endif  // TRUNK_INCLUDE_VARTRACE_POLICIES_H_

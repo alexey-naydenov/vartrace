@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*! \file profile_int.cc 
-  Log many integers to measure library performance. 
+/*! \file profile.cc 
+  Measure logging time of PODs, arrays and self logging classes.
 */
 
 #include <iostream>
@@ -32,47 +32,54 @@ using std::endl;
 using vartrace::VarTrace;
 using vartrace::kInfoLevel;
 
+//! Macro that create test logging time of a type and prints to cout.
 #define MEASURE_TYPE(type, count) do {                                  \
     type val{};                                                         \
     cout << std::setw(20) << #type << " "                               \
-         << LogTimeToString(val, count, trace) << endl;                 \
+         << LogTimeToString(val, count, &trace) << endl;                \
   } while (false)
 
+//! Class for measure logging time of self logging class.
 class SelfLogging {
  public:
-  int ivar1;
-  int ivar2;
-  int ivar3;
-
-  void LogItself(VarTrace<>::Pointer trace) const {
+  int ivar1; //!< Variable that is logged.
+  int ivar2; //!< Unused variable.
+  int ivar3; //!< Unused variable.
+  //! Function that stores class in a log.
+  void LogItself(VarTrace<> *trace) const {
     trace->Log(kInfoLevel, 101, ivar1);
   }
 };
-
+//! Structure for measuring logging time of 8 chars.
 struct CharArray8 {
+  //! Profile data array.
   char cs[8];
 };
-
+//! Structure for measuring logging time of 16 chars.
 struct CharArray16 {
+  //! Profile data array.
   char cs[16];
 };
-
+//! Structure for measuring logging time of 32 chars.
 struct CharArray32 {
+  //! Profile data array.
   char cs[32];
 };
-
+//! Structure for measuring logging time of 64 chars.
 struct CharArray64 {
+  //! Profile data array.
   char cs[64];
 };
-
+//! Register SelfLogging as self logging class.
 VARTRACE_SET_SELFLOGGING(SelfLogging);
 
+//! Measure and print logging time of PODs, arrays and self logging objects.
 int main(int argc, char *argv[]) {
   int trace_size = 0x1000;
   int block_count = 4;
   std::size_t repetition_count = 1<<30;
 
-  VarTrace<>::Handle trace = VarTrace<>::Create(trace_size, block_count);
+  VarTrace<> trace = VarTrace<>(trace_size, block_count);
 
   cout << "Logging times:" << endl;
 

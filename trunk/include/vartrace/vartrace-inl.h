@@ -27,31 +27,32 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <utility>
 
 namespace vartrace {
 
 namespace internal {
+//! The initially reserved space for nested subtrace headers indices.
 const unsigned kInitialSubtraceDepth = 8;
 }  // namespace internal
 
-#define VAR_TRACE_TEMPLATE                              \
-  template <class LL, template <class> class CP,        \
-            template <class> class LP, class AP>
+//! Macros to simplify member function definition.
+#define VAR_TRACE_TEMPLATE template <class LL, template <class> class LP>
 
-#define VAR_TRACE_TEMPLATE_T                            \
-  template <class LL, template <class> class CP,        \
-            template <class> class LP, class AP> template <typename T>
-
-VAR_TRACE_TEMPLATE
-VarTrace<LL, CP, LP, AP>::VarTrace()
-    : is_initialized_(false) {
-}
+//! Macros to simplify Log function definition.
+#define VAR_TRACE_TEMPLATE_T                                            \
+  template <class LL, template <class> class LP> template <typename T>
 
 VAR_TRACE_TEMPLATE
-VarTrace<LL, CP, LP, AP>::VarTrace(std::size_t trace_size,
-                                   std::size_t block_count)
-    : is_initialized_(false), is_top_level_(1), current_index_(0),
+VarTrace<LL, LP>::VarTrace(std::size_t trace_size,
+                           std::size_t block_count,
+                           void *storage)
+    : is_initialized_(false), is_top_level_(1),
+      is_memory_managed_(storage == NULL), current_index_(0),
       get_timestamp_(IncrementalTimestamp), real_timestamp_(get_timestamp_) {
+  std::pair<AlignmentType *, std::size_t> aligned = AlignPointer(storage);
+  data_ = aligned.first;
+  trace_size -= aligned.second;
   block_count_ = FloorPower2(block_count);
   block_length_ = FloorPower2(trace_size/sizeof(AlignmentType)/block_count_);
   log2_block_length_ = CeilLog2(block_length_);
@@ -61,7 +62,7 @@ VarTrace<LL, CP, LP, AP>::VarTrace(std::size_t trace_size,
 }
 
 VAR_TRACE_TEMPLATE
-void VarTrace<LL, CP, LP, AP>::Initialize() {
+void VarTrace<LL, LP>::Initialize() {
   Lock guard(*this);
   // check for double initialization
   if (is_initialized_) {return;}
@@ -70,7 +71,9 @@ void VarTrace<LL, CP, LP, AP>::Initialize() {
   // try to allocate storage
   subtrace_header_positions_.reserve(internal::kInitialSubtraceDepth);
   message_end_indices_ = new int[block_count_];
-  data_ = this->Allocate(trace_length_);
+  if (is_memory_managed_) {
+    data_ = new AlignmentType[trace_length_];
+  }
   if (subtrace_header_positions_.capacity() > 0 && message_end_indices_
       && data_) {
     is_initialized_ = true;
@@ -84,94 +87,96 @@ void VarTrace<LL, CP, LP, AP>::Initialize() {
 }
 
 VAR_TRACE_TEMPLATE
-VarTrace<LL, CP, LP, AP>::~VarTrace() {
+VarTrace<LL, LP>::~VarTrace() {
   if (is_initialized_) {
     delete[] message_end_indices_;
+    if (is_memory_managed_) {
+      delete[] data_;
+    }
   }
 }
 
 VAR_TRACE_TEMPLATE
-void VarTrace<LL, CP, LP, AP>::IncrementCurrentIndex() {
+void VarTrace<LL, LP>::IncrementCurrentIndex() {
   current_index_ = (current_index_ + 1) & index_mask_;
 }
 
 VAR_TRACE_TEMPLATE
-int VarTrace<LL, CP, LP, AP>::NextIndex(int index) {
+int VarTrace<LL, LP>::NextIndex(int index) {
   return (index + 1) & index_mask_;
 }
 
 VAR_TRACE_TEMPLATE
-int VarTrace<LL, CP, LP, AP>::NextBlock(int block_index) {
+int VarTrace<LL, LP>::NextBlock(int block_index) {
   return (block_index + 1) % block_count_;
 }
 
 VAR_TRACE_TEMPLATE
-void VarTrace<LL, CP, LP, AP>::CreateHeader(MessageIdType message_id,
-                                            DataIdType data_id,
-                                            unsigned object_size) {
+void VarTrace<LL, LP>::CreateHeader(MessageIdType message_id,
+                                    DataIdType data_id,
+                                    unsigned object_size) {
   // if not top level then timestamp will be overwritten
   data_[current_index_] = (get_timestamp_)();
   current_index_ = (current_index_ + is_top_level_) & index_mask_;
-  // write object size, message and data ids
   FormDescription(message_id, data_id, object_size, current_index_);
   IncrementCurrentIndex();
 }
 
 VAR_TRACE_TEMPLATE_T
-void VarTrace<LL, CP, LP, AP>::Log(HiddenLogLevel log_level,
-                                   MessageIdType message_id, const T &value) {
+void VarTrace<LL, LP>::Log(HiddenLogLevel log_level,
+                           MessageIdType message_id, const T &value) {
 }
 
 VAR_TRACE_TEMPLATE_T
-void VarTrace<LL, CP, LP, AP>::Log(LL log_level,
-                                   MessageIdType message_id, const T &value) {
+void VarTrace<LL, LP>::Log(LL log_level,
+                           MessageIdType message_id, const T &value) {
   DoLog(message_id, &value, typename CopyTraits<T>::CopyCategory(), 1);
 }
 
 VAR_TRACE_TEMPLATE_T
-void VarTrace<LL, CP, LP, AP>::Log(HiddenLogLevel log_level,
-                                   MessageIdType message_id,
-                                   const T *value, unsigned length) {
+void VarTrace<LL, LP>::Log(HiddenLogLevel log_level,
+                           MessageIdType message_id,
+                           const T *value, unsigned length) {
 }
 
 VAR_TRACE_TEMPLATE_T
-void VarTrace<LL, CP, LP, AP>::Log(LL log_level,
-                                   MessageIdType message_id,
-                                   const T *value, unsigned length) {
+void VarTrace<LL, LP>::Log(LL log_level,
+                           MessageIdType message_id,
+                           const T *value, unsigned length) {
   DoLogArray(message_id, value, typename CopyTraits<T>::CopyCategory(), length);
 }
 
 VAR_TRACE_TEMPLATE_T
-void VarTrace<LL, CP, LP, AP>::Log(LL log_level, MessageIdType message_id,
-                                   const std::vector<T> &value) {
+void VarTrace<LL, LP>::Log(LL log_level, MessageIdType message_id,
+                           const std::vector<T> &value) {
   DoLogArray(message_id, &value[0], typename CopyTraits<T>::CopyCategory(),
              value.size());
 }
 
 VAR_TRACE_TEMPLATE
-void VarTrace<LL, CP, LP, AP>::Log(LL log_level, MessageIdType message_id,
-                                   const std::string &value) {
+void VarTrace<LL, LP>::Log(LL log_level, MessageIdType message_id,
+                           const std::string &value) {
   DoLogArray(message_id, value.c_str(), SizeofCopyTag(), value.size());
 }
 
 VAR_TRACE_TEMPLATE_T
-void VarTrace<LL, CP, LP, AP>::DoLogArray(
+void VarTrace<LL, LP>::DoLogArray(
     MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
     unsigned length) {
   DoLog(message_id, value, copy_tag, length);
 }
 
 VAR_TRACE_TEMPLATE_T
-void VarTrace<LL, CP, LP, AP>::DoLogArray(
+void VarTrace<LL, LP>::DoLogArray(
     MessageIdType message_id, const T *value, const SelfCopyTag &copy_tag,
     unsigned length) {
   DoLog(message_id, value, copy_tag, length);
 }
 
 VAR_TRACE_TEMPLATE_T
-void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
-                                     const AssignmentCopyTag &copy_tag,
-                                     unsigned length) {
+void VarTrace<LL, LP>::DoLog(MessageIdType message_id, const T *value,
+                             const AssignmentCopyTag &copy_tag,
+                             unsigned length) {
   Lock guard(*this);
   CreateHeader(message_id,  DataType2Int<T>::id, sizeof(T));
   data_[current_index_] = *value;
@@ -180,9 +185,9 @@ void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
 }
 
 VAR_TRACE_TEMPLATE_T
-void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
-                                     const SizeofCopyTag &copy_tag,
-                                     unsigned length) {
+void VarTrace<LL, LP>::DoLog(MessageIdType message_id, const T *value,
+                             const SizeofCopyTag &copy_tag,
+                             unsigned length) {
   assert(current_index_ < trace_length_);
   Lock guard(*this);
   unsigned object_size = length*sizeof(T);
@@ -213,9 +218,9 @@ void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
 }
 
 VAR_TRACE_TEMPLATE_T
-void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
-                                     const SelfCopyTag &copy_tag,
-                                     unsigned length) {
+void VarTrace<LL, LP>::DoLog(MessageIdType message_id, const T *value,
+                             const SelfCopyTag &copy_tag,
+                             unsigned length) {
   Lock guard(*this);
   BeginSubtrace(message_id);
   for (std::size_t i = 0; i < length; ++i) {
@@ -225,7 +230,7 @@ void VarTrace<LL, CP, LP, AP>::DoLog(MessageIdType message_id, const T *value,
 }
 
 VAR_TRACE_TEMPLATE
-unsigned VarTrace<LL, CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
+unsigned VarTrace<LL, LP>::DumpInto(void *buffer, unsigned size) {
   Lock guard(*this);
   if (!is_top_level_) {
     // trace can not be parsed because subtrace size is written when
@@ -249,17 +254,17 @@ unsigned VarTrace<LL, CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
       copied_size = (block_length_*block_count_ - copy_from)
           *sizeof(AlignmentType);
       std::memcpy(buffer, &(data_[copy_from]), copied_size);
-       // try to c opy from index 0 till copy_to
-       int leftover_to_copy = 0;
-       if (copy_to*sizeof(AlignmentType) <= size - copied_size) {
-         // everything fits
-         leftover_to_copy = copy_to*sizeof(AlignmentType);
-       } else { // only some part form 0 fits
-         leftover_to_copy = size - copied_size;
-       }
-       std::memcpy(static_cast<uint8_t *>(buffer) + copied_size,
-              &(data_[0]), leftover_to_copy);
-       copied_size += leftover_to_copy;
+      // try to c opy from index 0 till copy_to
+      int leftover_to_copy = 0;
+      if (copy_to*sizeof(AlignmentType) <= size - copied_size) {
+        // everything fits
+        leftover_to_copy = copy_to*sizeof(AlignmentType);
+      } else { // only some part form 0 fits
+        leftover_to_copy = size - copied_size;
+      }
+      std::memcpy(static_cast<uint8_t *>(buffer) + copied_size,
+                  &(data_[0]), leftover_to_copy);
+      copied_size += leftover_to_copy;
     } else { // copy as much as possible from copy_from till end
       copied_size = size;
       std::memcpy(buffer, &(data_[copy_from]), copied_size);
@@ -277,7 +282,7 @@ unsigned VarTrace<LL, CP, LP, AP>::DumpInto(void *buffer, unsigned size) {
 }  // function DumpInto
 
 VAR_TRACE_TEMPLATE
-void VarTrace<LL, CP, LP, AP>::SetTimestampFunction(
+void VarTrace<LL, LP>::SetTimestampFunction(
     TimestampFunctionType timestamp_function) {
   assert(timestamp_function != 0);
   Lock guard(*this);
@@ -288,7 +293,7 @@ void VarTrace<LL, CP, LP, AP>::SetTimestampFunction(
 }
 
 VAR_TRACE_TEMPLATE
-void VarTrace<LL, CP, LP, AP>::BeginSubtrace(MessageIdType subtrace_id) {
+void VarTrace<LL, LP>::BeginSubtrace(MessageIdType subtrace_id) {
   Lock guard(*this);
   // create temporary subtrace header and store its position
   subtrace_header_positions_.push_back(current_index_);
@@ -299,7 +304,7 @@ void VarTrace<LL, CP, LP, AP>::BeginSubtrace(MessageIdType subtrace_id) {
   get_timestamp_ = ZeroTimestamp;
 }  // function BeginSubtrace
 
-VAR_TRACE_TEMPLATE void VarTrace<LL, CP, LP, AP>::EndSubtrace() {
+VAR_TRACE_TEMPLATE void VarTrace<LL, LP>::EndSubtrace() {
   Lock guard(*this);
   if (subtrace_header_positions_.empty()) {
     return;

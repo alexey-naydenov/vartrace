@@ -1,4 +1,4 @@
-/* policy_test.cc
+/* types_test.cc
    Copyright (C) 2011 Alexey Naydenov <alexey.naydenovREMOVETHIS@gmail.com>
    
    This program is free software: you can redistribute it and/or modify
@@ -15,11 +15,12 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*! \file policy_test.cc 
-  Test policy for vartrace class.
+/*! \file types_test.cc 
+  Test logging different pods, structures and arrays.
 */
 
 #include <gtest/gtest.h>
+#include <boost/shared_ptr.hpp>
 #include <boost/shared_array.hpp>
 
 #include <vartrace/vartrace.h>
@@ -31,21 +32,21 @@ using vartrace::VarTrace;
 using vartrace::kInfoLevel;
 using vartrace::Message;
 
-class PolicyTest : public ::testing::Test {
+//! Test class for pods and array logging testing.
+class TypesTest : public ::testing::Test {
  public:
-  VarTrace<>::Handle trace;
-  VarTrace<>::Handle trace2;
-  VarTrace<>::Handle trace3;
+  //! Trace pointer used in all tests.
+  boost::shared_ptr<VarTrace<> > trace;
 };
 
-//! Test logging of many integers.
-TEST_F(PolicyTest, LogIntegersTest) {
+//! Overflow trace with integers and check result.
+TEST_F(TypesTest, LogIntegersTest) {
   int trace_size = 0x1000;
   int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
   int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
   int message_size = vartrace::kHeaderSize + sizeof(vartrace::AlignmentType);
   int message_length = 3;
-  trace = VarTrace<>::Create(trace_size);
+  trace = boost::shared_ptr<VarTrace<> >(new VarTrace<>());
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // write 5 times the trace capacity
@@ -81,12 +82,12 @@ TEST_F(PolicyTest, LogIntegersTest) {
   }
 }
 
-//! Test logging of different types.
-TEST_F(PolicyTest, LogDifferentTypesTest) {
+//! Check correct logging of short POD types..
+TEST_F(TypesTest, LogDifferentTypesTest) {
   int trace_size = 0x1000;
   int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
   int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
+  trace = boost::shared_ptr<VarTrace<> >(new VarTrace<>());
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // log different types
@@ -137,11 +138,11 @@ TEST_F(PolicyTest, LogDifferentTypesTest) {
 }
 
 //! Check that max/min int values stored and restored correctly.
-TEST_F(PolicyTest, LogIntLimitsTest) {
+TEST_F(TypesTest, LogIntLimitsTest) {
   int trace_size = 0x100;
   int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
   int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
+  trace = boost::shared_ptr<VarTrace<> >(new VarTrace<>());
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // init and log int values
@@ -169,11 +170,11 @@ TEST_F(PolicyTest, LogIntLimitsTest) {
 }
 
 //! Check logging types longer then int.
-TEST_F(PolicyTest, MultipleAssignmentTest) {
+TEST_F(TypesTest, MultipleAssignmentTest) {
   int trace_size = 0x100;
   int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
   int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
+  trace = boost::shared_ptr<VarTrace<> >(new VarTrace<>());
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // initialize some long variables
@@ -204,11 +205,11 @@ TEST_F(PolicyTest, MultipleAssignmentTest) {
 }
 
 //! Check char array logging.
-TEST_F(PolicyTest, LogCharArrayTest) {
+TEST_F(TypesTest, LogCharArrayTest) {
   int trace_size = 0x100;
   int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
   int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
+  trace = boost::shared_ptr<VarTrace<> >(new VarTrace<>());
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // create an array and log it
@@ -228,11 +229,11 @@ TEST_F(PolicyTest, LogCharArrayTest) {
 }
 
 //! Check multiple char array logging.
-TEST_F(PolicyTest, LogMultipleCharArrayTest) {
+TEST_F(TypesTest, LogMultipleCharArrayTest) {
   int trace_size = 0x100;
   int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
   int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
+  trace = boost::shared_ptr<VarTrace<> >(new VarTrace<>(trace_size));
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // create an array and log it 100 times
@@ -260,12 +261,12 @@ TEST_F(PolicyTest, LogMultipleCharArrayTest) {
   }
 }
 
-//! Check double array logging.
-TEST_F(PolicyTest, LogDoubleArrayTest) {
+//! Check correct logging of an array of doubles.
+TEST_F(TypesTest, LogDoubleArrayTest) {
   int trace_size = 0x100;
   int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
   int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
+  trace = boost::shared_ptr<VarTrace<> >(new VarTrace<>());
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // create an array and log it
@@ -284,21 +285,23 @@ TEST_F(PolicyTest, LogDoubleArrayTest) {
   }
 }
 
-//! Test structure for logging.
+//! Structure for testing custom type logging.
 struct LogTestStructure {
-  char cvar;
-  int ivar;
-  double dvar;
-  char anarray[13];
+  char cvar; //!< Variable for sizeof copy testing.
+  int ivar; //!< Variable for sizeof copy testing.
+  double dvar; //!< Variable for sizeof copy testing.
+  char anarray[13]; //!< Variable for sizeof copy testing.
 };
+
 //! Define data type id for custom structure.
 VARTRACE_SET_TYPEID(LogTestStructure, 40);
-//! Check simple structure logging.
-TEST_F(PolicyTest, LogCustomStructureTest) {
+
+//! Check if a structure is stored correctly along with its data type id.
+TEST_F(TypesTest, LogCustomStructureTest) {
   int trace_size = 0x100;
   int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
   int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
+  trace = boost::shared_ptr<VarTrace<> >(new VarTrace<>());
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // create and fill some custom structure
@@ -330,12 +333,12 @@ TEST_F(PolicyTest, LogCustomStructureTest) {
   }
 }
 
-//! Check logging array of structures.
-TEST_F(PolicyTest, LogCustomStructureArrayTest) {
+//! Check logging of array of structures.
+TEST_F(TypesTest, LogCustomStructureArrayTest) {
   int trace_size = 0x1000;
   int buffer_length = trace_size/sizeof(vartrace::AlignmentType);
   int buffer_size = buffer_length*sizeof(vartrace::AlignmentType);
-  trace = VarTrace<>::Create(trace_size);
+  trace = boost::shared_ptr<VarTrace<> >(new VarTrace<>());
   boost::shared_array<vartrace::AlignmentType> buffer(
       new vartrace::AlignmentType[buffer_length]);
   // create and fill some custom structure

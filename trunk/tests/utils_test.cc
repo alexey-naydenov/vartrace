@@ -27,10 +27,14 @@ using vartrace::CeilPower2;
 using vartrace::FloorPower2;
 using vartrace::CeilLog2;
 using vartrace::FloorLog2;
+using vartrace::AlignmentType;
+using vartrace::AlignPointer;
 
+//! Utility test suite.
 class UtilsTestSuite : public ::testing::Test {
 };
 
+//! Test function that fills a number with ones up to MSB.
 TEST_F(UtilsTestSuite, FillWithOnesTest) {
   ASSERT_EQ(FillWithOnes(0), 0);
   ASSERT_EQ(FillWithOnes(1), 1);
@@ -42,6 +46,7 @@ TEST_F(UtilsTestSuite, FillWithOnesTest) {
   ASSERT_EQ(FillWithOnes(0x81234567u), 0xFFFFFFFFu);
 }
 
+//! Test power of 2 ceiling function.
 TEST_F(UtilsTestSuite, CeilPower2Test) {
   ASSERT_EQ(CeilPower2(1), 1);
   ASSERT_EQ(CeilPower2(3), 4);
@@ -50,6 +55,7 @@ TEST_F(UtilsTestSuite, CeilPower2Test) {
   ASSERT_EQ(CeilPower2(0x7FFFFFFFu), 0x80000000u);
 }
 
+//! Test power of 2 floor function.
 TEST_F(UtilsTestSuite, FloorPower2Test) {
   ASSERT_EQ(FloorPower2(1), 1);
   ASSERT_EQ(FloorPower2(2), 2);
@@ -60,6 +66,7 @@ TEST_F(UtilsTestSuite, FloorPower2Test) {
   ASSERT_EQ(FloorPower2(0x7FFFFFFFu), 0x40000000u);
 }
 
+//! Test function that calculates ceiling of log2.
 TEST_F(UtilsTestSuite, CeilLog2Test) {
   ASSERT_EQ(CeilLog2(1), 0);
   ASSERT_EQ(CeilLog2(2), 1);
@@ -70,6 +77,7 @@ TEST_F(UtilsTestSuite, CeilLog2Test) {
   ASSERT_EQ(CeilLog2(0x7FFFFFFFu), 31);
 }
 
+//! Test function that calculates floor of log2.
 TEST_F(UtilsTestSuite, FloorLog2Test) {
   ASSERT_EQ(FloorLog2(1), 0);
   ASSERT_EQ(FloorLog2(2), 1);
@@ -78,4 +86,29 @@ TEST_F(UtilsTestSuite, FloorLog2Test) {
   ASSERT_EQ(FloorLog2(5), 2);
   ASSERT_EQ(FloorLog2(0x80000000u), 31);
   ASSERT_EQ(FloorLog2(0x7FFFFFFFu), 30);
+}
+
+//! Test function that aligns pointer to proper boundary.
+TEST_F(UtilsTestSuite, AlignPointerTest) {
+  ASSERT_EQ(reinterpret_cast<AlignmentType *>(0),
+            AlignPointer(reinterpret_cast<void *>(0)).first);
+  ASSERT_EQ(reinterpret_cast<AlignmentType *>(0) + 1,
+            AlignPointer(reinterpret_cast<void *>(1)).first);
+  ASSERT_EQ(reinterpret_cast<AlignmentType *>(0) + 1,
+            AlignPointer(reinterpret_cast<void *>(
+                sizeof(AlignmentType))).first);
+  ASSERT_EQ(reinterpret_cast<AlignmentType *>(0) + 111,
+            AlignPointer(reinterpret_cast<void *>(
+                111*sizeof(AlignmentType))).first);
+  ASSERT_EQ(0, AlignPointer(reinterpret_cast<void *>(
+      111*sizeof(AlignmentType))).second);
+  for (unsigned i = 1; i < sizeof(AlignmentType); ++i) {
+    ASSERT_EQ(
+        reinterpret_cast<AlignmentType *>(0) + 11 + 1,
+        AlignPointer(reinterpret_cast<void *>(
+            11*sizeof(AlignmentType) + i)).first);
+    ASSERT_EQ(sizeof(AlignmentType) - i,
+              AlignPointer(reinterpret_cast<void *>(
+                  11*sizeof(AlignmentType) + i)).second);
+  }
 }

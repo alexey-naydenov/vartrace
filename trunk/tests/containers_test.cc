@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-//!  \brief Test container loggin
+//!  \brief Test container logging.
 
 #include <vector>
 #include <string>
@@ -28,29 +28,31 @@
 using vartrace::VarTrace;
 using vartrace::kInfoLevel;
 
+//! Test suite class for testing containers.
 class ContainerTestSuite : public ::testing::Test {
  public:
 };
 
-
-TEST_F(ContainerTestSuite, SimplestCasesTest) {
-  VarTrace<>::Handle trace = VarTrace<>::Create();
+//! Test vector specialization.
+TEST_F(ContainerTestSuite, VectorCasesTest) {
+  VarTrace<> trace = VarTrace<>();
   std::vector<int> v(10);
-  trace->Log(kInfoLevel, 1, v);
+  trace.Log(kInfoLevel, 1, v);
   int buffer_size = 0x1000;
   boost::shared_array<uint8_t> buffer(new uint8_t[buffer_size]);
-  unsigned dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  unsigned dumped_size = trace.DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
   ASSERT_EQ(v.size()*sizeof(int), vt[0]->data_size());
 }
 
+//! Test string specialization.
 TEST_F(ContainerTestSuite, StdStringTest) {
-  VarTrace<>::Handle trace = VarTrace<>::Create();
+  VarTrace<> trace = VarTrace<>();
   std::string s("test string");
-  trace->Log(kInfoLevel, 1, s);
+  trace.Log(kInfoLevel, 1, s);
   int buffer_size = 0x1000;
   boost::shared_array<uint8_t> buffer(new uint8_t[buffer_size]);
-  unsigned dumped_size = trace->DumpInto(buffer.get(), buffer_size);
+  unsigned dumped_size = trace.DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
   ASSERT_EQ(s.size(), vt[0]->data_size());
 }

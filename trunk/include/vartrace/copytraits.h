@@ -46,15 +46,13 @@ struct SelfCopyTag : public SizeofCopyTag {};
 //! Object can be copied through an assignment.
 struct AssignmentCopyTag : public SizeofCopyTag {};
 
-//! Copy switch for containers.
-struct ContainerCopyTag : public SizeofCopyTag {};
-
 //! Copy switch for std strings.
 struct StdStringCopyTag : public SizeofCopyTag {};
 
 //! Default behaviour for adding an object into a trace.
 template<typename T, typename U = void> struct CopyTraits {
-    typedef SizeofCopyTag CopyCategory;
+  //! Typedef that defines default copy strategy.
+  typedef SizeofCopyTag CopyCategory;
 };
 
 //! Set type to be copied through assignment (small integer types).
@@ -62,17 +60,18 @@ template<typename T, typename U = void> struct CopyTraits {
   template<> struct CopyTraits<Type> {                            \
     typedef AssignmentCopyTag CopyCategory;                       \
   }
-
+//! Specialize CopyTraits to copy int8_t through assignment.
 VARTRACE_SET_ASSIGNMENTCOPY(int8_t);
+//! Specialize CopyTraits to copy uint8_t through assignment.
 VARTRACE_SET_ASSIGNMENTCOPY(uint8_t);
+//! Specialize CopyTraits to copy int16_t through assignment.
 VARTRACE_SET_ASSIGNMENTCOPY(int16_t);
+//! Specialize CopyTraits to copy uint16_t through assignment.
 VARTRACE_SET_ASSIGNMENTCOPY(uint16_t);
+//! Specialize CopyTraits to copy int32_t through assignment.
 VARTRACE_SET_ASSIGNMENTCOPY(int32_t);
+//! Specialize CopyTraits to copy uint32_t through assignment.
 VARTRACE_SET_ASSIGNMENTCOPY(uint32_t);
-
-template<typename T> struct CopyTraits<T, typename T::value_type> {
-  typedef ContainerCopyTag CopyCategory;
-};
 }  // vartrace
 
 //! Macro for setting self logging policy for custom types.

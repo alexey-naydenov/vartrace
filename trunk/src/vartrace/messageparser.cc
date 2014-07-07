@@ -46,6 +46,7 @@ Message::Message(void *byte_stream, bool is_nested)
   ParseStream(byte_stream, is_nested);
 }
 
+//! Copy data from byte array into a type variable and return remaining data.
 template<typename T>
 static uint8_t * ReadSimpleType(uint8_t *data, T *variable) {
   *variable = 0;

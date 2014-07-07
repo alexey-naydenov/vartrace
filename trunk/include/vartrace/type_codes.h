@@ -30,7 +30,7 @@
 #include <stdint.h>
 
 namespace vartrace {
-
+//! Type ids of POR types.
 enum StandardTypeIds {
   kTypeIdIllegal = 0,
   kTypeIdInt8 = 0x1,
@@ -43,6 +43,7 @@ enum StandardTypeIds {
   kTypeIdUint64 = 0x8,
   kTypeIdFloat = 0xf,
   kTypeIdDouble = 0xd,
+  kTypeIdChar = 0xc,
   kTypeIdUnknown = 0xff
 };
 
