@@ -124,8 +124,13 @@ class VarTrace
   void SetTimestampFunction(TimestampFunctionType timestamp_function);
 
  private:
-  //! Conviniece typedef for locking.
+  //! Convenience typedef for locking.
   typedef typename LP< VarTrace<LL, LP> >::Lock Lock;
+
+  //! Disabled copy constructor.
+  VarTrace(const VarTrace &);
+  //! Disabled assignment.
+  VarTrace operator=(const VarTrace &);
 
   //! Initialize memory and counters.
   void Initialize();

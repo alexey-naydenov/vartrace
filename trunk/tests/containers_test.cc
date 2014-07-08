@@ -35,7 +35,7 @@ class ContainerTestSuite : public ::testing::Test {
 
 //! Test vector specialization.
 TEST_F(ContainerTestSuite, VectorCasesTest) {
-  VarTrace<> trace = VarTrace<>();
+  VarTrace<> trace;
   std::vector<int> v(10);
   trace.Log(kInfoLevel, 1, v);
   int buffer_size = 0x1000;
@@ -47,7 +47,7 @@ TEST_F(ContainerTestSuite, VectorCasesTest) {
 
 //! Test string specialization.
 TEST_F(ContainerTestSuite, StdStringTest) {
-  VarTrace<> trace = VarTrace<>();
+  VarTrace<> trace;
   std::string s("test string");
   trace.Log(kInfoLevel, 1, s);
   int buffer_size = 0x1000;
