@@ -147,14 +147,22 @@ class VarTrace
   template <typename T> void DoLog(
       MessageIdType message_id, const T *value,
       const SelfCopyTag &copy_tag, unsigned length);
+  //! Overloading of logging function that calls custom function for copying.
+  template <typename T> void DoLog(
+      MessageIdType message_id, const T *value,
+      const CustomCopyTag &copy_tag, unsigned length);
 
   //! Force array copy through memcpy for types that copied through assignment.
   template <typename T> void DoLogArray(
       MessageIdType message_id, const T *value, const SizeofCopyTag &copy_tag,
       unsigned length);
-  //! Store self logging array.
+  //! Store array of objects that have custom logging member function.
   template <typename T> void DoLogArray(
       MessageIdType message_id, const T *value, const SelfCopyTag &copy_tag,
+      unsigned length);
+  //! Store array of objects that have custom logging function.
+  template <typename T> void DoLogArray(
+      MessageIdType message_id, const T *value, const CustomCopyTag &copy_tag,
       unsigned length);
 
   //! Update current block number and its end using current index.

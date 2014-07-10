@@ -173,6 +173,13 @@ void VarTrace<LL, LP>::DoLogArray(
 }
 
 VAR_TRACE_TEMPLATE_T
+void VarTrace<LL, LP>::DoLogArray(
+    MessageIdType message_id, const T *value, const CustomCopyTag &copy_tag,
+    unsigned length) {
+  DoLog(message_id, value, copy_tag, length);
+}
+
+VAR_TRACE_TEMPLATE_T
 void VarTrace<LL, LP>::DoLog(MessageIdType message_id, const T *value,
                              const AssignmentCopyTag &copy_tag,
                              unsigned length) {
@@ -224,6 +231,18 @@ void VarTrace<LL, LP>::DoLog(MessageIdType message_id, const T *value,
   BeginSubtrace(message_id);
   for (std::size_t i = 0; i < length; ++i) {
     value[i].LogItself(this);
+  }
+  EndSubtrace();
+}
+
+VAR_TRACE_TEMPLATE_T
+void VarTrace<LL, LP>::DoLog(MessageIdType message_id, const T *value,
+                             const CustomCopyTag &copy_tag,
+                             unsigned length) {
+  Lock guard(*this);
+  BeginSubtrace(message_id);
+  for (std::size_t i = 0; i < length; ++i) {
+    Log(this, value[i]);
   }
   EndSubtrace();
 }
