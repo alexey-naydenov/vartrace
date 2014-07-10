@@ -37,11 +37,11 @@
 namespace vartrace {
 
 namespace internal {
-//! Default number of used blocks.
+//! Default number of blocks that trace is split into.
 const unsigned kDefaultBlockCount = 8;
-//! Minimum allowed number of blocks.
+//! Minimum allowed number of blocks to split trace into.
 const unsigned kMinBlockCount = 4;
-//! Trace size by default.
+//! Default trace size.
 const unsigned kDefaultTraceSize = 0x1000;
 } // namespace internal
 

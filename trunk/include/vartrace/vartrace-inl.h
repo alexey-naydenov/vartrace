@@ -44,8 +44,7 @@ const unsigned kInitialSubtraceDepth = 8;
   template <class LL, template <class> class LP> template <typename T>
 
 VAR_TRACE_TEMPLATE
-VarTrace<LL, LP>::VarTrace(std::size_t trace_size,
-                           std::size_t block_count,
+VarTrace<LL, LP>::VarTrace(std::size_t trace_size, std::size_t block_count,
                            void *storage)
     : is_initialized_(false), is_top_level_(1),
       is_memory_managed_(storage == NULL), current_index_(0),

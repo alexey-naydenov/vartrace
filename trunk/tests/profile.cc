@@ -1,6 +1,6 @@
-/* profile_int.cc
+/* profile.cc
  *
- * Copyright (C) 2012 Alexey Naydenov <alexey.naydenovREMOVETHIS@gmail.com>
+ * Copyright (C) 2014 Alexey Naydenov <alexey.naydenovREMOVETHIS@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
   int block_count = 4;
   std::size_t repetition_count = 1<<30;
 
-  VarTrace<> trace = VarTrace<>(trace_size, block_count);
+  VarTrace<> trace(trace_size, block_count);
 
   cout << "Logging times:" << endl;
 
