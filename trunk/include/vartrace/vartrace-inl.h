@@ -242,7 +242,7 @@ void VarTrace<LL, LP>::DoLog(MessageIdType message_id, const T *value,
   Lock guard(*this);
   BeginSubtrace(message_id);
   for (std::size_t i = 0; i < length; ++i) {
-    Log(this, value[i]);
+    LogObject(value[i], this);
   }
   EndSubtrace();
 }

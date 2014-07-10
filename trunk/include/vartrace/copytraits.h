@@ -45,7 +45,7 @@ struct SizeofCopyTag {};
 //! Object is stored by calling LogItself member function.
 struct SelfCopyTag : public SizeofCopyTag {};
 
-//! Object is copied into a log by function vartrace::Log.
+//! Object is copied into a log by function vartrace::LogObject.
 struct CustomCopyTag : public SizeofCopyTag {};
 
 //! Object is copied by using assignment.
