@@ -44,8 +44,7 @@ const unsigned kInitialSubtraceDepth = 8;
   template <class LL, template <class> class LP> template <typename T>
 
 VAR_TRACE_TEMPLATE
-VarTrace<LL, LP>::VarTrace(std::size_t trace_size,
-                           std::size_t block_count,
+VarTrace<LL, LP>::VarTrace(std::size_t trace_size, std::size_t block_count,
                            void *storage)
     : is_initialized_(false), is_top_level_(1),
       is_memory_managed_(storage == NULL), current_index_(0),
@@ -102,12 +101,12 @@ void VarTrace<LL, LP>::IncrementCurrentIndex() {
 }
 
 VAR_TRACE_TEMPLATE
-int VarTrace<LL, LP>::NextIndex(int index) {
+uint_fast32_t VarTrace<LL, LP>::NextIndex(uint_fast32_t index) {
   return (index + 1) & index_mask_;
 }
 
 VAR_TRACE_TEMPLATE
-int VarTrace<LL, LP>::NextBlock(int block_index) {
+uint_fast32_t VarTrace<LL, LP>::NextBlock(uint_fast32_t  block_index) {
   return (block_index + 1) % block_count_;
 }
 
@@ -174,6 +173,13 @@ void VarTrace<LL, LP>::DoLogArray(
 }
 
 VAR_TRACE_TEMPLATE_T
+void VarTrace<LL, LP>::DoLogArray(
+    MessageIdType message_id, const T *value, const CustomCopyTag &copy_tag,
+    unsigned length) {
+  DoLog(message_id, value, copy_tag, length);
+}
+
+VAR_TRACE_TEMPLATE_T
 void VarTrace<LL, LP>::DoLog(MessageIdType message_id, const T *value,
                              const AssignmentCopyTag &copy_tag,
                              unsigned length) {
@@ -225,6 +231,18 @@ void VarTrace<LL, LP>::DoLog(MessageIdType message_id, const T *value,
   BeginSubtrace(message_id);
   for (std::size_t i = 0; i < length; ++i) {
     value[i].LogItself(this);
+  }
+  EndSubtrace();
+}
+
+VAR_TRACE_TEMPLATE_T
+void VarTrace<LL, LP>::DoLog(MessageIdType message_id, const T *value,
+                             const CustomCopyTag &copy_tag,
+                             unsigned length) {
+  Lock guard(*this);
+  BeginSubtrace(message_id);
+  for (std::size_t i = 0; i < length; ++i) {
+    LogObject(value[i], this);
   }
   EndSubtrace();
 }

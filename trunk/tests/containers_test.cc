@@ -27,6 +27,7 @@
 
 using vartrace::VarTrace;
 using vartrace::kInfoLevel;
+using vartrace::kHiddenLevel;
 
 //! Test suite class for testing containers.
 class ContainerTestSuite : public ::testing::Test {
@@ -35,7 +36,7 @@ class ContainerTestSuite : public ::testing::Test {
 
 //! Test vector specialization.
 TEST_F(ContainerTestSuite, VectorCasesTest) {
-  VarTrace<> trace = VarTrace<>();
+  VarTrace<> trace;
   std::vector<int> v(10);
   trace.Log(kInfoLevel, 1, v);
   int buffer_size = 0x1000;
@@ -47,7 +48,7 @@ TEST_F(ContainerTestSuite, VectorCasesTest) {
 
 //! Test string specialization.
 TEST_F(ContainerTestSuite, StdStringTest) {
-  VarTrace<> trace = VarTrace<>();
+  VarTrace<> trace;
   std::string s("test string");
   trace.Log(kInfoLevel, 1, s);
   int buffer_size = 0x1000;
@@ -55,4 +56,19 @@ TEST_F(ContainerTestSuite, StdStringTest) {
   unsigned dumped_size = trace.DumpInto(buffer.get(), buffer_size);
   vartrace::ParsedVartrace vt(buffer.get(), dumped_size);
   ASSERT_EQ(s.size(), vt[0]->data_size());
+}
+
+//! Check that string and vector loggers are blocked by log level.
+TEST_F(ContainerTestSuite, LogLevelTest) {
+  VarTrace<> trace;
+  std::string s("test string");
+  trace.Log(kHiddenLevel, 1, s);
+  int buffer_size = 0x1000;
+  boost::shared_array<uint8_t> buffer(new uint8_t[buffer_size]);
+  unsigned dumped_size = trace.DumpInto(buffer.get(), buffer_size);
+  ASSERT_EQ(0, dumped_size);
+  std::vector<int> v(10);
+  trace.Log(kHiddenLevel, 1, v);
+  dumped_size = trace.DumpInto(buffer.get(), buffer_size);
+  ASSERT_EQ(0, dumped_size);
 }
