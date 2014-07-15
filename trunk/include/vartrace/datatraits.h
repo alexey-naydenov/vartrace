@@ -1,6 +1,6 @@
-
 /* datatraits.h
-   Copyright (C) 2011 Alexey Naydenov <alexey.naydenovREMOVETHIS@gmail.com>
+
+   Copyright (C) 2011 Alexey Naydenov <alexey.naydenovREMOVETHIS@linux.com>
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 */
 
 /*! \file datatraits.h 
-  Traits for describing data types and sizes.
+  Trait for mapping type to id and size.
 */
 
 #ifndef TRUNK_INCLUDE_VARTRACE_DATATRAITS_H_
@@ -27,14 +27,14 @@
 
 namespace vartrace {
 
-/*! Trait that assigns data type id and size to a type. */
+//! Trait that relate id and size to a type.
 template<typename T> struct DataTypeTraits {
-  /*! Size and data type information. */
+  //! Size and data type information.
   enum {
     kDataTypeId = DataType2Int<T>::id,
     kTypeSize = sizeof(T)
   };
 };
-} /* vartrace */
+}  // namespace vartrace
 
 #endif  // TRUNK_INCLUDE_VARTRACE_DATATRAITS_H_
