@@ -18,6 +18,7 @@
 //!  \brief Tests for objects that have custom copy function.
 
 #include <boost/shared_ptr.hpp>
+#include <boost/shared_array.hpp>
 
 #include <gtest/gtest.h>
 
