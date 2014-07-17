@@ -20,8 +20,8 @@
 
   Traits that select type copy mechanism.
 
-  VarTrace::Log() template function calls appropriate overloaded
-  VarTrace::DoLog() function that does copying. The logging function
+  vartrace::VarTrace::Log() template function calls appropriate overloaded
+  vartrace::VarTrace::DoLog() function that does copying. The logging function
   is chosen based on type trait. If the template structure CopyTraits
   is not specialized for a type then an object is copied through
   memory copy. Logging of small POD types are sped up by using

@@ -48,8 +48,9 @@ const unsigned kDefaultTraceSize = 0x1000;
 
 //! Guard class to ensure that a subtrace is opened and closed properly.
 /*! Every call of BeginSubtrace() must be matched by a closing call to
-  EndSubtrace(). This class starts a trace in the constructor and
-  closes it in the destructor. */
+  EndSubtrace(). This class starts a subtrace in the constructor and
+  closes it in the destructor.
+*/
 template <class T> class SubtraceGuard {
  public:
   //! Begin subtrace and store trace pointer.

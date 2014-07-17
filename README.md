@@ -32,17 +32,56 @@ Features:
   environment. In later case one has to provide a type that will lock
   a trace object. By default no locking is done.
 
-* Same syntax for most types: `trace.Log(kInfoLevel, message_id
-  ,value);` where `value` can be POD type, array of PODs, std::vector,
-  std::string, object with custom log function or anything that can be
-  stored by copying `sizeof(value)` bytes.
+* Same syntax is used to store most types: `trace.Log(kInfoLevel,
+  message_id, value)` where `value` can be POD type, array of PODs,
+  std::vector, std::string, object with custom log function or
+  anything that can be stored by copying `sizeof(value)`
+  bytes. Dynamic arrays can be logged via overloaded function:
+  `trace.Log(kInfoLevel, message_id, pointer, length)`
 
 * The code does not use external libraries and exceptions so it can be
   assembled by most compilers.
 
+## Examples
+
+The following code illustrates minimal example which is storing an
+integer value and then dumping trace into a buffer:
+
+~~~~~~~~~~
+1. int32_t value = 123;
+2. uint8_t buffer[1000];
+3. VarTrace<> trace;
+4. trace.Log(kInfoLevel, 1, value);
+5. std::size_t dumped_size = trace.DumpInto(buffer, 1000);
+~~~~~~~~~~
+
+Line 3 creates a trace with default parameters that is it has size
+4kB, is split into 8 blocks, accepts messages of all log levels and
+does not use lock. The default constructor installs simple counter as
+timestamp function. Thus `value` on line 4 will be save with timestamp
+0, message id 1 and type id 5 (type id for `int32_t` is 5). The trace
+is serialized into a buffer on line 5. The dump function returns the
+size of written data. If the trace contains more data then the buffer
+size, which is passed as the second argument, then only the older
+messages will be serialized.
+
+The behavior of a trace object can be changed by passing template and
+regular arguments to VarTrace [constructor](\ref vartrace::VarTrace).
+For example the statement
+
+~~~~~~~~~~
+VarTrace<ErrorLogLevel> trace(4096, 4, buffer);
+~~~~~~~~~~
+
+creates a trace object that stores messages at least error level
+severity in a preallocated `buffer` of size 4096 and splits it into 4
+chunks.
+
 ## Building
 
-
+To buid the library one has to copile files from `src/vartrace` and
+copy `include/vartrace` into an include directory. Alternatively the
+library can be build using cmake.
 
 ## Testing
 
