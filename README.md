@@ -1,84 +1,71 @@
 # Vartrace
 
-C++ library for storing data at runtime. Essentially this library is a
-logger that stores values in binary format along with timestamp in a
-circular buffer. The design is base on
-[policies](http://en.wikipedia.org/wiki/Policy-based_design) and
-traits.
+This is a library for storing trace information in a circular
+buffer. It is designed to enable monitoring a running program with
+minimal interference.
 
-Goals:
+Features:
 
-* Compact data. Values are stored in binary form with minimal
-  additional information. Each record contains up to 8 bytes of service
-  data (4 byte timestamp, record type, data type and data
-  size). Messages can be bundled together so that timestamp stored
-  only once.
+* Trace dump is self describing. That is there is no need to provide
+  additional information to deserialize data.
 
-* Speed. As much as possible is done during compile time. Log function
-  dispatches on type and log level during compilation (one cannot
-  change log level at runtime). Copying of simple types is done
-  through assignment which gives small increase for int types (20% or
-  so). Unless class defines log function it will be copied through
-  `memcpy`.
+* Data is stored in a circular buffer with minimal overhead. Service
+  data is stored with each record and occupies 8 bytes. It consists of
+  4 bytes timestamp, 1 byte record type id, 1 byte data type id and
+  2 bytes data size.
 
-* Modularity. The behavior of log objects can be tuned through
-  policies. There are 4 policies: log level, object creation (for
-  example: singleton or one per create call), locking and data storage
-  creation.
+* Mulitple records can be bundled together and written under the same
+  timestamp. Such structure is treated as subtrace and can contain
+  other subtraces.
 
-* Simple syntax. In basic form a variable value can be stored like
-  `logger->Log(kInfoLevel, value);` where `value` can be pretty much
-  anything.
+* Information stored in a trace can be changed at compile time through
+  log level mechanism.
 
-* Portable. In theory the library can be compiled by any C++ compiler
-  with good template support that has STL implementation. Vartrace
-  uses `<boost/shared_ptr.hpp>` and `<boost/shared_array.hpp>` which
-  can be used without much of the rest of boost.
+* Member and stanalone functions can be used to store a non POD type
+  in a trace.
+
+* The library is designed to minimize impact on program
+  execution. PODs of size 4 bytes or less are stored using assignment
+  while larger types are copied by `memcpy`.
+
+* VarTrace can be used in single threaded as well as in multithreaded
+  environment. In later case one has to provide a type that will lock
+  a trace object. By default no locking is done.
+
+* Same syntax for most types: `trace.Log(kInfoLevel, message_id
+  ,value);` where `value` can be POD type, array of PODs, std::vector,
+  std::string, object with custom log function or anything that can be
+  stored by copying `sizeof(value)` bytes.
+
+* The code does not use external libraries and exceptions so it can be
+  assembled by most compilers.
+
+## Building
+
+
 
 ## Testing
 
 The project uses Google test suite. To setup testing:
 
-1. Download and unpack `gtest` into some directory:
+1. Download and install `gtest` into some directory.
+
+2. Change directory to `Debug`.
+
+3. Add `gtest` directory to cmake library path:
 ~~~~~~~~~~
-cd ~/tmp
-wget http://googletest.googlecode.com/files/gtest-1.6.0.zip 
-unzip gtest-1.6.0.zip
+export CMAKE_LIBRARY_PATH=/some/path/to/lib
 ~~~~~~~~~~
 
-2. In `vartrace` create `gtest_build` folder and build `gtest`:
+4. Run cmake, build tests and run them:
 ~~~~~~~~~~
-mkdir gtest_build && cd gtest_build
-cmake ~/tmp/gtest-1.6.0 && make && cd ..
-~~~~~~~~~~
-
-3. Create `build` directory and test:
-~~~~~~~~~~
-mkdir build && cd build
-cmake .. && make vartrace_test && make profile
-ctest
+cmake .. && make vartrace_test && valgrind ./trunk/tests/vartrace_test
 ~~~~~~~~~~
 
-## Profiling
-
-Profiling can be done either through gtests of by launching files for
-each data type separately. First compile in release:
-
+5. To run speed tests:
 ~~~~~~~~~~
 cmake -DCMAKE_BUILD_TYPE=Release ..
-make vartrace_test && make profile
-~~~~~~~~~~
-
-Then
-
-~~~~~~~~~~
-ctest
-~~~~~~~~~~
-
-or
-
-~~~~~~~~~~
-time ./trunk/tests/profile_double
+make profile && ./trunk/tests/profile
 ~~~~~~~~~~
 
 ## Input data format (outdated)
@@ -123,23 +110,3 @@ following message then it means that overflow happened and time
 stamp of the consequent messages should be incremented by the max
 value of the time stamp column.
 
-### Features
-
-- Horizontal axis can either be time stamp, counter of points for
-some data, value of some data set.
-- Axis can have either linear or logarithmic scale.
-- Different data messages can have different scale factors.
-- Array values can be displayed as a vertically arranged set of
-dots at the corresponding time stamp value.
-- Array can be reduced to a single value, for example with
-functions: index, min, max, sum, avg, median.
-- Multiple values per array can be displayed on a single plot.
-- Data can be divided into frames (timestamp is used) based on
-some condition.
-- User has a choice to display all data, data for some frames or
-one point per frame.
-- Data for single frame can be aggregated, for example by
-functions: min, max, sum, avg, median.
-- Frames can be filtered based on some condition.
-- Data points can be filtered based on their value or last value
-of some other data set.
