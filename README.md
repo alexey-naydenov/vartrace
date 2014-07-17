@@ -79,7 +79,7 @@ chunks.
 
 ## Building
 
-To buid the library one has to copile files from `src/vartrace` and
+To buid the library one has to compile files from `src/vartrace` and
 copy `include/vartrace` into an include directory. Alternatively the
 library can be build using cmake.
 
