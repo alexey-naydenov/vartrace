@@ -14,14 +14,14 @@ Features:
   4 bytes timestamp, 1 byte record type id, 1 byte data type id and
   2 bytes data size.
 
-* Mulitple records can be bundled together and written under the same
+* Multiple records can be bundled together and written under the same
   timestamp. Such structure is treated as subtrace and can contain
   other subtraces.
 
 * Information stored in a trace can be changed at compile time through
   log level mechanism.
 
-* Member and stanalone functions can be used to store a non POD type
+* Member and standalone functions can be used to store a non POD type
   in a trace.
 
 * The library is designed to minimize impact on program
@@ -41,6 +41,42 @@ Features:
 
 * The code does not use external libraries and exceptions so it can be
   assembled by most compilers.
+
+## Binary format
+
+Each record consists of a header and a data block. The header contains
+timestamp, data size, message type id, data type id and occupies 8
+bytes. The data is written in machine dependent endianess. The header
+is written by assigning 4 byte values so its exact structure will
+depend on machine type. The table below shows the structure of a
+message in little endian format:
+
+<table>
+  <tr>
+    <th>Time stamp</th><th>Size (N)</th><th>Message type</th>
+	<th>Data type</th><th>Data</th>
+  </tr>
+  <tr>
+    <th>4 bytes</th><th>2 bytes</th><th>1 byte</th>
+	<th>1 byte</th><th>N bytes</th>
+  </tr>
+</table>
+
+If a trace is serialized on a big endian machine then the size field
+will be the last entry in the header.
+
+Data section can itself contain a trace. Subtraces dont have timestamp
+field so a message has the following structure:
+
+<table>
+  <tr>
+    <th>Size (N)</th><th>Message type</th><th>Data type</th><th>Data</th>
+  </tr>
+  <tr>
+    <th>2 bytes</th><th>1 byte</th><th>1 byte</th><th>N bytes</th>
+  </tr>
+</table>
+
 
 ## Examples
 
@@ -74,12 +110,95 @@ VarTrace<ErrorLogLevel> trace(4096, 4, buffer);
 ~~~~~~~~~~
 
 creates a trace object that stores messages at least error level
-severity in a preallocated `buffer` of size 4096 and splits it into 4
-chunks.
+severity in an allocated `buffer` of size 4096. The buffer is split
+into 4 parts so around 3kB will be serialized by function
+vartrace::VarTrace::DumpInto().
+
+User defined types can be stored either by memory copy or by calling a
+custom function which can store data by calling vartrace log function.
+To force the library to use such behaviour a user must set copy trait.
+
+If it is possible to add member to a class then member function can be
+used to store it in a trace:
+
+~~~~~~~~~~
+// some header
+
+namespace test {
+class SelfLogClass {
+ public:
+  int ivar;
+  double dvar;
+  double dont_log_array[10];
+
+  // Function that chooses which members to store.
+  template<class LoggerPointer>
+  void LogItself(LoggerPointer trace) const {
+    trace->Log(kInfoLevel, 101, ivar);
+    trace->Log(kInfoLevel, 102, dvar);
+  }
+};
+}
+
+// Register SelfLogClass, the statement must be outside all namespaces.
+VARTRACE_SET_SELFLOGGING(test::SelfLogClass);
+
+// some source
+
+test::SelfLogClass obj;
+obj.ivar = 1234;
+obj.dvar = 12e-34;
+
+trace.Log(kInfoLevel, 1, obj);
+~~~~~~~~~~
+
+In this example a class defines a function with name `LogItself` which
+takes a pointer to a trace object. It is up to a class creator how to
+store the class in a trace. For example, subtrace can be used to speed
+up logging. VarTrace objects with different log threshold have
+different types so it is better to use template for `LogItself`
+function.
+
+It is also possible to use non member function for logging:
+
+~~~~~~~~~~
+// some header
+
+namespace test {
+struct CustomLogStruct {
+  int ivar;
+  double dvar;
+  double dont_log_array[10];
+};
+}
+
+namespace vartrace {
+// Custom logging function.
+template<class LoggerPointer>
+void LogObject(const test::CustomLogStruct &object, LoggerPointer trace) {
+  trace->Log(kInfoLevel, 101, object.ivar);
+  trace->Log(kInfoLevel, 102, object.dvar);
+}
+}  // namespace vartrace
+
+// the statement must be outside all namespaces
+VARTRACE_SET_LOG_FUNCTION(test::CustomLogStruct);
+
+// some source
+
+test::CustomLogStruct obj;
+obj.ivar = 1234;
+obj.dvar = 12e-34;
+
+trace.Log(kInfoLevel, 1, obj);
+~~~~~~~~~~
+
+This is a good alternative to member function in the case when a user
+does not have access to a class definition.
 
 ## Building
 
-To buid the library one has to compile files from `src/vartrace` and
+To build the library one has to compile files from `src/vartrace` and
 copy `include/vartrace` into an include directory. Alternatively the
 library can be build using cmake.
 
@@ -107,45 +226,4 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 make profile && ./trunk/tests/profile
 ~~~~~~~~~~
 
-## Input data format (outdated)
-
-Trace data consists of trace messages each of which has the
-following structure:
-
-<table>
-  <tr>
-    <th>Time stamp</th><th>Length</th><th>Message type</th>
-	<th>Data type</th><th>Data</th>
-  </tr>
-  <tr>
-    <th>4 bytes</th><th>2 bytes</th><th>1 byte</th>
-	<th>1 byte</th><th>Length bytes</th>
-  </tr>
-</table>
-
-Data field can itself be a compound structure like:
-
-<table>
-  <tr>
-    <th>Length</th><th>Message type</th><th>Data type</th><th>Data</th><th>
-  </tr>
-  <tr>
-    <th>2 bytes</th><th>1 byte</th><th>1 byte</th><th>Length bytes</th>
-  </tr>
-</table>
-
-In the most general case a value can be accessed by specifying an
-int array: Message type 1, Message type 2, ..., Message type N,
-Array index.
-
-All messages of some particular type must have same structure and
-data types. The additional field "Data type" is needed for self
-sufficiency of trace files (so they are usable even without
-description file).
-
-It is assumed that time stamp field always increasing. In other
-words if the time stamp of some message bigger the one of the
-following message then it means that overflow happened and time
-stamp of the consequent messages should be incremented by the max
-value of the time stamp column.
 
