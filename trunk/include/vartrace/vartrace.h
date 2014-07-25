@@ -1,5 +1,6 @@
 /* vartrace.h
-   Copyright (C) 2011 Alexey Naydenov <alexey.naydenovREMOVETHIS@gmail.com>
+
+   Copyright (C) 2011 Alexey Naydenov <alexey.naydenovREMOVETHIS@linux.com>
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,7 +17,7 @@
 */
 
 /*! \file vartrace.h 
-  Template for a variable trace object. 
+  Contains main template class.
 */
 
 #ifndef TRUNK_INCLUDE_VARTRACE_VARTRACE_H_
@@ -37,15 +38,19 @@
 namespace vartrace {
 
 namespace internal {
-//! Default number of blocks that trace is split into.
+//! Number of blocks used to split a trace by default.
 const unsigned kDefaultBlockCount = 8;
-//! Minimum allowed number of blocks to split trace into.
+//! Minimum number of blocks that a trace can be split into.
 const unsigned kMinBlockCount = 4;
 //! Default trace size.
 const unsigned kDefaultTraceSize = 0x1000;
 } // namespace internal
 
-//! Guard that starts subtrace on create and closes on destroy.
+//! Guard class to ensure that a subtrace is opened and closed properly.
+/*! Every call of BeginSubtrace() must be matched by a closing call to
+  EndSubtrace(). This class starts a subtrace in the constructor and
+  closes it in the destructor.
+*/
 template <class T> class SubtraceGuard {
  public:
   //! Begin subtrace and store trace pointer.
@@ -61,9 +66,7 @@ template <class T> class SubtraceGuard {
   T *trace_;
 };
 
-/*! Class for variable trace objects. */
-// size of a block must be bigger then sizeof of biggest type + 8
-// logging array or class must be smaller then block size
+//! Class that stores values and timestamp in a circular buffer.
 template <
   class LL = User5LogLevel, // log level selection
   template <class> class LP = SingleThreaded // locking policy

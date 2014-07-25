@@ -1,6 +1,6 @@
-/* vartrace_test.cc
+/* level_test.cc
 
-   Copyright (C) 2011 Alexey Naydenov <alexey.naydenovREMOVETHIS@linux.com>
+   Copyright (C) 2014 Alexey Naydenov <alexey.naydenovREMOVETHIS@linux.com>
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,17 +16,29 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*! \file vartrace_test.cc 
-  Testing vartrace class. 
+/*! \file level_test.cc 
+  Test log level functionality.
 */
 
 #include <gtest/gtest.h>
 
 #include <vartrace/vartrace.h>
-#include <vartrace/messageparser.h>
 
-//! Google test run function.
-int main(int argc, char *argv[]) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+using vartrace::VarTrace;
+
+//! Test suite for log level functionality.
+class LogLevelTestSuite : public ::testing::Test {
+};
+
+//! Check that PODs with low log level are not stored.
+TEST_F(LogLevelTestSuite, LevelPODTest) {
+  VarTrace<vartrace::InfoLogLevel> trace;
+  uint8_t buffer[100];
+  int value = 123;
+  trace.Log(vartrace::kDebugLevel, 1, value);
+  std::size_t dump_size = trace.DumpInto(buffer, 100);
+  ASSERT_EQ(0, dump_size);
+  trace.Log(vartrace::kInfoLevel, 1, value);
+  dump_size = trace.DumpInto(buffer, 100);
+  ASSERT_LT(0, dump_size);
 }

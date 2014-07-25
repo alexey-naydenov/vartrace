@@ -1,5 +1,6 @@
 /* log_level.h
-   Copyright (C) 2012 Alexey Naydenov <alexey.naydenovREMOVETHIS@gmail.com>
+   
+   Copyright (C) 2012 Alexey Naydenov <alexey.naydenovREMOVETHIS@linux.com>
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,14 +17,30 @@
 */
 
 /*! \file log_level.h
-  Structures and objects that allow setting log levels for traces.
+
+  Types and object declarations for setting log level.
+
+  Weather an object is stored or not is determined at compile time. To
+  implement this functionality a set of structures is used. Structures
+  are organized into a chain through inheritance. The base
+  HiddenLogLevel corresponds to lowest priority and prevents from
+  storing information in a log. This type is for internal use only,
+  the lowest level that can be used by an application is
+  User5LogLevel. This level is set by default. To restrict output pass
+  one of the types as first template argument to vartrace constructor.
+
+  The first argument of Log function is an object inherited from
+  HiddenLogLevel. There are two implementations of Log function: one
+  that take HiddenLogLevel and does nothing; the other accept an
+  object of the type passed as first template argument of the vartrace
+  constructor. Thus if one pass an object inherited from type used in
+  the constructor the data will be saved.
 */
 
 #ifndef TRUNK_INCLUDE_VARTRACE_LOG_LEVEL_H_
 #define TRUNK_INCLUDE_VARTRACE_LOG_LEVEL_H_
 
 namespace vartrace {
-
 //! Log function that takes object of this type does nothing.
 struct HiddenLogLevel {};
 //! Log level tag struct.
@@ -69,6 +86,6 @@ extern WarningLogLevel kWarningLevel;
 extern ErrorLogLevel kErrorLevel;
 //! Object that should be used in Log function call to indicate log level.
 extern FatalLogLevel kFatalLevel;
-}  // vartrace
+}  // namespace vartrace
 
 #endif  // TRUNK_INCLUDE_VARTRACE_LOG_LEVEL_H_

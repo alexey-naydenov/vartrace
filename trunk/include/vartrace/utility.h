@@ -1,6 +1,6 @@
 /* utility.h
    
-   Copyright (C) 2011 Alexey Naydenov <alexey.naydenovREMOVETHIS@gmail.com>
+   Copyright (C) 2011 Alexey Naydenov <alexey.naydenovREMOVETHIS@linux.com>
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 */
 
 /*! \file utility.h 
-  Some utility macros and constants. 
+  Different utilities, macros and constants used internally. 
 */
 
 #ifndef TRUNK_INCLUDE_VARTRACE_UTILITY_H_

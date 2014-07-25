@@ -17,6 +17,8 @@
 
 //!  \brief Test container logging.
 
+#include <boost/shared_array.hpp>
+
 #include <vector>
 #include <string>
 

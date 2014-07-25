@@ -1,145 +1,229 @@
 # Vartrace
 
-C++ library for storing data at runtime. Essentially this library is a
-logger that stores values in binary format along with timestamp in a
-circular buffer. The design is base on
-[policies](http://en.wikipedia.org/wiki/Policy-based_design) and
-traits.
+This is a library for storing trace information in a circular
+buffer. It is designed to enable monitoring a running program with
+minimal interference.
 
-Goals:
+Features:
 
-* Compact data. Values are stored in binary form with minimal
-  additional information. Each record contains up to 8 bytes of service
-  data (4 byte timestamp, record type, data type and data
-  size). Messages can be bundled together so that timestamp stored
-  only once.
+* Trace dump is self describing. That is there is no need to provide
+  additional information to deserialize data.
 
-* Speed. As much as possible is done during compile time. Log function
-  dispatches on type and log level during compilation (one cannot
-  change log level at runtime). Copying of simple types is done
-  through assignment which gives small increase for int types (20% or
-  so). Unless class defines log function it will be copied through
-  `memcpy`.
+* Data is stored in a circular buffer with minimal overhead. Service
+  data is stored with each record and occupies 8 bytes. It consists of
+  4 bytes timestamp, 1 byte record type id, 1 byte data type id and
+  2 bytes data size.
 
-* Modularity. The behavior of log objects can be tuned through
-  policies. There are 4 policies: log level, object creation (for
-  example: singleton or one per create call), locking and data storage
-  creation.
+* Multiple records can be bundled together and written under the same
+  timestamp. Such structure is treated as subtrace and can contain
+  other subtraces.
 
-* Simple syntax. In basic form a variable value can be stored like
-  `logger->Log(kInfoLevel, value);` where `value` can be pretty much
-  anything.
+* Information stored in a trace can be changed at compile time through
+  log level mechanism.
 
-* Portable. In theory the library can be compiled by any C++ compiler
-  with good template support that has STL implementation. Vartrace
-  uses `<boost/shared_ptr.hpp>` and `<boost/shared_array.hpp>` which
-  can be used without much of the rest of boost.
+* Member and standalone functions can be used to store a non POD type
+  in a trace.
+
+* The library is designed to minimize impact on program
+  execution. PODs of size 4 bytes or less are stored using assignment
+  while larger types are copied by `memcpy`.
+
+* VarTrace can be used in single threaded as well as in multithreaded
+  environment. In later case one has to provide a type that will lock
+  a trace object. By default no locking is done.
+
+* Same syntax is used to store most types: `trace.Log(kInfoLevel,
+  message_id, value)` where `value` can be POD type, array of PODs,
+  std::vector, std::string, object with custom log function or
+  anything that can be stored by copying `sizeof(value)`
+  bytes. Dynamic arrays can be logged via overloaded function:
+  `trace.Log(kInfoLevel, message_id, pointer, length)`
+
+* The code does not use external libraries and exceptions so it can be
+  assembled by most compilers.
+
+## Binary format
+
+Each record consists of a header and a data block. The header contains
+timestamp, data size, message type id, data type id and occupies 8
+bytes. The data is written in machine dependent endianess. The header
+is written by assigning 4 byte values so its exact structure will
+depend on machine type. The table below shows the structure of a
+message in little endian format:
+
+<table>
+  <tr>
+    <th>Time stamp</th><th>Size (N)</th><th>Message type</th>
+	<th>Data type</th><th>Data</th>
+  </tr>
+  <tr>
+    <th>4 bytes</th><th>2 bytes</th><th>1 byte</th>
+	<th>1 byte</th><th>N bytes</th>
+  </tr>
+</table>
+
+If a trace is serialized on a big endian machine then the size field
+will be the last entry in the header.
+
+Data section can itself contain a trace. Subtraces dont have timestamp
+field so a message has the following structure:
+
+<table>
+  <tr>
+    <th>Size (N)</th><th>Message type</th><th>Data type</th><th>Data</th>
+  </tr>
+  <tr>
+    <th>2 bytes</th><th>1 byte</th><th>1 byte</th><th>N bytes</th>
+  </tr>
+</table>
+
+
+## Examples
+
+The following code illustrates minimal example which is storing an
+integer value and then dumping trace into a buffer:
+
+~~~~~~~~~~
+1. int32_t value = 123;
+2. uint8_t buffer[1000];
+3. VarTrace<> trace;
+4. trace.Log(kInfoLevel, 1, value);
+5. std::size_t dumped_size = trace.DumpInto(buffer, 1000);
+~~~~~~~~~~
+
+Line 3 creates a trace with default parameters that is it has size
+4kB, is split into 8 blocks, accepts messages of all log levels and
+does not use lock. The default constructor installs simple counter as
+timestamp function. Thus `value` on line 4 will be save with timestamp
+0, message id 1 and type id 5 (type id for `int32_t` is 5). The trace
+is serialized into a buffer on line 5. The dump function returns the
+size of written data. If the trace contains more data then the buffer
+size, which is passed as the second argument, then only the older
+messages will be serialized.
+
+The behavior of a trace object can be changed by passing template and
+regular arguments to VarTrace [constructor](\ref vartrace::VarTrace).
+For example the statement
+
+~~~~~~~~~~
+VarTrace<ErrorLogLevel> trace(4096, 4, buffer);
+~~~~~~~~~~
+
+creates a trace object that stores messages at least error level
+severity in an allocated `buffer` of size 4096. The buffer is split
+into 4 parts so around 3kB will be serialized by function
+vartrace::VarTrace::DumpInto().
+
+User defined types can be stored either by memory copy or by calling a
+custom function which can store data by calling vartrace log function.
+To force the library to use such behaviour a user must set copy trait.
+
+If it is possible to add member to a class then member function can be
+used to store it in a trace:
+
+~~~~~~~~~~
+// some header
+
+namespace test {
+class SelfLogClass {
+ public:
+  int ivar;
+  double dvar;
+  double dont_log_array[10];
+
+  // Function that chooses which members to store.
+  template<class LoggerPointer>
+  void LogItself(LoggerPointer trace) const {
+    trace->Log(kInfoLevel, 101, ivar);
+    trace->Log(kInfoLevel, 102, dvar);
+  }
+};
+}
+
+// Register SelfLogClass, the statement must be outside all namespaces.
+VARTRACE_SET_SELFLOGGING(test::SelfLogClass);
+
+// some source
+
+test::SelfLogClass obj;
+obj.ivar = 1234;
+obj.dvar = 12e-34;
+
+trace.Log(kInfoLevel, 1, obj);
+~~~~~~~~~~
+
+In this example a class defines a function with name `LogItself` which
+takes a pointer to a trace object. It is up to a class creator how to
+store the class in a trace. For example, subtrace can be used to speed
+up logging. VarTrace objects with different log threshold have
+different types so it is better to use template for `LogItself`
+function.
+
+It is also possible to use non member function for logging:
+
+~~~~~~~~~~
+// some header
+
+namespace test {
+struct CustomLogStruct {
+  int ivar;
+  double dvar;
+  double dont_log_array[10];
+};
+}
+
+namespace vartrace {
+// Custom logging function.
+template<class LoggerPointer>
+void LogObject(const test::CustomLogStruct &object, LoggerPointer trace) {
+  trace->Log(kInfoLevel, 101, object.ivar);
+  trace->Log(kInfoLevel, 102, object.dvar);
+}
+}  // namespace vartrace
+
+// the statement must be outside all namespaces
+VARTRACE_SET_LOG_FUNCTION(test::CustomLogStruct);
+
+// some source
+
+test::CustomLogStruct obj;
+obj.ivar = 1234;
+obj.dvar = 12e-34;
+
+trace.Log(kInfoLevel, 1, obj);
+~~~~~~~~~~
+
+This is a good alternative to member function in the case when a user
+does not have access to a class definition.
+
+## Building
+
+To build the library one has to compile files from `src/vartrace` and
+copy `include/vartrace` into an include directory. Alternatively the
+library can be build using cmake.
 
 ## Testing
 
 The project uses Google test suite. To setup testing:
 
-1. Download and unpack `gtest` into some directory:
+1. Download and install `gtest` into some directory.
+
+2. Change directory to `Debug`.
+
+3. Add `gtest` directory to cmake library path:
 ~~~~~~~~~~
-cd ~/tmp
-wget http://googletest.googlecode.com/files/gtest-1.6.0.zip 
-unzip gtest-1.6.0.zip
+export CMAKE_LIBRARY_PATH=/some/path/to/lib
 ~~~~~~~~~~
 
-2. In `vartrace` create `gtest_build` folder and build `gtest`:
+4. Run cmake, build tests and run them:
 ~~~~~~~~~~
-mkdir gtest_build && cd gtest_build
-cmake ~/tmp/gtest-1.6.0 && make && cd ..
-~~~~~~~~~~
-
-3. Create `build` directory and test:
-~~~~~~~~~~
-mkdir build && cd build
-cmake .. && make vartrace_test && make profile
-ctest
+cmake .. && make vartrace_test && valgrind ./trunk/tests/vartrace_test
 ~~~~~~~~~~
 
-## Profiling
-
-Profiling can be done either through gtests of by launching files for
-each data type separately. First compile in release:
-
+5. To run speed tests:
 ~~~~~~~~~~
 cmake -DCMAKE_BUILD_TYPE=Release ..
-make vartrace_test && make profile
+make profile && ./trunk/tests/profile
 ~~~~~~~~~~
 
-Then
 
-~~~~~~~~~~
-ctest
-~~~~~~~~~~
-
-or
-
-~~~~~~~~~~
-time ./trunk/tests/profile_double
-~~~~~~~~~~
-
-## Input data format (outdated)
-
-Trace data consists of trace messages each of which has the
-following structure:
-
-<table>
-  <tr>
-    <th>Time stamp</th><th>Length</th><th>Message type</th>
-	<th>Data type</th><th>Data</th>
-  </tr>
-  <tr>
-    <th>4 bytes</th><th>2 bytes</th><th>1 byte</th>
-	<th>1 byte</th><th>Length bytes</th>
-  </tr>
-</table>
-
-Data field can itself be a compound structure like:
-
-<table>
-  <tr>
-    <th>Length</th><th>Message type</th><th>Data type</th><th>Data</th><th>
-  </tr>
-  <tr>
-    <th>2 bytes</th><th>1 byte</th><th>1 byte</th><th>Length bytes</th>
-  </tr>
-</table>
-
-In the most general case a value can be accessed by specifying an
-int array: Message type 1, Message type 2, ..., Message type N,
-Array index.
-
-All messages of some particular type must have same structure and
-data types. The additional field "Data type" is needed for self
-sufficiency of trace files (so they are usable even without
-description file).
-
-It is assumed that time stamp field always increasing. In other
-words if the time stamp of some message bigger the one of the
-following message then it means that overflow happened and time
-stamp of the consequent messages should be incremented by the max
-value of the time stamp column.
-
-### Features
-
-- Horizontal axis can either be time stamp, counter of points for
-some data, value of some data set.
-- Axis can have either linear or logarithmic scale.
-- Different data messages can have different scale factors.
-- Array values can be displayed as a vertically arranged set of
-dots at the corresponding time stamp value.
-- Array can be reduced to a single value, for example with
-functions: index, min, max, sum, avg, median.
-- Multiple values per array can be displayed on a single plot.
-- Data can be divided into frames (timestamp is used) based on
-some condition.
-- User has a choice to display all data, data for some frames or
-one point per frame.
-- Data for single frame can be aggregated, for example by
-functions: min, max, sum, avg, median.
-- Frames can be filtered based on some condition.
-- Data points can be filtered based on their value or last value
-of some other data set.

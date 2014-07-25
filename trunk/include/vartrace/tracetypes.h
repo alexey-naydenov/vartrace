@@ -1,6 +1,6 @@
 /* tracetypes.h
    
-   Copyright (C) 2011 Alexey Naydenov <alexey.naydenovREMOVETHIS@gmail.com>
+   Copyright (C) 2011 Alexey Naydenov <alexey.naydenovREMOVETHIS@linux.com>
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,7 +17,9 @@
 */
 
 /*! \file tracetypes.h 
-  Definition of types used for creating a trace. 
+  Types used by vartrace to store message fields.
+
+  This file might be included from C source so ifdef guard is used.
 */
 
 #ifndef TRUNK_INCLUDE_VARTRACE_TRACETYPES_H_
