@@ -44,6 +44,15 @@ template <class T> struct SingleThreaded {
  protected:
   ~SingleThreaded() {}
 };
+
+#ifdef HAS_STDLIB_THREADS
+//! Lock object access using C++11 mutex.
+template <class T> struct StdLocking {
+ public:
+  //! Mutex guard
+};
+#endif // HAS_STDLIB_THREADS
+
 }  // namespace vartrace
 
 #endif  // TRUNK_INCLUDE_VARTRACE_POLICIES_H_

@@ -1,46 +1,35 @@
 # Vartrace
 
-This is a library for storing trace information in a circular
-buffer. It is designed to enable monitoring a running program with
-minimal interference.
+Library for storing runtime information basically a logger that stores
+binary data instead of text messages. It is designed to monitor a
+running program with minimal interference. The project was created
+because there was a need to debug and detect anomalies in
+multi-threaded application after release.
 
-Features:
+To minimize impact on a running program the library was implemented
+with the following features:
 
-* Trace dump is self describing. That is there is no need to provide
-  additional information to deserialize data.
+* Data is stored in a fixed size circular buffer. Each record contains
+  8 bytes of overhead data that contains timestamp and description.
 
-* Data is stored in a circular buffer with minimal overhead. Service
-  data is stored with each record and occupies 8 bytes. It consists of
-  4 bytes timestamp, 1 byte record type id, 1 byte data type id and
-  2 bytes data size.
+* No exceptions, memory allocation or non standard libraries.
 
 * Multiple records can be bundled together and written under the same
-  timestamp. Such structure is treated as subtrace and can contain
-  other subtraces.
+  timestamp.
 
-* Information stored in a trace can be changed at compile time through
-  log level mechanism.
+* Log level can be changed at compile time.
 
-* Member and standalone functions can be used to store a non POD type
-  in a trace.
+* Standalone and member functions can be used to store user defined
+  structures.
 
-* The library is designed to minimize impact on program
-  execution. PODs of size 4 bytes or less are stored using assignment
-  while larger types are copied by `memcpy`.
+* Short data types are stored by optimized function that uses
+  assignment instead of `memcpy`.
 
-* VarTrace can be used in single threaded as well as in multithreaded
-  environment. In later case one has to provide a type that will lock
-  a trace object. By default no locking is done.
+* Locks can be used to share trace object between threads. This
+  feature can be turned on or off through template parameters.
 
-* Same syntax is used to store most types: `trace.Log(kInfoLevel,
-  message_id, value)` where `value` can be POD type, array of PODs,
-  std::vector, std::string, object with custom log function or
-  anything that can be stored by copying `sizeof(value)`
-  bytes. Dynamic arrays can be logged via overloaded function:
-  `trace.Log(kInfoLevel, message_id, pointer, length)`
-
-* The code does not use external libraries and exceptions so it can be
-  assembled by most compilers.
+* Trace dump contains all necessary information in order to restore
+  saved values.
 
 ## Binary format
 
